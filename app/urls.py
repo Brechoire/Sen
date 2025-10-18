@@ -32,8 +32,8 @@ urlpatterns = [
     path("administration/", include("admin_panel.urls")),
 ]
 
-# TEMPORAIRE : Forcer Django à servir les fichiers statiques même en production
-# Cela va résoudre le problème immédiatement
+# Configuration pour servir les fichiers statiques et média
+# En développement et en production (nécessaire pour o2switch)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
