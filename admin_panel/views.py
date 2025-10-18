@@ -26,7 +26,7 @@ def admin_dashboard(request):
         'total_books': Book.objects.count(),
         'total_categories': Category.objects.count(),
         'total_users': User.objects.count(),
-        'total_carts': Cart.objects.count(),
+        'total_orders': Cart.objects.filter(items__isnull=False).distinct().count(),
         'total_reviews': Review.objects.count(),
     }
     
