@@ -8,9 +8,12 @@ from django.db.models import Q, Avg, Count
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.db import transaction
+from decimal import Decimal
 
-from .models import Book, Category, BookImage, Review, Cart, CartItem
-from .forms import BookForm, CategoryForm, BookImageForm, ReviewForm, BookSearchForm
+from .models import Book, Category, BookImage, Review, Cart, CartItem, Order, OrderItem, Payment, ShopSettings, Refund
+from .forms import BookForm, CategoryForm, BookImageForm, ReviewForm, BookSearchForm, CheckoutForm, PaymentMethodForm, RefundRequestForm
+from .paypal_api import create_paypal_order, capture_paypal_order
+from django.conf import settings
 from author.models import Author
 
 
@@ -602,3 +605,250 @@ def force_cart_transfer(request):
             return JsonResponse({'error': 'Aucun panier de session trouvé'})
     else:
         return JsonResponse({'error': 'Aucune clé de session'})
+
+
+# Vues pour le processus de commande et paiement
+@login_required
+def checkout(request):
+    """Vue pour le processus de commande"""
+    cart = get_or_create_cart(request)
+    cart_items = cart.items.select_related('book').all()
+    
+    if not cart_items.exists():
+        messages.warning(request, 'Votre panier est vide.')
+        return redirect('shop:cart_detail')
+    
+    if request.method == 'POST':
+        form = CheckoutForm(request.POST)
+        payment_form = PaymentMethodForm(request.POST)
+        
+        if form.is_valid() and payment_form.is_valid():
+            try:
+                with transaction.atomic():
+                    # Créer la commande
+                    order = form.save(commit=False)
+                    order.user = request.user
+                    
+                    # Récupérer les paramètres de la boutique
+                    shop_settings = ShopSettings.get_settings()
+                    
+                    # Calculer les montants
+                    order.subtotal = cart.final_price
+                    order.shipping_cost = Decimal('0.00') if order.subtotal >= shop_settings.free_shipping_threshold else shop_settings.standard_shipping_cost
+                    order.tax_amount = order.subtotal * (shop_settings.tax_rate / Decimal('100'))
+                    
+                    order.total_amount = order.subtotal + order.shipping_cost + order.tax_amount
+                    
+                    order.save()
+                    
+                    # Mettre à jour les informations de livraison de l'utilisateur
+                    user = request.user
+                    user.shipping_address = order.shipping_address
+                    user.shipping_city = order.shipping_city
+                    user.shipping_postal_code = order.shipping_postal_code
+                    user.shipping_country = order.shipping_country
+                    user.shipping_phone = order.shipping_phone
+                    user.save()
+                    
+                    # Créer les articles de commande
+                    for cart_item in cart_items:
+                        OrderItem.objects.create(
+                            order=order,
+                            book=cart_item.book,
+                            quantity=cart_item.quantity,
+                            unit_price=cart_item.unit_price,
+                            total_price=cart_item.total_price
+                        )
+                    
+                    # Créer le paiement
+                    payment_method = payment_form.cleaned_data['payment_method']
+                    payment = Payment.objects.create(
+                        order=order,
+                        payment_method=payment_method,
+                        amount=order.total_amount,
+                        currency='EUR'
+                    )
+                    
+                    # Rediriger vers le paiement approprié
+                    if payment_method == 'paypal':
+                        return redirect('shop:paypal_payment', order_id=order.id)
+                    else:
+                        messages.error(request, 'Méthode de paiement non supportée.')
+                        return redirect('shop:checkout')
+                        
+            except Exception as e:
+                messages.error(request, f'Erreur lors de la création de la commande: {str(e)}')
+                return redirect('shop:checkout')
+    else:
+        # Pré-remplir le formulaire avec les données de l'utilisateur
+        user = request.user
+        initial_data = {
+            'shipping_first_name': user.first_name or '',
+            'shipping_last_name': user.last_name or '',
+            'shipping_address': user.shipping_address or '',
+            'shipping_city': user.shipping_city or '',
+            'shipping_postal_code': user.shipping_postal_code or '',
+            'shipping_country': user.shipping_country or 'France',
+            'shipping_phone': user.phone or '',
+        }
+        
+        form = CheckoutForm(initial=initial_data)
+        payment_form = PaymentMethodForm()
+    
+    # Récupérer les paramètres de la boutique
+    shop_settings = ShopSettings.get_settings()
+    
+    # Calculer les montants pour l'affichage
+    subtotal = cart.final_price
+    shipping_cost = Decimal('0.00') if subtotal >= shop_settings.free_shipping_threshold else shop_settings.standard_shipping_cost
+    tax_amount = subtotal * (shop_settings.tax_rate / Decimal('100'))
+    total_amount = subtotal + shipping_cost + tax_amount
+    
+    context = {
+        'cart': cart,
+        'cart_items': cart_items,
+        'form': form,
+        'payment_form': payment_form,
+        'subtotal': subtotal,
+        'shipping_cost': shipping_cost,
+        'tax_amount': tax_amount,
+        'total_amount': total_amount,
+    }
+    
+    return render(request, 'shop/checkout.html', context)
+
+
+@login_required
+def paypal_payment(request, order_id):
+    """Vue pour traiter le paiement PayPal"""
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    
+    if order.payment_status != 'pending':
+        messages.error(request, 'Cette commande a déjà été traitée.')
+        return redirect('shop:order_detail', order_id=order.id)
+    
+    context = {
+        'order': order,
+        'paypal_client_id': settings.PAYPAL_CLIENT_ID,
+        'paypal_mode': settings.PAYPAL_MODE,
+    }
+    
+    return render(request, 'shop/paypal_payment.html', context)
+
+
+@login_required
+def paypal_success(request):
+    """Vue appelée après un paiement PayPal réussi"""
+    messages.success(request, 'Paiement effectué avec succès ! Votre commande est en cours de traitement.')
+    return redirect('shop:order_list')
+
+
+@login_required
+def paypal_cancel(request):
+    """Vue appelée si l'utilisateur annule le paiement PayPal"""
+    messages.warning(request, 'Paiement annulé. Vous pouvez réessayer plus tard.')
+    return redirect('shop:order_list')
+
+
+@login_required
+def order_detail(request, order_id):
+    """Vue pour afficher les détails d'une commande"""
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    
+    context = {
+        'order': order,
+        'order_items': order.items.select_related('book').all(),
+    }
+    
+    return render(request, 'shop/order_detail.html', context)
+
+
+@login_required
+def order_list(request):
+    """Vue pour lister les commandes de l'utilisateur"""
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    
+    context = {
+        'orders': orders,
+    }
+    
+    return render(request, 'shop/order_list.html', context)
+
+
+@login_required
+def cancel_order(request, order_id):
+    """Vue pour annuler une commande"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
+    
+    try:
+        order = get_object_or_404(Order, id=order_id, user=request.user)
+        
+        if not order.can_be_cancelled:
+            return JsonResponse({'error': 'Cette commande ne peut pas être annulée'}, status=400)
+        
+        # Annuler la commande
+        order.status = 'cancelled'
+        order.payment_status = 'cancelled'
+        order.save()
+        
+        # Annuler le paiement associé
+        if hasattr(order, 'payment'):
+            order.payment.status = 'cancelled'
+            order.payment.save()
+        
+        messages.success(request, f'Commande {order.order_number} annulée avec succès.')
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Commande annulée avec succès',
+            'order_id': order.id
+        })
+        
+    except Order.DoesNotExist:
+        return JsonResponse({'error': 'Commande non trouvée'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': f'Erreur lors de l\'annulation: {str(e)}'}, status=500)
+
+
+@login_required
+def request_refund(request, order_id):
+    """Vue pour demander un remboursement"""
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    
+    # Vérifier si la commande peut être remboursée
+    if order.payment_status != 'paid':
+        messages.error(request, 'Cette commande ne peut pas être remboursée.')
+        return redirect('shop:order_detail', order_id=order.id)
+    
+    if request.method == 'POST':
+        form = RefundRequestForm(request.POST, order=order)
+        if form.is_valid():
+            refund = form.save(commit=False)
+            refund.order = order
+            refund.requested_by = request.user
+            refund.save()
+            
+            messages.success(request, 'Votre demande de remboursement a été envoyée. Nous vous contacterons sous 24-48h.')
+            return redirect('shop:order_detail', order_id=order.id)
+    else:
+        form = RefundRequestForm(order=order)
+    
+    context = {
+        'order': order,
+        'form': form,
+    }
+    
+    return render(request, 'shop/request_refund.html', context)
+
+
+@login_required
+def refund_list(request):
+    """Vue pour lister les remboursements de l'utilisateur"""
+    refunds = Refund.objects.filter(requested_by=request.user).order_by('-created_at')
+    
+    context = {
+        'refunds': refunds,
+    }
+    
+    return render(request, 'shop/refund_list.html', context)

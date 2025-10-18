@@ -80,7 +80,7 @@
                             <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
                                 <i class="fas fa-user mr-2"></i>Mon profil
                             </a>
-                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                            <a href="{% url 'shop:order_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
                                 <i class="fas fa-shopping-bag mr-2"></i>Mes commandes
                             </a>
                             {% if user.is_superuser %}

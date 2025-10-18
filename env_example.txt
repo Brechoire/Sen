@@ -1,0 +1,26 @@
+# Configuration Django
+SECRET_KEY=django-insecure-7q8m2mjez4%w0!1vlky_1ikq1fzfs*!szbmlmu=hc0j4nfjds7
+DEBUG=True
+ALLOWED_HOSTS=dev.editions-sen.fr,www.dev.editions-sen.fr,localhost,127.0.0.1
+
+# Configuration PayPal (REMPLACEZ par vos vrais identifiants)
+PAYPAL_CLIENT_ID=AXGUFtUU4a7jP1zFPLE4YP1Cyun9kFDSUh94RIJlJePRyZos2N5ThBRk9LDCYYeHqQAsbKajR607BJ7Y
+PAYPAL_CLIENT_SECRET=EIv0f2d7iZ7w89ehzRnZT8MvhE-v5mnZK2irTk6UmF3l5RGtuyaR35EGlxlXHHe5Fp9k-IitIJT4gojQ
+PAYPAL_MODE=sandbox
+
+# Configuration Email (optionnel)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=your-app-password
+
+# Configuration de la boutique
+SHOP_NAME=Éditions Sen
+SHOP_EMAIL=contact@editions-sen.com
+SHOP_PHONE=+33123456789
+
+# Configuration des paramètres de livraison
+FREE_SHIPPING_THRESHOLD=60.00
+STANDARD_SHIPPING_COST=5.90
+TAX_RATE=5.5

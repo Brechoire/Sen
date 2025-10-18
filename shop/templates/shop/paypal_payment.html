@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Paiement PayPal - {{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- En-tête -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Paiement PayPal</h1>
+            <p class="mt-2 text-gray-600">Commande {{ order.order_number }}</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Informations de la commande -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Détails de la commande</h2>
+                
+                <div class="space-y-4">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Sous-total</span>
+                        <span class="font-medium">{{ order.subtotal|floatformat:2 }} €</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Frais de port</span>
+                        <span class="font-medium">
+                            {% if order.shipping_cost == 0 %}
+                                Gratuit
+                            {% else %}
+                                {{ order.shipping_cost|floatformat:2 }} €
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">TVA (5.5%)</span>
+                        <span class="font-medium">{{ order.tax_amount|floatformat:2 }} €</span>
+                    </div>
+                    <hr class="my-4">
+                    <div class="flex justify-between text-lg font-semibold">
+                        <span>Total</span>
+                        <span class="text-primary">{{ order.total_amount|floatformat:2 }} €</span>
+                    </div>
+                </div>
+
+                <!-- Articles de la commande -->
+                <div class="mt-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-3">Articles commandés</h3>
+                    <div class="space-y-3">
+                        {% for item in order.orderitem_set.all %}
+                        <div class="flex items-center space-x-3">
+                            <div class="flex-shrink-0">
+                                {% if item.book.cover_image %}
+                                    <img src="{{ item.book.cover_image.url }}" alt="{{ item.book.title }}" class="w-12 h-16 object-cover rounded">
+                                {% else %}
+                                    <div class="w-12 h-16 bg-gray-200 rounded flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                        </svg>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="text-sm font-medium text-gray-900 truncate">{{ item.book.title }}</h4>
+                                <p class="text-sm text-gray-500">Par {{ item.book.author.display_name }}</p>
+                                <p class="text-sm text-gray-500">Quantité: {{ item.quantity }}</p>
+                            </div>
+                            <div class="text-sm font-medium text-gray-900">
+                                {{ item.price|floatformat:2 }} €
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paiement PayPal -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Paiement sécurisé</h2>
+                
+                <div class="mb-6">
+                    <div class="flex items-center justify-center mb-4">
+                        <img src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_37x23.jpg" alt="PayPal" class="h-8">
+                    </div>
+                    <p class="text-sm text-gray-600 text-center">
+                        Cliquez sur le bouton ci-dessous pour finaliser votre paiement de manière sécurisée.
+                    </p>
+                </div>
+
+                <!-- Conteneur PayPal -->
+                <div id="paypal-button-container" class="mb-6"></div>
+                
+                <!-- Alternative : Redirection directe -->
+                <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <p class="text-sm text-gray-600 mb-3">Problème avec le bouton PayPal ?</p>
+                    <button id="direct-paypal-btn" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                        Ouvrir PayPal dans un nouvel onglet
+                    </button>
+                </div>
+
+                <!-- Informations de sécurité -->
+                <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-blue-800">Paiement sécurisé</h3>
+                            <div class="mt-2 text-sm text-blue-700">
+                                <p>Vos informations de paiement sont protégées par PayPal. Nous ne stockons aucune information de carte bancaire.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bouton d'annulation -->
+                <div class="mt-6">
+                    <a href="{% url 'shop:order_list' %}" class="w-full bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 transition-colors text-center block">
+                        Annuler et retourner aux commandes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script PayPal -->
+<script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=EUR&intent=capture"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const orderId = {{ order.id }};
+    const totalAmount = {{ order.total_amount|floatformat:2 }};
+    
+    paypal.Buttons({
+        style: {
+            layout: 'vertical',
+            color: 'blue',
+            shape: 'rect',
+            label: 'paypal'
+        },
+        createOrder: function(data, actions) {
+            return fetch('/boutique/api/paypal/create-order/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    order_id: orderId,
+                    amount: totalAmount
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                return data.id;
+            });
+        },
+        
+        onApprove: function(data, actions) {
+            return actions.order.capture().then(function(details) {
+                console.log('Paiement approuvé:', details);
+                
+                // Envoyer les données au serveur
+                return fetch('/boutique/api/paypal/capture-order/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: JSON.stringify({
+                        paypal_order_id: data.orderID,
+                        details: details
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    
+                    // Rediriger vers la page de succès
+                    window.location.href = '{% url "shop:paypal_success" %}';
+                })
+                .catch(error => {
+                    console.error('Erreur PayPal:', error);
+                    alert('Une erreur est survenue lors du paiement: ' + error.message);
+                });
+            });
+        },
+        
+        onError: function(err) {
+            console.error('Erreur PayPal:', err);
+            alert('Une erreur est survenue lors du paiement. Veuillez réessayer.');
+        },
+        
+        onCancel: function(data) {
+            console.log('Paiement annulé:', data);
+            window.location.href = '{% url "shop:paypal_cancel" %}';
+        }
+    }).render('#paypal-button-container');
+    
+    // Bouton de redirection directe
+    document.getElementById('direct-paypal-btn').addEventListener('click', function() {
+        // Créer une commande PayPal et rediriger
+        fetch('/boutique/api/paypal/create-order/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                order_id: orderId,
+                amount: totalAmount
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            // Rediriger vers PayPal dans un nouvel onglet
+            const paypalUrl = data.links.find(link => link.rel === 'approve').href;
+            window.open(paypalUrl, '_blank');
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            alert('Erreur lors de la création de la commande: ' + error.message);
+        });
+    });
+});
+</script>
+
+<!-- Token CSRF pour les requêtes AJAX -->
+{% csrf_token %}
+{% endblock %}

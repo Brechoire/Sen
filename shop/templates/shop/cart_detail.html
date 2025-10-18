@@ -254,9 +254,10 @@ function updateCartSummary(data) {
     document.getElementById('total-price').textContent = `${data.cart_total_price.toFixed(2)} €`;
 }
 
-// Fonction pour procéder au checkout (à implémenter)
+// Fonction pour procéder au checkout
 function proceedToCheckout() {
-    alert('Fonctionnalité de commande à implémenter');
+    // Rediriger vers la page de commande
+    window.location.href = '{% url "shop:checkout" %}';
 }
 </script>
 {% endblock %}

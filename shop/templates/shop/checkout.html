@@ -1,0 +1,297 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Commande - Éditions Sen{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- En-tête -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Finaliser votre commande</h1>
+            <p class="mt-2 text-gray-600">Remplissez vos informations pour procéder au paiement</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Formulaire de commande -->
+            <div class="lg:col-span-2">
+                <form method="post" class="space-y-8">
+                    {% csrf_token %}
+                    
+                    <!-- Informations de livraison -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Informations de livraison</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="{{ form.shipping_first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Prénom *
+                                </label>
+                                {{ form.shipping_first_name }}
+                                {% if form.shipping_first_name.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.shipping_first_name.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            
+                            <div>
+                                <label for="{{ form.shipping_last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Nom *
+                                </label>
+                                {{ form.shipping_last_name }}
+                                {% if form.shipping_last_name.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.shipping_last_name.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <label for="{{ form.shipping_address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Adresse *
+                            </label>
+                            {{ form.shipping_address }}
+                            {% if form.shipping_address.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.shipping_address.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                            <div>
+                                <label for="{{ form.shipping_city.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Ville *
+                                </label>
+                                {{ form.shipping_city }}
+                                {% if form.shipping_city.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.shipping_city.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            
+                            <div>
+                                <label for="{{ form.shipping_postal_code.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Code postal *
+                                </label>
+                                {{ form.shipping_postal_code }}
+                                {% if form.shipping_postal_code.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.shipping_postal_code.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            
+                            <div>
+                                <label for="{{ form.shipping_country.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Pays *
+                                </label>
+                                {{ form.shipping_country }}
+                                {% if form.shipping_country.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.shipping_country.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <label for="{{ form.shipping_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Téléphone
+                            </label>
+                            {{ form.shipping_phone }}
+                            {% if form.shipping_phone.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.shipping_phone.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Informations de facturation -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Informations de facturation</h2>
+                        
+                        <div class="mb-4">
+                            <label class="flex items-center">
+                                {{ form.same_as_shipping }}
+                                <span class="ml-2 text-sm text-gray-700">{{ form.same_as_shipping.label }}</span>
+                            </label>
+                        </div>
+                        
+                        <div id="billing-fields" class="space-y-4" style="display: none;">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="{{ form.billing_first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Prénom
+                                    </label>
+                                    {{ form.billing_first_name }}
+                                    {% if form.billing_first_name.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.billing_first_name.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                                
+                                <div>
+                                    <label for="{{ form.billing_last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Nom
+                                    </label>
+                                    {{ form.billing_last_name }}
+                                    {% if form.billing_last_name.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.billing_last_name.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="{{ form.billing_address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Adresse
+                                </label>
+                                {{ form.billing_address }}
+                                {% if form.billing_address.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.billing_address.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label for="{{ form.billing_city.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Ville
+                                    </label>
+                                    {{ form.billing_city }}
+                                    {% if form.billing_city.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.billing_city.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                                
+                                <div>
+                                    <label for="{{ form.billing_postal_code.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Code postal
+                                    </label>
+                                    {{ form.billing_postal_code }}
+                                    {% if form.billing_postal_code.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.billing_postal_code.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                                
+                                <div>
+                                    <label for="{{ form.billing_country.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Pays
+                                    </label>
+                                    {{ form.billing_country }}
+                                    {% if form.billing_country.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.billing_country.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Méthode de paiement -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Méthode de paiement</h2>
+                        
+                        {% if True %}
+                            <div class="space-y-3">
+                                {% for choice in payment_form.payment_method %}
+                                    <div class="flex items-center">
+                                        {{ choice.tag }}
+                                        <label for="{{ choice.id_for_label }}" class="ml-3 text-sm font-medium text-gray-700">
+                                            {{ choice.choice_label }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            
+                            {% if payment_form.payment_method.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ payment_form.payment_method.errors.0 }}</p>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Boutons -->
+                    <div class="flex justify-between">
+                        <a href="{% url 'shop:cart_detail' %}" class="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
+                            Retour au panier
+                        </a>
+                        
+                        <button type="submit" class="bg-primary text-white px-8 py-3 rounded-lg font-semibold hover:bg-secondary transition-colors">
+                            Procéder au paiement
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Résumé de la commande -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow p-6 sticky top-8">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Résumé de votre commande</h2>
+                    
+                    <!-- Articles -->
+                    <div class="space-y-4 mb-6">
+                        {% for item in cart_items %}
+                            <div class="flex items-center space-x-3">
+                                {% if item.book.cover_image %}
+                                    <img src="{{ item.book.cover_image.url }}" alt="{{ item.book.title }}" class="w-16 h-20 object-cover rounded">
+                                {% else %}
+                                    <div class="w-16 h-20 bg-gray-200 rounded flex items-center justify-center">
+                                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </div>
+                                {% endif %}
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-sm font-medium text-gray-900 truncate">{{ item.book.title }}</h3>
+                                    <p class="text-sm text-gray-500">{{ item.book.author.display_name }}</p>
+                                    <p class="text-sm text-gray-700">Quantité: {{ item.quantity }}</p>
+                                </div>
+                                <div class="text-sm font-medium text-gray-900">
+                                    {{ item.total_price|floatformat:2 }} €
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Totaux -->
+                    <div class="border-t pt-4 space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Sous-total</span>
+                            <span class="text-gray-900">{{ subtotal|floatformat:2 }} €</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Frais de port</span>
+                            <span class="text-gray-900">
+                                {% if shipping_cost == 0 %}
+                                    Gratuit
+                                {% else %}
+                                    {{ shipping_cost|floatformat:2 }} €
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">TVA (5.5%)</span>
+                            <span class="text-gray-900">
+                                {{ tax_amount|floatformat:2 }} €
+                            </span>
+                        </div>
+                        <div class="border-t pt-2">
+                            <div class="flex justify-between text-lg font-semibold">
+                                <span class="text-gray-900">Total</span>
+                                <span class="text-gray-900">
+                                    {{ total_amount|floatformat:2 }} €
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleBillingFields() {
+    const checkbox = document.querySelector('input[name="same_as_shipping"]');
+    const billingFields = document.getElementById('billing-fields');
+    
+    if (checkbox.checked) {
+        billingFields.style.display = 'none';
+    } else {
+        billingFields.style.display = 'block';
+    }
+}
+
+// Initialiser l'état au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+    toggleBillingFields();
+});
+</script>
+{% endblock %}

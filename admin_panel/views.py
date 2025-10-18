@@ -8,7 +8,8 @@ from datetime import datetime, timedelta
 
 from news.models import Article
 from author.models import Author
-from shop.models import Book, Category, Cart, CartItem, Review
+from shop.models import Book, Category, Cart, CartItem, Review, ShopSettings, Refund, Order
+from shop.forms import ShopSettingsForm
 from accounts.models import User
 
 
@@ -26,6 +27,9 @@ def admin_dashboard(request):
         'total_carts': Cart.objects.count(),
         'total_reviews': Review.objects.count(),
     }
+    
+    # Remboursements en attente (pour le menu)
+    pending_refunds = Refund.objects.filter(status='pending').count()
     
     # Articles récents
     recent_articles = Article.objects.order_by('-created_at')[:5]
@@ -49,6 +53,7 @@ def admin_dashboard(request):
     
     context = {
         'stats': stats,
+        'pending_refunds': pending_refunds,
         'recent_articles': recent_articles,
         'recent_books': recent_books,
         'recent_authors': recent_authors,
@@ -234,6 +239,130 @@ def manage_reviews(request):
     }
     
     return render(request, 'admin_panel/reviews.html', context)
+
+
+@staff_member_required
+def manage_shop_settings(request):
+    """Gestion des paramètres de la boutique"""
+    
+    # Récupérer ou créer les paramètres
+    settings = ShopSettings.get_settings()
+    
+    if request.method == 'POST':
+        form = ShopSettingsForm(request.POST, instance=settings)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Paramètres de la boutique mis à jour avec succès.')
+            return redirect('admin_panel:shop_settings')
+    else:
+        form = ShopSettingsForm(instance=settings)
+    
+    context = {
+        'form': form,
+        'settings': settings,
+    }
+    
+    return render(request, 'admin_panel/shop_settings.html', context)
+
+
+@staff_member_required
+def manage_refunds(request):
+    """Gestion des remboursements"""
+    # Statistiques des remboursements
+    total_refunds = Refund.objects.count()
+    pending_refunds = Refund.objects.filter(status='pending').count()
+    approved_refunds = Refund.objects.filter(status='approved').count()
+    processed_refunds = Refund.objects.filter(status='processed').count()
+    
+    # Remboursements récents
+    recent_refunds = Refund.objects.select_related(
+        'order', 'requested_by', 'processed_by'
+    ).order_by('-created_at')[:10]
+    
+    # Remboursements en attente
+    pending_refunds_list = Refund.objects.filter(
+        status='pending'
+    ).select_related('order', 'requested_by').order_by('created_at')
+    
+    context = {
+        'total_refunds': total_refunds,
+        'pending_refunds': pending_refunds,
+        'approved_refunds': approved_refunds,
+        'processed_refunds': processed_refunds,
+        'recent_refunds': recent_refunds,
+        'pending_refunds_list': pending_refunds_list,
+    }
+    
+    return render(request, 'admin_panel/refunds.html', context)
+
+
+@staff_member_required
+def process_refund(request, refund_id):
+    """Traiter un remboursement"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
+    
+    try:
+        refund = get_object_or_404(Refund, id=refund_id)
+        action = request.POST.get('action')
+        
+        if action == 'approve':
+            if refund.can_be_approved:
+                refund.status = 'approved'
+                refund.processed_by = request.user
+                refund.processed_at = timezone.now()
+                refund.save()
+                
+                messages.success(request, f'Remboursement #{refund.id} approuvé.')
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Remboursement approuvé',
+                    'new_status': 'approved'
+                })
+            else:
+                return JsonResponse({'error': 'Ce remboursement ne peut pas être approuvé'}, status=400)
+                
+        elif action == 'reject':
+            if refund.status == 'pending':
+                refund.status = 'rejected'
+                refund.processed_by = request.user
+                refund.processed_at = timezone.now()
+                refund.save()
+                
+                messages.success(request, f'Remboursement #{refund.id} rejeté.')
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Remboursement rejeté',
+                    'new_status': 'rejected'
+                })
+            else:
+                return JsonResponse({'error': 'Ce remboursement ne peut pas être rejeté'}, status=400)
+                
+        elif action == 'process':
+            if refund.can_be_processed:
+                # Ici, vous pouvez intégrer l'API PayPal pour traiter le remboursement
+                # Pour l'instant, on simule le traitement
+                refund.status = 'processed'
+                refund.processed_by = request.user
+                refund.processed_at = timezone.now()
+                refund.save()
+                
+                messages.success(request, f'Remboursement #{refund.id} traité.')
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Remboursement traité',
+                    'new_status': 'processed'
+                })
+            else:
+                return JsonResponse({'error': 'Ce remboursement ne peut pas être traité'}, status=400)
+        
+        else:
+            return JsonResponse({'error': 'Action non valide'}, status=400)
+            
+    except Refund.DoesNotExist:
+        return JsonResponse({'error': 'Remboursement non trouvé'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': f'Erreur: {str(e)}'}, status=500)
 
 
 @staff_member_required

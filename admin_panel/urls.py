@@ -14,6 +14,9 @@ urlpatterns = [
     path('commandes/', views.manage_orders, name='orders'),
     path('avis/', views.manage_reviews, name='reviews'),
     path('utilisateurs/', views.manage_users, name='users'),
+    path('boutique/parametres/', views.manage_shop_settings, name='shop_settings'),
+    path('boutique/remboursements/', views.manage_refunds, name='refunds'),
+    path('boutique/remboursements/<int:refund_id>/traiter/', views.process_refund, name='process_refund'),
     
     # Actions sur les articles
     path('articles/<int:article_id>/toggle/', views.toggle_article_status, name='toggle_article'),

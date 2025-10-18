@@ -165,7 +165,7 @@ class Review(models.Model):
 
 class Cart(models.Model):
     """Modèle pour le panier d'achat"""
-    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='carts', verbose_name="Utilisateur")
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='carts', null=True, blank=True, verbose_name="Utilisateur")
     session_key = models.CharField(max_length=40, blank=True, null=True, verbose_name="Clé de session")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Date de modification")
@@ -242,3 +242,290 @@ class CartItem(models.Model):
     def savings(self):
         """Retourne les économies réalisées"""
         return self.discount_amount
+
+
+class Order(models.Model):
+    """Modèle pour les commandes"""
+    
+    STATUS_CHOICES = [
+        ('pending', 'En attente'),
+        ('processing', 'En cours de traitement'),
+        ('shipped', 'Expédiée'),
+        ('delivered', 'Livrée'),
+        ('cancelled', 'Annulée'),
+        ('refunded', 'Remboursée'),
+    ]
+    
+    PAYMENT_STATUS_CHOICES = [
+        ('pending', 'En attente'),
+        ('paid', 'Payée'),
+        ('failed', 'Échouée'),
+        ('refunded', 'Remboursée'),
+    ]
+    
+    # Informations de base
+    order_number = models.CharField(max_length=20, unique=True, verbose_name="Numéro de commande")
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='orders', verbose_name="Utilisateur")
+    
+    # Statuts
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Statut")
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending', verbose_name="Statut du paiement")
+    
+    # Informations de livraison
+    shipping_first_name = models.CharField(max_length=50, verbose_name="Prénom")
+    shipping_last_name = models.CharField(max_length=50, verbose_name="Nom")
+    shipping_address = models.TextField(verbose_name="Adresse")
+    shipping_city = models.CharField(max_length=100, verbose_name="Ville")
+    shipping_postal_code = models.CharField(max_length=20, verbose_name="Code postal")
+    shipping_country = models.CharField(max_length=100, default="France", verbose_name="Pays")
+    shipping_phone = models.CharField(max_length=20, blank=True, verbose_name="Téléphone")
+    
+    # Informations de facturation (optionnel, peut être différent de la livraison)
+    billing_first_name = models.CharField(max_length=50, blank=True, verbose_name="Prénom facturation")
+    billing_last_name = models.CharField(max_length=50, blank=True, verbose_name="Nom facturation")
+    billing_address = models.TextField(blank=True, verbose_name="Adresse facturation")
+    billing_city = models.CharField(max_length=100, blank=True, verbose_name="Ville facturation")
+    billing_postal_code = models.CharField(max_length=20, blank=True, verbose_name="Code postal facturation")
+    billing_country = models.CharField(max_length=100, default="France", verbose_name="Pays facturation")
+    
+    # Prix
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Sous-total")
+    shipping_cost = models.DecimalField(max_digits=8, decimal_places=2, default=0, verbose_name="Frais de port")
+    tax_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0, verbose_name="Montant des taxes")
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant total")
+    
+    # Métadonnées
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Date de modification")
+    notes = models.TextField(blank=True, verbose_name="Notes")
+    
+    class Meta:
+        verbose_name = "Commande"
+        verbose_name_plural = "Commandes"
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Commande {self.order_number} - {self.user.username}"
+    
+    def save(self, *args, **kwargs):
+        if not self.order_number:
+            self.order_number = self.generate_order_number()
+        super().save(*args, **kwargs)
+    
+    def generate_order_number(self):
+        """Génère un numéro de commande unique"""
+        import uuid
+        return f"ORD-{uuid.uuid4().hex[:8].upper()}"
+    
+    @property
+    def full_name(self):
+        """Retourne le nom complet du client"""
+        return f"{self.shipping_first_name} {self.shipping_last_name}"
+    
+    @property
+    def is_paid(self):
+        """Vérifie si la commande est payée"""
+        return self.payment_status == 'paid'
+    
+    @property
+    def can_be_cancelled(self):
+        """Vérifie si la commande peut être annulée"""
+        return self.status in ['pending', 'processing']
+
+
+class OrderItem(models.Model):
+    """Modèle pour les articles d'une commande"""
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items', verbose_name="Commande")
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, verbose_name="Livre")
+    quantity = models.PositiveIntegerField(verbose_name="Quantité")
+    unit_price = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Prix unitaire")
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Prix total")
+    
+    class Meta:
+        verbose_name = "Article de commande"
+        verbose_name_plural = "Articles de commande"
+        unique_together = ['order', 'book']
+    
+    def __str__(self):
+        return f"{self.quantity}x {self.book.title} - {self.order.order_number}"
+    
+    def save(self, *args, **kwargs):
+        self.total_price = self.unit_price * self.quantity
+        super().save(*args, **kwargs)
+
+
+class Payment(models.Model):
+    """Modèle pour les paiements"""
+    
+    PAYMENT_METHOD_CHOICES = [
+        ('paypal', 'PayPal'),
+        ('stripe', 'Stripe'),
+        ('bank_transfer', 'Virement bancaire'),
+        ('check', 'Chèque'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('pending', 'En attente'),
+        ('completed', 'Terminé'),
+        ('failed', 'Échoué'),
+        ('cancelled', 'Annulé'),
+        ('refunded', 'Remboursé'),
+    ]
+    
+    # Relations
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='payment', verbose_name="Commande")
+    
+    # Informations de paiement
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, verbose_name="Méthode de paiement")
+    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant")
+    currency = models.CharField(max_length=3, default='EUR', verbose_name="Devise")
+    
+    # Statut
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Statut")
+    
+    # Informations PayPal
+    paypal_payment_id = models.CharField(max_length=100, blank=True, verbose_name="ID de paiement PayPal")
+    paypal_payer_id = models.CharField(max_length=100, blank=True, verbose_name="ID du payeur PayPal")
+    paypal_token = models.CharField(max_length=100, blank=True, verbose_name="Token PayPal")
+    
+    # Métadonnées
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Date de modification")
+    completed_at = models.DateTimeField(blank=True, null=True, verbose_name="Date de finalisation")
+    
+    class Meta:
+        verbose_name = "Paiement"
+        verbose_name_plural = "Paiements"
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Paiement {self.payment_method} - {self.order.order_number}"
+    
+    @property
+    def is_completed(self):
+        """Vérifie si le paiement est terminé"""
+        return self.status == 'completed'
+    
+    def mark_as_completed(self):
+        """Marque le paiement comme terminé"""
+        self.status = 'completed'
+        self.completed_at = timezone.now()
+        self.save()
+        
+        # Mettre à jour le statut de la commande
+        self.order.payment_status = 'paid'
+        self.order.save()
+
+
+class Refund(models.Model):
+    """Modèle pour les remboursements"""
+    
+    REFUND_STATUS_CHOICES = [
+        ('pending', 'En attente'),
+        ('approved', 'Approuvé'),
+        ('rejected', 'Rejeté'),
+        ('processed', 'Traité'),
+        ('completed', 'Terminé'),
+    ]
+    
+    REFUND_REASON_CHOICES = [
+        ('customer_request', 'Demande du client'),
+        ('defective_product', 'Produit défectueux'),
+        ('wrong_item', 'Mauvais article'),
+        ('not_delivered', 'Non livré'),
+        ('duplicate_payment', 'Paiement en double'),
+        ('other', 'Autre'),
+    ]
+    
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='refunds', verbose_name="Commande")
+    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant du remboursement")
+    reason = models.CharField(max_length=50, choices=REFUND_REASON_CHOICES, verbose_name="Raison du remboursement")
+    description = models.TextField(blank=True, verbose_name="Description détaillée")
+    status = models.CharField(max_length=20, choices=REFUND_STATUS_CHOICES, default='pending', verbose_name="Statut")
+    
+    # Informations PayPal
+    paypal_refund_id = models.CharField(max_length=100, blank=True, verbose_name="ID remboursement PayPal")
+    paypal_status = models.CharField(max_length=50, blank=True, verbose_name="Statut PayPal")
+    
+    # Métadonnées
+    requested_by = models.ForeignKey('accounts.User', on_delete=models.CASCADE, verbose_name="Demandé par")
+    processed_by = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='processed_refunds', verbose_name="Traité par")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
+    processed_at = models.DateTimeField(null=True, blank=True, verbose_name="Date de traitement")
+    
+    class Meta:
+        verbose_name = "Remboursement"
+        verbose_name_plural = "Remboursements"
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Remboursement #{self.id} - {self.order.order_number} - {self.amount}€"
+    
+    @property
+    def can_be_processed(self):
+        """Vérifie si le remboursement peut être traité"""
+        return self.status in ['pending', 'approved']
+    
+    @property
+    def can_be_approved(self):
+        """Vérifie si le remboursement peut être approuvé"""
+        return self.status == 'pending'
+
+
+class ShopSettings(models.Model):
+    """Modèle pour les paramètres de la boutique"""
+    
+    # Paramètres de livraison
+    free_shipping_threshold = models.DecimalField(
+        max_digits=8, 
+        decimal_places=2, 
+        default=50.00,
+        verbose_name="Seuil de livraison gratuite (€)"
+    )
+    standard_shipping_cost = models.DecimalField(
+        max_digits=8, 
+        decimal_places=2, 
+        default=5.90,
+        verbose_name="Coût de livraison standard (€)"
+    )
+    
+    # Paramètres de TVA
+    tax_rate = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        default=5.5,
+        verbose_name="Taux de TVA (%)"
+    )
+    
+    # Paramètres généraux
+    shop_name = models.CharField(
+        max_length=200, 
+        default="Éditions Sen",
+        verbose_name="Nom de la boutique"
+    )
+    shop_email = models.EmailField(
+        default="contact@editions-sen.com",
+        verbose_name="Email de la boutique"
+    )
+    shop_phone = models.CharField(
+        max_length=20, 
+        blank=True,
+        verbose_name="Téléphone de la boutique"
+    )
+    
+    # Métadonnées
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Date de modification")
+    
+    class Meta:
+        verbose_name = "Paramètres de la boutique"
+        verbose_name_plural = "Paramètres de la boutique"
+    
+    def __str__(self):
+        return f"Paramètres de {self.shop_name}"
+    
+    @classmethod
+    def get_settings(cls):
+        """Récupère les paramètres de la boutique (singleton)"""
+        settings, created = cls.objects.get_or_create(pk=1)
+        return settings

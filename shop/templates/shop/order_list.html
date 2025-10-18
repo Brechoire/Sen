@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mes commandes - Éditions Sen{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- En-tête -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Mes commandes</h1>
+            <p class="mt-2 text-gray-600">Consultez l'historique de vos commandes</p>
+        </div>
+
+        {% if orders %}
+            <div class="space-y-6">
+                {% for order in orders %}
+                    <div class="bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <h2 class="text-lg font-semibold text-gray-900">Commande {{ order.order_number }}</h2>
+                                    <p class="text-sm text-gray-500">Passée le {{ order.created_at|date:"d F Y à H:i" }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-lg font-semibold text-gray-900">{{ order.total_amount|floatformat:2 }} €</p>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                        {% if order.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                        {% elif order.status == 'processing' %}bg-blue-100 text-blue-800
+                                        {% elif order.status == 'shipped' %}bg-purple-100 text-purple-800
+                                        {% elif order.status == 'delivered' %}bg-green-100 text-green-800
+                                        {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ order.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Articles de la commande -->
+                            <div class="mb-4">
+                                <div class="flex items-center space-x-4">
+                                    {% for item in order.items.all|slice:":3" %}
+                                        <div class="flex items-center space-x-2">
+                                            {% if item.book.cover_image %}
+                                                <img src="{{ item.book.cover_image.url }}" alt="{{ item.book.title }}" class="w-12 h-16 object-cover rounded">
+                                            {% else %}
+                                                <div class="w-12 h-16 bg-gray-200 rounded flex items-center justify-center">
+                                                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                                    </svg>
+                                                </div>
+                                            {% endif %}
+                                            <div class="min-w-0">
+                                                <p class="text-sm font-medium text-gray-900 truncate">{{ item.book.title }}</p>
+                                                <p class="text-xs text-gray-500">× {{ item.quantity }}</p>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                    {% if order.items.count > 3 %}
+                                        <div class="text-sm text-gray-500">
+                                            +{{ order.items.count|add:"-3" }} autre{{ order.items.count|add:"-3"|pluralize }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Informations de paiement -->
+                            <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
+                                <div>
+                                    <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium
+                                        {% if order.payment_status == 'paid' %}bg-green-100 text-green-800
+                                        {% elif order.payment_status == 'pending' %}bg-yellow-100 text-yellow-800
+                                        {% elif order.payment_status == 'failed' %}bg-red-100 text-red-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ order.get_payment_status_display }}
+                                    </span>
+                                    <span class="ml-2">{{ order.payment.get_payment_method_display }}</span>
+                                </div>
+                                <div>
+                                    {{ order.items.count }} article{{ order.items.count|pluralize }}
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex items-center justify-between">
+                                <a href="{% url 'shop:order_detail' order.id %}" class="text-primary hover:text-secondary font-medium">
+                                    Voir les détails
+                                </a>
+                                
+                                {% if order.can_be_cancelled %}
+                                    <button onclick="cancelOrder({{ order.id }})" class="text-red-600 hover:text-red-700 font-medium" id="cancel-btn-{{ order.id }}">
+                                        Annuler
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination (si nécessaire) -->
+            {% if is_paginated %}
+                <div class="mt-8 flex justify-center">
+                    <nav class="flex items-center space-x-2">
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                Précédent
+                            </a>
+                        {% endif %}
+                        
+                        <span class="px-3 py-2 text-sm font-medium text-gray-700 bg-primary text-white border border-primary rounded-md">
+                            {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+                        </span>
+                        
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                Suivant
+                            </a>
+                        {% endif %}
+                    </nav>
+                </div>
+            {% endif %}
+        {% else %}
+            <!-- État vide -->
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">Aucune commande</h3>
+                <p class="mt-1 text-sm text-gray-500">Vous n'avez pas encore passé de commande.</p>
+                <div class="mt-6">
+                    <a href="{% url 'shop:shop_home' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-secondary">
+                        Commencer mes achats
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function cancelOrder(orderId) {
+    if (!confirm('Êtes-vous sûr de vouloir annuler cette commande ? Cette action est irréversible.')) {
+        return;
+    }
+    
+    const button = document.getElementById(`cancel-btn-${orderId}`);
+    const originalText = button.textContent;
+    
+    // Désactiver le bouton et afficher un indicateur de chargement
+    button.disabled = true;
+    button.textContent = 'Annulation...';
+    button.classList.add('opacity-50');
+    
+    // Envoyer la requête d'annulation
+    fetch(`/boutique/commande/${orderId}/annuler/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Afficher un message de succès
+            showMessage('Commande annulée avec succès', 'success');
+            
+            // Mettre à jour l'interface
+            const orderCard = button.closest('.bg-white');
+            const statusSpan = orderCard.querySelector('.inline-flex');
+            statusSpan.textContent = 'Annulée';
+            statusSpan.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800';
+            
+            // Masquer le bouton d'annulation
+            button.style.display = 'none';
+        } else {
+            // Afficher un message d'erreur
+            showMessage(data.error || 'Erreur lors de l\'annulation', 'error');
+            
+            // Réactiver le bouton
+            button.disabled = false;
+            button.textContent = originalText;
+            button.classList.remove('opacity-50');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showMessage('Erreur de connexion', 'error');
+        
+        // Réactiver le bouton
+        button.disabled = false;
+        button.textContent = originalText;
+        button.classList.remove('opacity-50');
+    });
+}
+
+function showMessage(message, type) {
+    // Créer un élément de message
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white z-50 ${
+        type === 'success' ? 'bg-green-500' : 'bg-red-500'
+    }`;
+    messageDiv.textContent = message;
+    
+    // Ajouter au DOM
+    document.body.appendChild(messageDiv);
+    
+    // Supprimer après 3 secondes
+    setTimeout(() => {
+        messageDiv.remove();
+    }, 3000);
+}
+</script>
+
+<!-- Token CSRF pour les requêtes AJAX -->
+{% csrf_token %}
+{% endblock %}

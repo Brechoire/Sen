@@ -36,6 +36,21 @@ urlpatterns = [
     path('api/recherche/', views.book_search_suggestions, name='search_suggestions'),
     path('api/panier/', views.cart_summary, name='cart_summary'),
     
+    # Commandes et paiements
+    path('commande/', views.checkout, name='checkout'),
+    path('commande/<int:order_id>/', views.order_detail, name='order_detail'),
+    path('mes-commandes/', views.order_list, name='order_list'),
+    path('commande/<int:order_id>/annuler/', views.cancel_order, name='cancel_order'),
+    path('commande/<int:order_id>/remboursement/', views.request_refund, name='request_refund'),
+    path('mes-remboursements/', views.refund_list, name='refund_list'),
+    path('paiement/paypal/<int:order_id>/', views.paypal_payment, name='paypal_payment'),
+    path('paiement/paypal/success/', views.paypal_success, name='paypal_success'),
+    path('paiement/paypal/cancel/', views.paypal_cancel, name='paypal_cancel'),
+    
+    # API PayPal
+    path('api/paypal/create-order/', views.create_paypal_order, name='create_paypal_order'),
+    path('api/paypal/capture-order/', views.capture_paypal_order, name='capture_paypal_order'),
+    
     # Test
     path('test-cart-transfer/', views.test_cart_transfer, name='test_cart_transfer'),
     path('force-cart-transfer/', views.force_cart_transfer, name='force_cart_transfer'),

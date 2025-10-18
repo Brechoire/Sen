@@ -1,0 +1,157 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load static %}
+
+{% block title %}Paramètres de la boutique - Administration{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- En-tête -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Paramètres de la boutique</h1>
+            <p class="mt-2 text-gray-600">Configurez les paramètres de livraison, TVA et informations générales</p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow">
+            <form method="post" class="p-6">
+                {% csrf_token %}
+                
+                <!-- Section Livraison -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Paramètres de livraison</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="{{ form.free_shipping_threshold.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                Seuil de livraison gratuite (€) *
+                            </label>
+                            {{ form.free_shipping_threshold }}
+                            {% if form.free_shipping_threshold.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.free_shipping_threshold.errors.0 }}</p>
+                            {% endif %}
+                            <p class="mt-1 text-sm text-gray-500">Montant minimum pour la livraison gratuite</p>
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.standard_shipping_cost.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                Coût de livraison standard (€) *
+                            </label>
+                            {{ form.standard_shipping_cost }}
+                            {% if form.standard_shipping_cost.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.standard_shipping_cost.errors.0 }}</p>
+                            {% endif %}
+                            <p class="mt-1 text-sm text-gray-500">Coût de livraison en dessous du seuil</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section TVA -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Paramètres de TVA</h2>
+                    
+                    <div class="max-w-md">
+                        <label for="{{ form.tax_rate.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Taux de TVA (%) *
+                        </label>
+                        {{ form.tax_rate }}
+                        {% if form.tax_rate.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.tax_rate.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-sm text-gray-500">Taux de TVA appliqué aux livres (5.5% pour les livres en France)</p>
+                    </div>
+                </div>
+
+                <!-- Section Informations générales -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Informations générales</h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label for="{{ form.shop_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                Nom de la boutique *
+                            </label>
+                            {{ form.shop_name }}
+                            {% if form.shop_name.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.shop_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="{{ form.shop_email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Email de la boutique *
+                                </label>
+                                {{ form.shop_email }}
+                                {% if form.shop_email.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.shop_email.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            
+                            <div>
+                                <label for="{{ form.shop_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Téléphone de la boutique
+                                </label>
+                                {{ form.shop_phone }}
+                                {% if form.shop_phone.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.shop_phone.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Boutons -->
+                <div class="flex justify-end space-x-4">
+                    <a href="{% url 'admin_panel:dashboard' %}" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
+                        Annuler
+                    </a>
+                    <button type="submit" class="bg-primary text-white px-6 py-2 rounded-lg font-semibold hover:bg-secondary transition-colors">
+                        Sauvegarder les paramètres
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Aperçu des conditions -->
+        <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-blue-900 mb-4">Aperçu des conditions de livraison</h3>
+            <div class="text-sm text-blue-800">
+                <p><strong>Livraison gratuite :</strong> À partir de <span id="preview-threshold">{{ settings.free_shipping_threshold|floatformat:2 }} €</span></p>
+                <p><strong>Livraison standard :</strong> <span id="preview-cost">{{ settings.standard_shipping_cost|floatformat:2 }} €</span> en dessous du seuil</p>
+                <p><strong>TVA :</strong> <span id="preview-tax">{{ settings.tax_rate|floatformat:1 }}%</span> sur le prix des livres</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Mise à jour en temps réel de l'aperçu
+document.addEventListener('DOMContentLoaded', function() {
+    const thresholdInput = document.querySelector('#id_free_shipping_threshold');
+    const costInput = document.querySelector('#id_standard_shipping_cost');
+    const taxInput = document.querySelector('#id_tax_rate');
+    
+    const thresholdPreview = document.querySelector('#preview-threshold');
+    const costPreview = document.querySelector('#preview-cost');
+    const taxPreview = document.querySelector('#preview-tax');
+    
+    if (thresholdInput) {
+        thresholdInput.addEventListener('input', function() {
+            thresholdPreview.textContent = parseFloat(this.value || 0).toFixed(2) + ' €';
+        });
+    }
+    
+    if (costInput) {
+        costInput.addEventListener('input', function() {
+            costPreview.textContent = parseFloat(this.value || 0).toFixed(2) + ' €';
+        });
+    }
+    
+    if (taxInput) {
+        taxInput.addEventListener('input', function() {
+            taxPreview.textContent = parseFloat(this.value || 0).toFixed(1) + '%';
+        });
+    }
+});
+</script>
+{% endblock %}

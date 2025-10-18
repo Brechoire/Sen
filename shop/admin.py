@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from .models import Book, Category, BookImage, Review, Cart, CartItem
+from .models import Book, Category, BookImage, Review, Cart, CartItem, Order, OrderItem, Payment, Refund, ShopSettings
 
 
 @admin.register(Category)
@@ -175,3 +175,111 @@ class CartItemAdmin(admin.ModelAdmin):
     def total_price(self, obj):
         return f"{obj.total_price:.2f} €"
     total_price.short_description = "Total"
+
+
+# Administration des commandes et paiements
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 0
+    readonly_fields = ['book', 'quantity', 'unit_price', 'total_price']
+    fields = ['book', 'quantity', 'unit_price', 'total_price']
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = [
+        'order_number', 'user', 'status', 'payment_status', 
+        'total_amount', 'created_at', 'can_be_cancelled'
+    ]
+    list_filter = ['status', 'payment_status', 'created_at', 'shipping_country']
+    search_fields = ['order_number', 'user__username', 'user__email', 'shipping_first_name', 'shipping_last_name']
+    readonly_fields = ['order_number', 'created_at', 'updated_at']
+    inlines = [OrderItemInline]
+    
+    fieldsets = (
+        ('Informations générales', {
+            'fields': ('order_number', 'user', 'status', 'payment_status')
+        }),
+        ('Adresse de livraison', {
+            'fields': (
+                'shipping_first_name', 'shipping_last_name', 'shipping_address',
+                'shipping_city', 'shipping_postal_code', 'shipping_country', 'shipping_phone'
+            )
+        }),
+        ('Adresse de facturation', {
+            'fields': (
+                'billing_first_name', 'billing_last_name', 'billing_address',
+                'billing_city', 'billing_postal_code', 'billing_country'
+            )
+        }),
+        ('Montants', {
+            'fields': ('subtotal', 'shipping_cost', 'tax_amount', 'total_amount')
+        }),
+        ('Métadonnées', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def can_be_cancelled(self, obj):
+        return obj.can_be_cancelled
+    can_be_cancelled.boolean = True
+    can_be_cancelled.short_description = "Peut être annulée"
+
+
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ['order', 'payment_method', 'amount', 'status', 'created_at']
+    list_filter = ['payment_method', 'status', 'created_at']
+    search_fields = ['order__order_number', 'paypal_payment_id']
+    readonly_fields = ['created_at', 'updated_at']
+
+
+@admin.register(Refund)
+class RefundAdmin(admin.ModelAdmin):
+    list_display = [
+        'id', 'order', 'amount', 'reason', 'status', 
+        'requested_by', 'processed_by', 'created_at'
+    ]
+    list_filter = ['status', 'reason', 'created_at', 'processed_at']
+    search_fields = [
+        'order__order_number', 'requested_by__username', 
+        'processed_by__username', 'description'
+    ]
+    readonly_fields = ['created_at', 'processed_at']
+    
+    fieldsets = (
+        ('Informations générales', {
+            'fields': ('order', 'amount', 'reason', 'description', 'status')
+        }),
+        ('Utilisateurs', {
+            'fields': ('requested_by', 'processed_by')
+        }),
+        ('PayPal', {
+            'fields': ('paypal_refund_id', 'paypal_status'),
+            'classes': ('collapse',)
+        }),
+        ('Métadonnées', {
+            'fields': ('created_at', 'processed_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related(
+            'order', 'requested_by', 'processed_by'
+        )
+
+
+@admin.register(ShopSettings)
+class ShopSettingsAdmin(admin.ModelAdmin):
+    list_display = ['shop_name', 'free_shipping_threshold', 'standard_shipping_cost', 'tax_rate', 'updated_at']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    def has_add_permission(self, request):
+        # Empêcher l'ajout de plusieurs instances
+        return not ShopSettings.objects.exists()
+    
+    def has_delete_permission(self, request, obj=None):
+        # Empêcher la suppression de l'instance unique
+        return False

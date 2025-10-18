@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Book, Category, BookImage, Review
+from .models import Book, Category, BookImage, Review, Order, ShopSettings, Payment, Refund
 from author.models import Author
 
 
@@ -301,3 +301,209 @@ class BookSearchForm(forms.Form):
             raise ValidationError("Le prix minimum ne peut pas être supérieur au prix maximum.")
         
         return cleaned_data
+
+
+class CheckoutForm(forms.ModelForm):
+    """Formulaire pour le processus de commande"""
+    
+    # Case à cocher pour utiliser les mêmes informations pour la facturation
+    same_as_shipping = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-checkbox h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded',
+            'onchange': 'toggleBillingFields()'
+        }),
+        label="Utiliser les mêmes informations pour la facturation"
+    )
+    
+    class Meta:
+        model = Order
+        fields = [
+            'shipping_first_name', 'shipping_last_name', 'shipping_address',
+            'shipping_city', 'shipping_postal_code', 'shipping_country', 'shipping_phone',
+            'billing_first_name', 'billing_last_name', 'billing_address',
+            'billing_city', 'billing_postal_code', 'billing_country'
+        ]
+        widgets = {
+            'shipping_first_name': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Prénom'
+            }),
+            'shipping_last_name': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Nom'
+            }),
+            'shipping_address': forms.Textarea(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'rows': 3,
+                'placeholder': 'Adresse complète'
+            }),
+            'shipping_city': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Ville'
+            }),
+            'shipping_postal_code': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Code postal'
+            }),
+            'shipping_country': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Pays'
+            }),
+            'shipping_phone': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Téléphone (optionnel)'
+            }),
+            'billing_first_name': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Prénom'
+            }),
+            'billing_last_name': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Nom'
+            }),
+            'billing_address': forms.Textarea(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'rows': 3,
+                'placeholder': 'Adresse complète'
+            }),
+            'billing_city': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Ville'
+            }),
+            'billing_postal_code': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Code postal'
+            }),
+            'billing_country': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Pays'
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Rendre les champs de facturation optionnels
+        self.fields['billing_first_name'].required = False
+        self.fields['billing_last_name'].required = False
+        self.fields['billing_address'].required = False
+        self.fields['billing_city'].required = False
+        self.fields['billing_postal_code'].required = False
+        self.fields['billing_country'].required = False
+        self.fields['shipping_phone'].required = False
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        same_as_shipping = cleaned_data.get('same_as_shipping')
+        
+        if same_as_shipping:
+            # Copier les informations de livraison vers la facturation
+            cleaned_data['billing_first_name'] = cleaned_data.get('shipping_first_name')
+            cleaned_data['billing_last_name'] = cleaned_data.get('shipping_last_name')
+            cleaned_data['billing_address'] = cleaned_data.get('shipping_address')
+            cleaned_data['billing_city'] = cleaned_data.get('shipping_city')
+            cleaned_data['billing_postal_code'] = cleaned_data.get('shipping_postal_code')
+            cleaned_data['billing_country'] = cleaned_data.get('shipping_country')
+        
+        return cleaned_data
+
+
+class PaymentMethodForm(forms.Form):
+    """Formulaire pour choisir la méthode de paiement"""
+    
+    PAYMENT_METHOD_CHOICES = [
+        ('paypal', 'PayPal'),
+        # ('stripe', 'Carte bancaire (Stripe)'),
+        # ('bank_transfer', 'Virement bancaire'),
+    ]
+    
+    payment_method = forms.ChoiceField(
+        choices=PAYMENT_METHOD_CHOICES,
+        widget=forms.RadioSelect(attrs={
+            'class': 'form-radio h-4 w-4 text-primary focus:ring-primary border-gray-300'
+        }),
+        label="Méthode de paiement"
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['payment_method'].initial = 'paypal'
+
+
+class ShopSettingsForm(forms.ModelForm):
+    """Formulaire pour gérer les paramètres de la boutique"""
+    
+    class Meta:
+        model = ShopSettings
+        fields = [
+            'free_shipping_threshold', 'standard_shipping_cost', 'tax_rate',
+            'shop_name', 'shop_email', 'shop_phone'
+        ]
+        widgets = {
+            'free_shipping_threshold': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'step': '0.01',
+                'min': '0'
+            }),
+            'standard_shipping_cost': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'step': '0.01',
+                'min': '0'
+            }),
+            'tax_rate': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'step': '0.01',
+                'min': '0',
+                'max': '100'
+            }),
+            'shop_name': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
+            }),
+            'shop_email': forms.EmailInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
+            }),
+            'shop_phone': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
+            }),
+        }
+
+
+class RefundRequestForm(forms.ModelForm):
+    """Formulaire pour demander un remboursement"""
+    
+    class Meta:
+        model = Refund
+        fields = ['reason', 'description', 'amount']
+        widgets = {
+            'reason': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'rows': 4,
+                'placeholder': 'Décrivez la raison de votre demande de remboursement...'
+            }),
+            'amount': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'step': '0.01',
+                'min': '0'
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        self.order = kwargs.pop('order', None)
+        super().__init__(*args, **kwargs)
+        
+        if self.order:
+            # Limiter le montant au maximum de la commande
+            self.fields['amount'].widget.attrs['max'] = str(self.order.total_amount)
+            self.fields['amount'].initial = self.order.total_amount
+    
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+        if self.order and amount > self.order.total_amount:
+            raise ValidationError(f'Le montant ne peut pas dépasser {self.order.total_amount}€')
+        if amount <= 0:
+            raise ValidationError('Le montant doit être positif')
+        return amount

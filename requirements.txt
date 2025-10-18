@@ -9,3 +9,6 @@ pillow==11.1.0
 whitenoise==6.6.0
 gunicorn==21.2.0
 python-slugify==8.0.4
+
+# Paiement PayPal (JavaScript SDK)
+requests==2.31.0

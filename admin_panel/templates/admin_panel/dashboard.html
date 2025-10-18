@@ -113,6 +113,65 @@
         </div>
     </div>
 
+    <!-- Actions rapides -->
+    <div class="bg-white rounded-lg shadow-sm border mb-8">
+        <div class="p-6 border-b">
+            <h3 class="text-lg font-semibold text-dark">Actions rapides</h3>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <a href="{% url 'admin_panel:shop_settings' %}" class="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                    <div class="p-2 rounded-full bg-blue-100 text-blue-600 mr-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900">Paramètres boutique</h4>
+                        <p class="text-xs text-gray-500">Livraison, TVA, etc.</p>
+                    </div>
+                </a>
+                
+                <a href="{% url 'admin_panel:books' %}" class="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+                    <div class="p-2 rounded-full bg-green-100 text-green-600 mr-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900">Gérer les livres</h4>
+                        <p class="text-xs text-gray-500">Ajouter, modifier, supprimer</p>
+                    </div>
+                </a>
+                
+                <a href="{% url 'admin_panel:articles' %}" class="flex items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+                    <div class="p-2 rounded-full bg-purple-100 text-purple-600 mr-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900">Gérer les articles</h4>
+                        <p class="text-xs text-gray-500">Blog, actualités</p>
+                    </div>
+                </a>
+                
+                <a href="{% url 'admin_panel:orders' %}" class="flex items-center p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors">
+                    <div class="p-2 rounded-full bg-orange-100 text-orange-600 mr-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900">Gérer les commandes</h4>
+                        <p class="text-xs text-gray-500">Suivi, statuts</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- Contenu récent -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Articles récents -->
