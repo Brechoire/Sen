@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Requête invalide - Éditions Sen{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="text-center">
+            <!-- Logo ou icône -->
+            <div class="mx-auto h-24 w-24 text-orange-500">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-full h-full">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            
+            <!-- Code d'erreur -->
+            <h1 class="mt-6 text-6xl font-bold text-orange-500">400</h1>
+            
+            <!-- Titre -->
+            <h2 class="mt-4 text-3xl font-bold text-gray-900">Requête invalide</h2>
+            
+            <!-- Description -->
+            <p class="mt-4 text-lg text-gray-600">
+                La requête que vous avez envoyée n'est pas valide ou malformée.
+            </p>
+            
+            <!-- Message explicatif -->
+            <div class="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-orange-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <p class="text-sm text-orange-800">
+                        <strong>Problème détecté :</strong> Vérifiez l'URL ou rechargez la page.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="mt-8 space-y-4">
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="window.history.back()" 
+                        class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-secondary transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Page précédente
+                </button>
+                
+                <button onclick="window.location.reload()" 
+                        class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Recharger
+                </button>
+            </div>
+        </div>
+        
+        <!-- Informations -->
+        <div class="mt-8 p-4 bg-gray-100 rounded-lg">
+            <h3 class="text-sm font-medium text-gray-700 mb-2">Conseils</h3>
+            <ul class="text-sm text-gray-600 space-y-1">
+                <li>• Vérifiez que l'URL est correcte</li>
+                <li>• Essayez de recharger la page</li>
+                <li>• Vérifiez votre connexion internet</li>
+                <li>• Contactez-nous si le problème persiste</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

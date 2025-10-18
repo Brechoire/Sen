@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Page non trouvée - Éditions Sen{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="text-center">
+            <!-- Logo ou icône -->
+            <div class="mx-auto h-24 w-24 text-primary">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-full h-full">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+            </div>
+            
+            <!-- Code d'erreur -->
+            <h1 class="mt-6 text-6xl font-bold text-primary">404</h1>
+            
+            <!-- Titre -->
+            <h2 class="mt-4 text-3xl font-bold text-gray-900">Page non trouvée</h2>
+            
+            <!-- Description -->
+            <p class="mt-4 text-lg text-gray-600">
+                Désolé, la page que vous recherchez n'existe pas ou a été déplacée.
+            </p>
+            
+            <!-- Informations techniques (optionnel) -->
+            {% if request.path %}
+            <div class="mt-6 p-4 bg-gray-100 rounded-lg">
+                <p class="text-sm text-gray-500">
+                    <strong>URL demandée :</strong> <code class="bg-white px-2 py-1 rounded">{{ request.path }}</code>
+                </p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Actions -->
+        <div class="mt-8 space-y-4">
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{% url 'home:index' %}" 
+                   class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-secondary transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    Retour à l'accueil
+                </a>
+                
+                <a href="{% url 'shop:shop_home' %}" 
+                   class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                    Voir la boutique
+                </a>
+            </div>
+            
+            <!-- Recherche -->
+            <div class="mt-6">
+                <form action="{% url 'shop:book_list' %}" method="get" class="flex">
+                    <input type="text" 
+                           name="search" 
+                           placeholder="Rechercher un livre..." 
+                           class="flex-1 px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                    <button type="submit" 
+                            class="px-6 py-2 bg-primary text-white rounded-r-md hover:bg-secondary transition-colors">
+                        Rechercher
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Liens utiles -->
+        <div class="mt-8">
+            <h3 class="text-sm font-medium text-gray-500 text-center mb-4">Liens utiles</h3>
+            <div class="flex flex-wrap justify-center gap-4 text-sm">
+                <a href="{% url 'home:a_propos' %}" class="text-primary hover:text-secondary">À propos</a>
+                <a href="{% url 'news:article_list' %}" class="text-primary hover:text-secondary">Actualités</a>
+                <a href="{% url 'author:author_list' %}" class="text-primary hover:text-secondary">Auteurs</a>
+                <a href="{% url 'shop:book_list' %}" class="text-primary hover:text-secondary">Livres</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

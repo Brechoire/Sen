@@ -19,6 +19,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from . import error_views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -35,3 +36,9 @@ urlpatterns = [
 # Cela va résoudre le problème immédiatement
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+# Gestion des erreurs personnalisées
+handler404 = error_views.custom_404
+handler500 = error_views.custom_500
+handler403 = error_views.custom_403
+handler400 = error_views.custom_400

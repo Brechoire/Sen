@@ -79,6 +79,31 @@ TEMPLATES = [
     },
 ]
 
+# Configuration pour la gestion des erreurs personnalisées
+if not DEBUG:
+    # En production, désactiver l'affichage des erreurs détaillées
+    ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+    
+    # Logging pour les erreurs en production
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'handlers': {
+            'file': {
+                'level': 'ERROR',
+                'class': 'logging.FileHandler',
+                'filename': BASE_DIR / 'logs' / 'django_errors.log',
+            },
+        },
+        'loggers': {
+            'django': {
+                'handlers': ['file'],
+                'level': 'ERROR',
+                'propagate': True,
+            },
+        },
+    }
+
 WSGI_APPLICATION = "app.wsgi.application"
 
 
