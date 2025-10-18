@@ -33,9 +33,15 @@ urlpatterns = [
 ]
 
 # Configuration pour servir les fichiers statiques et média
-# En développement et en production (nécessaire pour o2switch)
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+# Nécessaire pour o2switch et autres serveurs partagés
+from django.views.static import serve
+from django.urls import re_path
+
+# Servir les fichiers statiques même en production
+urlpatterns += [
+    re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
+    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+]
 
 # Gestion des erreurs personnalisées
 handler404 = error_views.custom_404
