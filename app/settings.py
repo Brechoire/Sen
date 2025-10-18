@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+# Charger les variables d'environnement depuis le fichier .env
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-7q8m2mjez4%w0!1vlky_1ikq1fzfs*!szbmlmu=hc0j4nfjds7')
+SECRET_KEY = os.environ.get('SECRET_KEY', '')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
@@ -111,9 +115,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = "fr-fr"
+LANGUAGE_CODE = os.environ.get('LANGUAGE_CODE', 'fr-fr')
 
-TIME_ZONE = "Europe/Paris"
+TIME_ZONE = os.environ.get('TIME_ZONE', 'Europe/Paris')
 
 USE_I18N = True
 
@@ -133,16 +137,16 @@ STATICFILES_DIRS = [
 ] if DEBUG else []
 
 # Media files
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = os.environ.get('MEDIA_URL', '/media/')
+MEDIA_ROOT = BASE_DIR / os.environ.get('MEDIA_ROOT', 'media')
 
 # Configuration de sécurité pour HTTPS (si vous avez un certificat SSL)
 if not DEBUG:
-    SECURE_SSL_REDIRECT = False  # Laissez False si pas de SSL pour le moment
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False').lower() in ('true', '1', 'yes')
+    SECURE_PROXY_SSL_HEADER = tuple(os.environ.get('SECURE_PROXY_SSL_HEADER', 'HTTP_X_FORWARDED_PROTO,https').split(','))
 
 # CKEditor Configuration
-CKEDITOR_UPLOAD_PATH = "uploads/"
+CKEDITOR_UPLOAD_PATH = os.environ.get('CKEDITOR_UPLOAD_PATH', 'uploads/')
 CKEDITOR_IMAGE_BACKEND = "pillow"
 
 CKEDITOR_CONFIGS = {
@@ -203,3 +207,20 @@ AUTH_USER_MODEL = 'accounts.User'
 PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID', '')
 PAYPAL_CLIENT_SECRET = os.environ.get('PAYPAL_CLIENT_SECRET', '')
 PAYPAL_MODE = os.environ.get('PAYPAL_MODE', 'sandbox')
+
+# Configuration Email
+EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+
+# Configuration de la boutique
+SHOP_NAME = os.environ.get('SHOP_NAME', 'Éditions Sen')
+SHOP_EMAIL = os.environ.get('SHOP_EMAIL', 'contact@editions-sen.com')
+SHOP_PHONE = os.environ.get('SHOP_PHONE', '')
+
+# Configuration des paramètres de livraison par défaut
+FREE_SHIPPING_THRESHOLD = float(os.environ.get('FREE_SHIPPING_THRESHOLD', 60.00))
+STANDARD_SHIPPING_COST = float(os.environ.get('STANDARD_SHIPPING_COST', 5.90))
+TAX_RATE = float(os.environ.get('TAX_RATE', 5.5))

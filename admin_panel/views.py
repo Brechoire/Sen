@@ -5,10 +5,12 @@ from django.core.paginator import Paginator
 from django.db.models import Q, Count
 from django.utils import timezone
 from datetime import datetime, timedelta
+from django.http import JsonResponse
+import os
 
 from news.models import Article
 from author.models import Author
-from shop.models import Book, Category, Cart, CartItem, Review, ShopSettings, Refund, Order
+from shop.models import Book, Category, Cart, Review, ShopSettings, Refund
 from shop.forms import ShopSettingsForm
 from accounts.models import User
 
@@ -455,3 +457,65 @@ def toggle_author_status(request, author_id):
     status = "actif" if author.is_active else "inactif"
     messages.success(request, f'Auteur "{author.display_name}" marqué comme {status}.')
     return redirect('admin_panel:authors')
+
+
+@staff_member_required
+def environment_variables(request):
+    """Affichage des variables d'environnement actives"""
+    from django.conf import settings
+    
+    # Variables importantes à afficher (valeurs masquées pour la sécurité)
+    env_vars = {
+        'Django': {
+            'DEBUG': '***' if os.environ.get('DEBUG') else 'Non défini',
+            'SECRET_KEY': '***' if os.environ.get('SECRET_KEY') else 'Non défini',
+            'ALLOWED_HOSTS': '***' if os.environ.get('ALLOWED_HOSTS') else 'Non défini',
+            'LANGUAGE_CODE': '***' if os.environ.get('LANGUAGE_CODE') else 'Non défini',
+            'TIME_ZONE': '***' if os.environ.get('TIME_ZONE') else 'Non défini',
+        },
+        'Base de données': {
+            'DATABASE_ENGINE': '***' if os.environ.get('DATABASE_ENGINE') else 'Non défini',
+            'DATABASE_NAME': '***' if os.environ.get('DATABASE_NAME') else 'Non défini',
+        },
+        'PayPal': {
+            'PAYPAL_CLIENT_ID': '***' if os.environ.get('PAYPAL_CLIENT_ID') else 'Non défini',
+            'PAYPAL_CLIENT_SECRET': '***' if os.environ.get('PAYPAL_CLIENT_SECRET') else 'Non défini',
+            'PAYPAL_MODE': '***' if os.environ.get('PAYPAL_MODE') else 'Non défini',
+        },
+        'Email': {
+            'EMAIL_HOST': '***' if os.environ.get('EMAIL_HOST') else 'Non défini',
+            'EMAIL_PORT': '***' if os.environ.get('EMAIL_PORT') else 'Non défini',
+            'EMAIL_USE_TLS': '***' if os.environ.get('EMAIL_USE_TLS') else 'Non défini',
+            'EMAIL_HOST_USER': '***' if os.environ.get('EMAIL_HOST_USER') else 'Non défini',
+        },
+        'Boutique': {
+            'SHOP_NAME': '***' if os.environ.get('SHOP_NAME') else 'Non défini',
+            'SHOP_EMAIL': '***' if os.environ.get('SHOP_EMAIL') else 'Non défini',
+            'SHOP_PHONE': '***' if os.environ.get('SHOP_PHONE') else 'Non défini',
+        },
+        'Livraison': {
+            'FREE_SHIPPING_THRESHOLD': '***' if os.environ.get('FREE_SHIPPING_THRESHOLD') else 'Non défini',
+            'STANDARD_SHIPPING_COST': '***' if os.environ.get('STANDARD_SHIPPING_COST') else 'Non défini',
+            'TAX_RATE': '***' if os.environ.get('TAX_RATE') else 'Non défini',
+        }
+    }
+    
+    # Variables actuelles de Django (valeurs masquées pour la sécurité)
+    django_settings = {
+        'DEBUG': '***' if hasattr(settings, 'DEBUG') else 'Non défini',
+        'ALLOWED_HOSTS': '***' if hasattr(settings, 'ALLOWED_HOSTS') else 'Non défini',
+        'LANGUAGE_CODE': '***' if hasattr(settings, 'LANGUAGE_CODE') else 'Non défini',
+        'TIME_ZONE': '***' if hasattr(settings, 'TIME_ZONE') else 'Non défini',
+        'PAYPAL_MODE': '***' if hasattr(settings, 'PAYPAL_MODE') else 'Non défini',
+        'SHOP_NAME': '***' if hasattr(settings, 'SHOP_NAME') else 'Non défini',
+    }
+    
+    context = {
+        'env_vars': env_vars,
+        'django_settings': django_settings,
+        'total_vars': sum(
+            len(category) for category in env_vars.values()
+        ),
+    }
+    
+    return render(request, 'admin_panel/environment_variables.html', context)
