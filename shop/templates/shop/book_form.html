@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if object %}Modifier le livre{% else %}Ajouter un livre{% endif %} - Éditions Sen
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-8">
+            <h1 class="text-3xl font-serif font-bold text-dark mb-4">
+                {% if object %}Modifier le livre{% else %}Ajouter un nouveau livre{% endif %}
+            </h1>
+            <p class="text-gray-600">
+                {% if object %}Modifiez les informations du livre "{{ object.title }}"{% else %}Remplissez les informations pour ajouter un nouveau livre à la boutique{% endif %}
+            </p>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <form method="post" enctype="multipart/form-data" class="space-y-8">
+                {% csrf_token %}
+                
+                <!-- Messages d'erreur -->
+                {% if form.errors %}
+                <div class="bg-red-50 border border-red-200 rounded-md p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-red-800">Erreurs dans le formulaire</h3>
+                            <div class="mt-2 text-sm text-red-700">
+                                <ul class="list-disc list-inside space-y-1">
+                                    {% for field, errors in form.errors.items %}
+                                        {% for error in errors %}
+                                            <li>{{ field|title }}: {{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Informations générales -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold mb-6">Informations générales</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.title.label }} <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.title }}
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label for="{{ form.slug.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.slug.label }} <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.slug }}
+                            <p class="text-sm text-gray-500 mt-1">URL du livre (ex: titre-du-livre)</p>
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label for="{{ form.subtitle.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.subtitle.label }}
+                            </label>
+                            {{ form.subtitle }}
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label for="{{ form.author.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.author.label }} <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.author }}
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label for="{{ form.category.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.category.label }}
+                            </label>
+                            {{ form.category }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold mb-6">Description</h2>
+                    <div class="space-y-6">
+                        <div>
+                            <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.description.label }} <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.description }}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.short_description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.short_description.label }}
+                            </label>
+                            {{ form.short_description }}
+                            <p class="text-sm text-gray-500 mt-1">Description courte pour les listes (max 500 caractères)</p>
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.excerpt.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.excerpt.label }}
+                            </label>
+                            {{ form.excerpt }}
+                            <p class="text-sm text-gray-500 mt-1">Extrait du livre pour la page de détail</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informations éditoriales -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold mb-6">Informations éditoriales</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="{{ form.isbn.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.isbn.label }} <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.isbn }}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.publication_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.publication_date.label }} <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.publication_date }}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.pages.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.pages.label }} <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.pages }}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.language.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.language.label }} <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.language }}
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label for="{{ form.format.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.format.label }} <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.format }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Images -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold mb-6">Images</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="{{ form.cover_image.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.cover_image.label }} <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.cover_image }}
+                            {% if object and object.cover_image %}
+                                <div class="mt-2">
+                                    <img src="{{ object.cover_image.url }}" alt="Couverture actuelle" class="w-32 h-48 object-cover rounded">
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.back_cover_image.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.back_cover_image.label }}
+                            </label>
+                            {{ form.back_cover_image }}
+                            {% if object and object.back_cover_image %}
+                                <div class="mt-2">
+                                    <img src="{{ object.back_cover_image.url }}" alt="Quatrième de couverture actuelle" class="w-32 h-48 object-cover rounded">
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prix et disponibilité -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold mb-6">Prix et disponibilité</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="{{ form.price.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.price.label }} <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.price }}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.discount_price.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.discount_price.label }}
+                            </label>
+                            {{ form.discount_price }}
+                            <p class="text-sm text-gray-500 mt-1">Prix de promotion (optionnel)</p>
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.stock_quantity.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.stock_quantity.label }} <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.stock_quantity }}
+                        </div>
+                        
+                        <div class="flex items-center space-x-4">
+                            <label class="flex items-center">
+                                {{ form.is_available }}
+                                <span class="ml-2 text-sm text-gray-700">{{ form.is_available.label }}</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mise en avant -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold mb-6">Mise en avant</h2>
+                    <div class="flex items-center space-x-6">
+                        <label class="flex items-center">
+                            {{ form.is_featured }}
+                            <span class="ml-2 text-sm text-gray-700">{{ form.is_featured.label }}</span>
+                        </label>
+                        
+                        <label class="flex items-center">
+                            {{ form.is_bestseller }}
+                            <span class="ml-2 text-sm text-gray-700">{{ form.is_bestseller.label }}</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- SEO -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold mb-6">Optimisation SEO</h2>
+                    <div class="space-y-6">
+                        <div>
+                            <label for="{{ form.meta_title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.meta_title.label }}
+                            </label>
+                            {{ form.meta_title }}
+                            <p class="text-sm text-gray-500 mt-1">Titre pour les moteurs de recherche (optionnel)</p>
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.meta_description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.meta_description.label }}
+                            </label>
+                            {{ form.meta_description }}
+                            <p class="text-sm text-gray-500 mt-1">Description pour les moteurs de recherche (max 300 caractères)</p>
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.keywords.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.keywords.label }}
+                            </label>
+                            {{ form.keywords }}
+                            <p class="text-sm text-gray-500 mt-1">Mots-clés séparés par des virgules</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Boutons d'action -->
+                <div class="flex justify-end space-x-4">
+                    <a href="{% url 'shop:book_list' %}" class="bg-gray-300 text-gray-700 py-2 px-6 rounded-lg hover:bg-gray-400 transition-colors">
+                        Annuler
+                    </a>
+                    <button type="submit" class="bg-primary text-white py-2 px-6 rounded-lg hover:bg-secondary transition-colors">
+                        {% if object %}Mettre à jour{% else %}Créer le livre{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

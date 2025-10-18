@@ -1,0 +1,111 @@
+{% load static %}
+<!-- Header et navigation -->
+<header class="bg-white shadow-md sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center">
+        <!-- Logo -->
+        <a href="{% url 'home:index' %}" class="mb-4 md:mb-0">
+            <div class="flex items-center">
+                <div class="h-10 w-10 rounded-full overflow-hidden mr-3">
+                    <img src="{% static 'logo.jpg' %}" alt="Éditions Sen Logo" class="w-full h-full object-cover">
+                </div>
+                <span class="text-xl font-serif font-bold">Éditions Sen</span>
+            </div>
+        </a>
+        
+        <!-- Navigation principale -->
+        <nav class="flex flex-wrap justify-center items-center">
+            <a href="{% url 'home:index' %}" class="mx-3 my-1 text-dark hover:text-primary transition-colors text-lg">Accueil</a>
+            <a href="{% url 'shop:book_list' %}" class="mx-3 my-1 text-dark hover:text-primary transition-colors text-lg">Boutique</a>
+            <a href="{% url 'author:author_list' %}" class="mx-3 my-1 text-dark hover:text-primary transition-colors text-lg">Auteurs</a>
+            <a href="{% url 'news:article_list' %}" class="mx-3 my-1 text-dark hover:text-primary transition-colors text-lg">Actualités</a>
+            <a href="{% url 'home:a_propos' %}" class="mx-3 my-1 text-dark hover:text-primary transition-colors text-lg">À propos</a>
+            <a href="#" class="mx-3 my-1 text-dark hover:text-primary transition-colors text-lg">Contact</a>
+        </nav>
+        
+        <!-- Panier et compte -->
+        <div class="flex items-center mt-4 md:mt-0">
+            <div class="relative mr-4 group">
+                <button class="flex items-center text-dark hover:text-primary transition-colors" id="cart-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    <span class="ml-1 text-lg" id="cart-count">Panier (0)</span>
+                </button>
+                <!-- Dropdown panier -->
+                <div class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg overflow-hidden z-50 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300" id="cart-dropdown">
+                    <div class="p-4">
+                        <h3 class="font-medium text-dark mb-3">Votre panier</h3>
+                        <div id="cart-items" class="max-h-64 overflow-y-auto">
+                            <!-- Les articles du panier seront chargés ici -->
+                        </div>
+                        <div class="border-t border-gray-200 mt-3 pt-3" id="cart-summary" style="display: none;">
+                            <div class="flex justify-between mb-3">
+                                <span class="text-sm font-medium">Total</span>
+                                <span class="text-sm font-bold text-primary" id="cart-total">0,00 €</span>
+                            </div>
+                            <div class="space-y-2">
+                                <a href="{% url 'shop:cart_detail' %}" class="block bg-primary hover:bg-secondary text-white text-center py-2 rounded transition-colors font-medium">
+                                    Voir le panier
+                                </a>
+                                <button onclick="window.cartManager.clearCart()" class="w-full text-xs text-gray-500 hover:text-red-500 transition-colors">
+                                    Vider le panier
+                                </button>
+                            </div>
+                        </div>
+                        <div id="cart-empty" class="text-center py-6 text-gray-500">
+                            <svg class="mx-auto h-12 w-12 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
+                            </svg>
+                            <p class="text-sm">Votre panier est vide</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Compte utilisateur -->
+            {% if user.is_authenticated %}
+                <div class="relative mr-4 group">
+                    <button class="flex items-center text-dark hover:text-primary transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span class="ml-1 text-lg">{{ user.first_name|default:user.username }}</span>
+                    </button>
+                    <!-- Dropdown compte -->
+                    <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg overflow-hidden z-50 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300">
+                        <div class="py-1">
+                            <a href="{% url 'accounts:dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-tachometer-alt mr-2"></i>Tableau de bord
+                            </a>
+                            <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-user mr-2"></i>Mon profil
+                            </a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-shopping-bag mr-2"></i>Mes commandes
+                            </a>
+                            {% if user.is_superuser %}
+                            <div class="border-t border-gray-100"></div>
+                            <a href="{% url 'admin_panel:dashboard' %}" class="block px-4 py-2 text-sm text-primary font-medium hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-cogs mr-2"></i>Administration
+                            </a>
+                            {% endif %}
+                            <div class="border-t border-gray-100"></div>
+                            <a href="{% url 'accounts:logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Se déconnecter
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'accounts:login' %}" class="text-dark hover:text-primary transition-colors text-lg">
+                        <i class="fas fa-sign-in-alt mr-1"></i>Connexion
+                    </a>
+                    <a href="{% url 'accounts:signup' %}" class="bg-primary hover:bg-secondary text-white px-4 py-2 rounded-md transition-colors text-lg">
+                        <i class="fas fa-user-plus mr-1"></i>Inscription
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</header>

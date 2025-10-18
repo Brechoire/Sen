@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-7q8m2mjez4%w0!1vlky_1ikq1fzfs*!szbmlmu=hc0j4nfjds7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["dev.editions-sen.fr", "www.dev.editions-sen.fr", "localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -37,7 +37,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "ckeditor",
+    "ckeditor_uploader",
+    "accounts",
     "home",
+    "news",
+    "author",
+    "shop",
+    "admin_panel",
 ]
 
 MIDDLEWARE = [
@@ -115,9 +122,79 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = "static/"
+# Static files configuration pour la production
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Pour la production, ajoutez aussi :
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+] if DEBUG else []
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Configuration de sécurité pour HTTPS (si vous avez un certificat SSL)
+if not DEBUG:
+    SECURE_SSL_REDIRECT = False  # Laissez False si pas de SSL pour le moment
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# CKEditor Configuration
+CKEDITOR_UPLOAD_PATH = "uploads/"
+CKEDITOR_IMAGE_BACKEND = "pillow"
+
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'Custom',
+        'height': 300,
+        'width': '100%',
+        'toolbar_Custom': [
+            ['Styles', 'Format'],
+            ['Bold', 'Italic', 'Underline'],
+            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+            ['Link', 'Unlink'],
+            ['RemoveFormat', 'Source'],
+            ['Image', 'Table', 'HorizontalRule'],
+            ['TextColor', 'BGColor'],
+            ['FontSize'],
+            ['Blockquote'],
+        ],
+        'extraPlugins': ','.join([
+            'uploadimage', # the upload image feature
+            'div',
+            'autolink',
+            'autoembed',
+            'embedsemantic',
+            'autogrow',
+            'widget',
+            'lineutils',
+            'clipboard',
+            'dialog',
+            'dialogui',
+            'elementspath'
+        ]),
+        'removePlugins': 'exportpdf',  # Désactiver le plugin PDF qui cause l'erreur
+        'language': 'fr',
+        'uiColor': '#f0f0f0',
+        'format_tags': 'p;h1;h2;h3;h4;h5;h6;pre;address;div',
+        'stylesSet': [
+            {'name': 'Titre 1', 'element': 'h1', 'styles': {'font-size': '2.5em', 'font-weight': 'bold', 'color': '#2A5C4A'}},
+            {'name': 'Titre 2', 'element': 'h2', 'styles': {'font-size': '2em', 'font-weight': 'bold', 'color': '#2A5C4A'}},
+            {'name': 'Titre 3', 'element': 'h3', 'styles': {'font-size': '1.5em', 'font-weight': 'bold', 'color': '#2A5C4A'}},
+            {'name': 'Titre 4', 'element': 'h4', 'styles': {'font-size': '1.25em', 'font-weight': 'bold', 'color': '#2A5C4A'}},
+            {'name': 'Titre 5', 'element': 'h5', 'styles': {'font-size': '1.1em', 'font-weight': 'bold', 'color': '#2A5C4A'}},
+            {'name': 'Titre 6', 'element': 'h6', 'styles': {'font-size': '1em', 'font-weight': 'bold', 'color': '#2A5C4A'}},
+            {'name': 'Paragraphe', 'element': 'p'},
+            {'name': 'Citation', 'element': 'blockquote', 'styles': {'border-left': '4px solid #2A5C4A', 'padding-left': '20px', 'font-style': 'italic'}},
+        ],
+    }
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+# Configuration du modèle utilisateur personnalisé
+AUTH_USER_MODEL = 'accounts.User'
+

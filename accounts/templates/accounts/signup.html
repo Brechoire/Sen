@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Inscription - Éditions Sen{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-8">
+            <div class="max-w-2xl mx-auto text-center">
+                <h1 class="text-3xl font-serif font-bold text-dark mb-2">Créer un compte</h1>
+                <p class="text-gray-600 text-lg">Rejoignez la communauté des Éditions Sen et découvrez nos œuvres littéraires</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-2xl mx-auto">
+            <div class="bg-white rounded-lg shadow-md p-8">
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- Messages -->
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="p-4 rounded-md {% if message.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <!-- Informations personnelles -->
+                    <div class="border-b border-gray-200 pb-6">
+                        <h2 class="text-xl font-bold text-dark mb-4">Informations personnelles</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Prénom -->
+                            <div>
+                                <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Prénom *
+                                </label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.first_name.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Nom -->
+                            <div>
+                                <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Nom *
+                                </label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.last_name.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mt-6">
+                            <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                Adresse email *
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Téléphone -->
+                        <div class="mt-6">
+                            <label for="{{ form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                Téléphone
+                            </label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.phone.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Date de naissance -->
+                        <div class="mt-6">
+                            <label for="{{ form.birth_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                Date de naissance
+                            </label>
+                            {{ form.birth_date }}
+                            {% if form.birth_date.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.birth_date.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Identifiants de connexion -->
+                    <div class="border-b border-gray-200 pb-6">
+                        <h2 class="text-xl font-bold text-dark mb-4">Identifiants de connexion</h2>
+                        
+                        <!-- Nom d'utilisateur -->
+                        <div class="mb-6">
+                            <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                Nom d'utilisateur *
+                            </label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.username.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Mot de passe -->
+                        <div class="mb-6">
+                            <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                Mot de passe *
+                            </label>
+                            {{ form.password1 }}
+                            {% if form.password1.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.password1.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Confirmation mot de passe -->
+                        <div>
+                            <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                Confirmer le mot de passe *
+                            </label>
+                            {{ form.password2 }}
+                            {% if form.password2.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.password2.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Préférences -->
+                    <div class="pb-6">
+                        <h2 class="text-xl font-bold text-dark mb-4">Préférences</h2>
+                        
+                        <div class="space-y-4">
+                            <!-- Newsletter -->
+                            <div class="flex items-center">
+                                {{ form.newsletter }}
+                                <label for="{{ form.newsletter.id_for_label }}" class="ml-3 text-sm text-gray-700">
+                                    Je souhaite recevoir la newsletter des Éditions Sen
+                                </label>
+                            </div>
+
+                            <!-- Marketing -->
+                            <div class="flex items-center">
+                                {{ form.marketing }}
+                                <label for="{{ form.marketing.id_for_label }}" class="ml-3 text-sm text-gray-700">
+                                    Je souhaite recevoir des offres promotionnelles
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex flex-col sm:flex-row justify-between items-center pt-6">
+                        <a href="{% url 'home:index' %}" 
+                           class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors mb-4 sm:mb-0">
+                            <i class="fas fa-arrow-left mr-2"></i>Retour à l'accueil
+                        </a>
+                        
+                        <button type="submit" 
+                                class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md text-white bg-primary hover:bg-secondary transition-colors">
+                            <i class="fas fa-user-plus mr-2"></i>Créer mon compte
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Lien vers la connexion -->
+                <div class="mt-8 text-center">
+                    <p class="text-gray-600">
+                        Vous avez déjà un compte ? 
+                        <a href="{% url 'accounts:login' %}" class="text-primary hover:text-secondary transition-colors font-medium">
+                            Se connecter
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Supprimer le livre - Éditions Sen{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-8">
+            <h1 class="text-3xl font-serif font-bold text-dark mb-4">Supprimer le livre</h1>
+            <p class="text-gray-600">Confirmez la suppression de ce livre de la boutique</p>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-2xl mx-auto">
+            <div class="bg-white rounded-lg shadow-md p-8">
+                <!-- Avertissement -->
+                <div class="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-red-800">Attention !</h3>
+                            <div class="mt-2 text-sm text-red-700">
+                                <p>Cette action est irréversible. Le livre sera définitivement supprimé de la boutique.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informations du livre -->
+                <div class="flex items-start space-x-6 mb-8">
+                    <div class="flex-shrink-0">
+                        {% if object.cover_image %}
+                            <img src="{{ object.cover_image.url }}" alt="{{ object.title }}" class="w-32 h-48 object-cover rounded-lg shadow-md">
+                        {% else %}
+                            <div class="w-32 h-48 bg-gray-200 flex items-center justify-center rounded-lg shadow-md">
+                                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                </svg>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-2xl font-serif font-bold text-dark mb-2">{{ object.title }}</h2>
+                        {% if object.subtitle %}
+                            <p class="text-lg text-gray-600 mb-2">{{ object.subtitle }}</p>
+                        {% endif %}
+                        <p class="text-gray-700 mb-4">Par {{ object.author.display_name }}</p>
+                        
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <span class="font-medium text-gray-500">ISBN:</span>
+                                <span class="text-gray-900">{{ object.isbn }}</span>
+                            </div>
+                            <div>
+                                <span class="font-medium text-gray-500">Pages:</span>
+                                <span class="text-gray-900">{{ object.pages }}</span>
+                            </div>
+                            <div>
+                                <span class="font-medium text-gray-500">Format:</span>
+                                <span class="text-gray-900">{{ object.get_format_display }}</span>
+                            </div>
+                            <div>
+                                <span class="font-medium text-gray-500">Prix:</span>
+                                <span class="text-gray-900">{{ object.price }} €</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistiques -->
+                <div class="bg-gray-50 rounded-lg p-6 mb-8">
+                    <h3 class="text-lg font-semibold mb-4">Impact de la suppression</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                        <div>
+                            <div class="text-2xl font-bold text-red-600">{{ object.reviews.count }}</div>
+                            <div class="text-sm text-gray-600">Avis supprimés</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-red-600">{{ object.images.count }}</div>
+                            <div class="text-sm text-gray-600">Images supprimées</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-red-600">1</div>
+                            <div class="text-sm text-gray-600">Livre supprimé</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulaire de confirmation -->
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-yellow-800">Confirmation requise</h3>
+                                <div class="mt-2 text-sm text-yellow-700">
+                                    <p>Pour confirmer la suppression, tapez le titre du livre dans le champ ci-dessous :</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="confirmation" class="block text-sm font-medium text-gray-700 mb-2">
+                            Tapez "{{ object.title }}" pour confirmer
+                        </label>
+                        <input type="text" id="confirmation" name="confirmation" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                               placeholder="Titre du livre">
+                    </div>
+
+                    <!-- Boutons d'action -->
+                    <div class="flex justify-end space-x-4">
+                        <a href="{% url 'shop:book_detail' object.slug %}" class="bg-gray-300 text-gray-700 py-2 px-6 rounded-lg hover:bg-gray-400 transition-colors">
+                            Annuler
+                        </a>
+                        <button type="submit" id="delete-button" disabled
+                                class="bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            Supprimer définitivement
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmationInput = document.getElementById('confirmation');
+    const deleteButton = document.getElementById('delete-button');
+    const expectedTitle = '{{ object.title }}';
+    
+    confirmationInput.addEventListener('input', function() {
+        if (this.value === expectedTitle) {
+            deleteButton.disabled = false;
+            deleteButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else {
+            deleteButton.disabled = true;
+            deleteButton.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+    });
+});
+</script>
+{% endblock %}

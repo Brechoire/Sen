@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Éditions Sen{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-8">
+            <div class="max-w-4xl mx-auto">
+                <!-- Breadcrumb -->
+                <nav class="mb-6">
+                    <ol class="flex items-center space-x-2 text-sm text-gray-500">
+                        <li><a href="{% url 'home:index' %}" class="hover:text-primary">Accueil</a></li>
+                        <li><span class="mx-2">/</span></li>
+                        <li><a href="{% url 'author:author_list' %}" class="hover:text-primary">Auteurs</a></li>
+                        <li><span class="mx-2">/</span></li>
+                        <li class="text-gray-900">{{ title }}</li>
+                    </ol>
+                    {% if user.is_superuser %}
+                    <div class="mt-4">
+                        <a href="{% url 'admin_panel:authors' %}" class="inline-flex items-center px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-md transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            Retour à l'administration
+                        </a>
+                    </div>
+                    {% endif %}
+                </nav>
+
+                <h1 class="text-4xl font-serif font-bold text-dark mb-4">{{ title }}</h1>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="p-8">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Informations personnelles -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-bold text-dark mb-6 border-b border-gray-200 pb-2">Informations personnelles</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.first_name.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.first_name }}
+                                    {% if form.first_name.errors %}
+                                        <div class="text-red-500 text-sm mt-1">
+                                            {% for error in form.first_name.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.last_name.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.last_name }}
+                                    {% if form.last_name.errors %}
+                                        <div class="text-red-500 text-sm mt-1">
+                                            {% for error in form.last_name.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <label for="{{ form.pen_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.pen_name.label }}
+                                    </label>
+                                    {{ form.pen_name }}
+                                    {% if form.pen_name.errors %}
+                                        <div class="text-red-500 text-sm mt-1">
+                                            {% for error in form.pen_name.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <label for="{{ form.birth_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.birth_date.label }}
+                                    </label>
+                                    {{ form.birth_date }}
+                                    {% if form.birth_date.errors %}
+                                        <div class="text-red-500 text-sm mt-1">
+                                            {% for error in form.birth_date.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <label for="{{ form.death_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.death_date.label }}
+                                    </label>
+                                    {{ form.death_date }}
+                                    {% if form.death_date.errors %}
+                                        <div class="text-red-500 text-sm mt-1">
+                                            {% for error in form.death_date.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Photo -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-bold text-dark mb-6 border-b border-gray-200 pb-2">Photo</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="{{ form.photo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.photo.label }}
+                                    </label>
+                                    {{ form.photo }}
+                                    {% if form.photo.errors %}
+                                        <div class="text-red-500 text-sm mt-1">
+                                            {% for error in form.photo.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <p class="text-gray-500 text-sm mt-2">Formats acceptés : JPG, PNG, GIF. Taille maximale : 5MB</p>
+                                </div>
+                                {% if form.instance.photo %}
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Photo actuelle</label>
+                                    <div>
+                                        <img src="{{ form.instance.photo.url }}" alt="Photo actuelle" class="w-48 h-48 object-cover rounded-lg border border-gray-200">
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Biographie -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-bold text-dark mb-6 border-b border-gray-200 pb-2">Biographie</h3>
+                            <div class="space-y-6">
+                                <div>
+                                    <label for="{{ form.short_bio.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.short_bio.label }}
+                                    </label>
+                                    {{ form.short_bio }}
+                                    {% if form.short_bio.errors %}
+                                        <div class="text-red-500 text-sm mt-1">
+                                            {% for error in form.short_bio.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <p class="text-gray-500 text-sm mt-2">Biographie courte qui apparaîtra dans les listes (500 caractères max)</p>
+                                </div>
+                                <div>
+                                    <label for="{{ form.biography.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.biography.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.biography }}
+                                    {% if form.biography.errors %}
+                                        <div class="text-red-500 text-sm mt-1">
+                                            {% for error in form.biography.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <p class="text-gray-500 text-sm mt-2">Biographie complète de l'auteur</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contact -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-bold text-dark mb-6 border-b border-gray-200 pb-2">Informations de contact</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.email.label }}
+                                    </label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                        <div class="text-red-500 text-sm mt-1">
+                                            {% for error in form.email.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <label for="{{ form.website.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.website.label }}
+                                    </label>
+                                    {{ form.website }}
+                                    {% if form.website.errors %}
+                                        <div class="text-red-500 text-sm mt-1">
+                                            {% for error in form.website.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Statut -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-bold text-dark mb-6 border-b border-gray-200 pb-2">Statut</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="flex items-start">
+                                    <div class="flex items-center h-5">
+                                        {{ form.is_featured }}
+                                    </div>
+                                    <div class="ml-3">
+                                        <label for="{{ form.is_featured.id_for_label }}" class="text-sm font-medium text-gray-700">
+                                            {{ form.is_featured.label }}
+                                        </label>
+                                        <p class="text-gray-500 text-sm mt-1">Afficher cet auteur dans la section "Auteurs en vedette"</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <div class="flex items-center h-5">
+                                        {{ form.is_active }}
+                                    </div>
+                                    <div class="ml-3">
+                                        <label for="{{ form.is_active.id_for_label }}" class="text-sm font-medium text-gray-700">
+                                            {{ form.is_active.label }}
+                                        </label>
+                                        <p class="text-gray-500 text-sm mt-1">Auteur visible sur le site</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Boutons d'action -->
+                        <div class="flex justify-between items-center pt-8 border-t border-gray-200">
+                            <a href="{% url 'author:author_list' %}" 
+                               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-arrow-left mr-2"></i>Retour aux auteurs
+                            </a>
+                            <button type="submit" 
+                                    class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-secondary transition-colors">
+                                <i class="fas fa-save mr-2"></i>{{ submit_text }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

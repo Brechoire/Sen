@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mon Panier - Éditions Sen{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-8">
+            <h1 class="text-3xl font-serif font-bold text-dark mb-4">Mon Panier</h1>
+            <p class="text-gray-600">Vérifiez vos articles avant de finaliser votre commande</p>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8">
+        {% if cart_items %}
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Articles du panier -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-lg shadow-md">
+                        <div class="p-6">
+                            <h2 class="text-xl font-semibold mb-6">Articles dans votre panier ({{ cart.total_items }})</h2>
+                            
+                            <div class="space-y-6">
+                                {% for item in cart_items %}
+                                <div class="flex items-start space-x-4 p-4 border border-gray-200 rounded-lg">
+                                    <!-- Image du livre -->
+                                    <div class="flex-shrink-0">
+                                        {% if item.book.cover_image %}
+                                            <img src="{{ item.book.cover_image.url }}" alt="{{ item.book.title }}" class="w-20 h-28 object-cover rounded">
+                                        {% else %}
+                                            <div class="w-20 h-28 bg-gray-200 flex items-center justify-center rounded">
+                                                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                                </svg>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Informations du livre -->
+                                    <div class="flex-1 min-w-0">
+                                        <h3 class="text-lg font-semibold text-dark mb-1">{{ item.book.title }}</h3>
+                                        <p class="text-gray-600 text-sm mb-2">{{ item.book.author.display_name }}</p>
+                                        
+                                        <!-- Prix -->
+                                        <div class="flex items-center space-x-2 mb-3">
+                                            {% if item.book.is_on_sale %}
+                                                <span class="text-lg font-bold text-primary">{{ item.unit_price }} €</span>
+                                                <span class="text-sm text-gray-500 line-through">{{ item.book.price }} €</span>
+                                                <span class="bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold">
+                                                    -{{ item.book.discount_percentage }}%
+                                                </span>
+                                            {% else %}
+                                                <span class="text-lg font-bold text-primary">{{ item.unit_price }} €</span>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <!-- Quantité -->
+                                        <div class="flex items-center space-x-2">
+                                            <label class="text-sm text-gray-600">Quantité:</label>
+                                            <div class="flex items-center border border-gray-300 rounded">
+                                                <button onclick="updateQuantity({{ item.book.id }}, {{ item.quantity|add:'-1' }})" 
+                                                        class="px-3 py-1 hover:bg-gray-100 transition-colors" 
+                                                        {% if item.quantity <= 1 %}disabled{% endif %}>
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                                                    </svg>
+                                                </button>
+                                                <span class="px-3 py-1 min-w-[3rem] text-center" id="quantity-{{ item.book.id }}">{{ item.quantity }}</span>
+                                                <button onclick="updateQuantity({{ item.book.id }}, {{ item.quantity|add:'1' }})" 
+                                                        class="px-3 py-1 hover:bg-gray-100 transition-colors"
+                                                        {% if item.quantity >= item.book.stock_quantity %}disabled{% endif %}>
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Prix total et actions -->
+                                    <div class="flex flex-col items-end space-y-2">
+                                        <div class="text-right">
+                                            <div class="text-lg font-bold text-primary" id="total-{{ item.book.id }}">
+                                                {{ item.total_price }} €
+                                            </div>
+                                            {% if item.savings > 0 %}
+                                                <div class="text-sm text-green-600">
+                                                    Économie: {{ item.savings }} €
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <button onclick="removeFromCart({{ item.book.id }})" 
+                                                class="text-red-600 hover:text-red-800 text-sm transition-colors">
+                                            Supprimer
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Résumé de la commande -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-lg shadow-md sticky top-24">
+                        <div class="p-6">
+                            <h2 class="text-xl font-semibold mb-6">Résumé de la commande</h2>
+                            
+                            <div class="space-y-4">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Sous-total ({{ cart.total_items }} article{{ cart.total_items|pluralize }})</span>
+                                    <span id="subtotal">{{ cart.total_price }} €</span>
+                                </div>
+                                
+                                {% if cart.total_discount > 0 %}
+                                <div class="flex justify-between text-green-600">
+                                    <span>Économies</span>
+                                    <span>-{{ cart.total_discount }} €</span>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="border-t border-gray-200 pt-4">
+                                    <div class="flex justify-between text-lg font-bold">
+                                        <span>Total</span>
+                                        <span id="total-price" class="text-primary">{{ cart.final_price }} €</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6 space-y-3">
+                                <button onclick="proceedToCheckout()" 
+                                        class="w-full bg-primary text-white py-3 px-4 rounded-lg font-semibold hover:bg-secondary transition-colors">
+                                    Passer la commande
+                                </button>
+                                
+                                <button onclick="clearCart()" 
+                                        class="w-full bg-gray-300 text-gray-700 py-3 px-4 rounded-lg font-semibold hover:bg-gray-400 transition-colors">
+                                    Vider le panier
+                                </button>
+                                
+                                <a href="{% url 'shop:book_list' %}" 
+                                   class="block w-full text-center text-primary hover:text-secondary transition-colors">
+                                    Continuer mes achats
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <!-- Panier vide -->
+            <div class="text-center py-16">
+                <div class="text-gray-400 mb-6">
+                    <svg class="mx-auto h-24 w-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Votre panier est vide</h2>
+                <p class="text-gray-600 mb-8">Découvrez notre collection de livres et ajoutez vos favoris à votre panier</p>
+                <a href="{% url 'shop:book_list' %}" class="bg-primary text-white px-8 py-3 rounded-lg font-semibold hover:bg-secondary transition-colors">
+                    Découvrir nos livres
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Fonction pour mettre à jour la quantité
+function updateQuantity(bookId, newQuantity) {
+    if (newQuantity < 1) return;
+    
+    fetch(`{% url 'shop:update_cart_item' 0 %}`.replace('0', bookId), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: `quantity=${newQuantity}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById(`quantity-${bookId}`).textContent = newQuantity;
+            document.getElementById(`total-${bookId}`).textContent = `${data.item_total_price.toFixed(2)} €`;
+            updateCartSummary(data);
+        } else {
+            alert(data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        alert('Une erreur est survenue');
+    });
+}
+
+// Fonction pour supprimer un article
+function removeFromCart(bookId) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cet article du panier ?')) {
+        fetch(`{% url 'shop:remove_from_cart' 0 %}`.replace('0', bookId), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload(); // Recharger la page pour simplifier
+            } else {
+                alert(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            alert('Une erreur est survenue');
+        });
+    }
+}
+
+// Fonction pour vider le panier
+function clearCart() {
+    if (confirm('Êtes-vous sûr de vouloir vider votre panier ?')) {
+        fetch('{% url 'shop:clear_cart' %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            alert('Une erreur est survenue');
+        });
+    }
+}
+
+// Fonction pour mettre à jour le résumé du panier
+function updateCartSummary(data) {
+    document.getElementById('subtotal').textContent = `${data.cart_total_price.toFixed(2)} €`;
+    document.getElementById('total-price').textContent = `${data.cart_total_price.toFixed(2)} €`;
+}
+
+// Fonction pour procéder au checkout (à implémenter)
+function proceedToCheckout() {
+    alert('Fonctionnalité de commande à implémenter');
+}
+</script>
+{% endblock %}

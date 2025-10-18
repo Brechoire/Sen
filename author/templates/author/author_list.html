@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Nos Auteurs - Éditions Sen{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-r from-primary to-secondary text-white py-20">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-serif font-bold mb-6">Nos Auteurs</h1>
+            <p class="text-xl max-w-3xl mx-auto mb-8">Découvrez les talents littéraires qui font la richesse de notre catalogue.</p>
+        </div>
+    </section>
+
+    <!-- Search and Actions -->
+    <div class="container mx-auto px-4 py-6">
+        {% if user.is_superuser %}
+        <div class="mb-4">
+            <a href="{% url 'admin_panel:authors' %}" class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-md transition-colors">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Retour à l'administration
+            </a>
+        </div>
+        {% endif %}
+        <div class="flex flex-col md:flex-row justify-between items-center mb-8">
+            <!-- Search Form -->
+            <form method="get" class="w-full md:w-2/3 mb-4 md:mb-0">
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-1">
+                        <div class="relative">
+                            <input type="text" name="search" value="{{ search_form.search.value|default:'' }}" 
+                                   placeholder="Rechercher un auteur..." 
+                                   class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" name="featured_only" id="featured_only" 
+                               {% if search_form.featured_only.value %}checked{% endif %}
+                               class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+                        <label for="featured_only" class="ml-2 text-sm text-gray-700">
+                            Auteurs en vedette
+                        </label>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="submit" 
+                                class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-secondary transition-colors">
+                            <i class="fas fa-search mr-2"></i>Rechercher
+                        </button>
+                        <a href="{% url 'author:author_list' %}" 
+                           class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors">
+                            <i class="fas fa-times mr-2"></i>Effacer
+                        </a>
+                    </div>
+                </div>
+            </form>
+            
+            <!-- Create Button (Authenticated users only) -->
+            {% if user.is_authenticated %}
+            <a href="{% url 'author:author_create' %}" 
+               class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-secondary transition-colors">
+                <i class="fas fa-plus mr-2"></i>Ajouter un auteur
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Featured Authors Section -->
+        {% if featured_authors %}
+        <div class="mb-12">
+            <h2 class="text-2xl font-serif font-bold text-dark mb-6">
+                <i class="fas fa-star mr-2 text-yellow-500"></i>Auteurs mis en avant
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {% for author in featured_authors %}
+                <article class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+                    <div class="relative">
+                        {% if author.photo %}
+                            <img src="{{ author.photo.url }}" alt="{{ author.display_name }}" class="w-full h-48 object-cover">
+                        {% else %}
+                            <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                                <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                            </div>
+                        {% endif %}
+                        <div class="absolute top-2 right-2">
+                            <span class="bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-semibold">
+                                <i class="fas fa-star mr-1"></i>Vedette
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-dark mb-2">{{ author.display_name }}</h3>
+                        {% if author.short_bio %}
+                        <p class="text-gray-700 text-sm mb-4">
+                            {{ author.short_bio|truncatewords:20 }}
+                        </p>
+                        {% endif %}
+                        <div class="flex justify-between items-center">
+                            <a href="{% url 'author:author_detail' author.pk %}" 
+                               class="text-primary hover:text-secondary transition-colors">
+                                Découvrir
+                            </a>
+                            <div class="text-gray-500 text-xs">
+                                <i class="fas fa-book mr-1"></i>Auteur
+                            </div>
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- All Authors Grid -->
+        <div>
+            <h2 class="text-2xl font-serif font-bold text-dark mb-6">Tous nos auteurs</h2>
+            {% if authors %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {% for author in authors %}
+                    <article class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+                        <div class="flex">
+                            <div class="w-1/3">
+                                {% if author.photo %}
+                                    <img src="{{ author.photo.url }}" alt="{{ author.display_name }}" class="w-full h-32 object-cover">
+                                {% else %}
+                                    <div class="w-full h-32 bg-gray-200 flex items-center justify-center">
+                                        <svg class="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                        </svg>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="w-2/3 p-4">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="text-lg font-bold text-dark">{{ author.display_name }}</h3>
+                                    {% if user.is_authenticated %}
+                                    <div class="flex space-x-2">
+                                        <a href="{% url 'author:author_detail' author.pk %}" 
+                                           class="text-gray-500 hover:text-primary transition-colors" title="Voir">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'author:author_update' author.pk %}" 
+                                           class="text-gray-500 hover:text-primary transition-colors" title="Modifier">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'author:author_delete' author.pk %}" 
+                                           class="text-red-500 hover:text-red-700 transition-colors" title="Supprimer"
+                                           onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet auteur ?')">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% if author.short_bio %}
+                                <p class="text-gray-700 text-sm mb-3">
+                                    {{ author.short_bio|truncatewords:15 }}
+                                </p>
+                                {% endif %}
+                                <a href="{% url 'author:author_detail' author.pk %}" 
+                                   class="text-primary hover:text-secondary transition-colors text-sm">
+                                    Découvrir
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <div class="mt-12 flex justify-center">
+                    <nav class="flex space-x-2">
+                        {% if page_obj.has_previous %}
+                            <a href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.featured_only %}&featured_only=on{% endif %}" 
+                               class="px-3 py-2 border border-gray-300 rounded-md text-gray-500 hover:bg-gray-50">
+                                Première
+                            </a>
+                            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.featured_only %}&featured_only=on{% endif %}" 
+                               class="px-3 py-2 border border-gray-300 rounded-md text-gray-500 hover:bg-gray-50">
+                                Précédente
+                            </a>
+                        {% endif %}
+                        
+                        <span class="px-3 py-2 border border-primary bg-primary text-white rounded-md">
+                            {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+                        </span>
+                        
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.featured_only %}&featured_only=on{% endif %}" 
+                               class="px-3 py-2 border border-gray-300 rounded-md text-gray-500 hover:bg-gray-50">
+                                Suivante
+                            </a>
+                            <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.featured_only %}&featured_only=on{% endif %}" 
+                               class="px-3 py-2 border border-gray-300 rounded-md text-gray-500 hover:bg-gray-50">
+                                Dernière
+                            </a>
+                        {% endif %}
+                    </nav>
+                </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-12">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">Aucun auteur trouvé</h3>
+                    <p class="mt-1 text-sm text-gray-500">
+                        {% if request.GET.search or request.GET.featured_only %}
+                            Aucun auteur ne correspond à votre recherche.
+                        {% else %}
+                            Commencez par ajouter votre premier auteur.
+                        {% endif %}
+                    </p>
+                    {% if user.is_authenticated %}
+                    <div class="mt-6">
+                        <a href="{% url 'author:author_create' %}" 
+                           class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-secondary">
+                            <i class="fas fa-plus mr-2"></i>Ajouter un auteur
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

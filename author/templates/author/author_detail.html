@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ author.display_name }} - Éditions Sen{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Author Header -->
+    <div class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-8">
+            <div class="max-w-4xl mx-auto">
+                <!-- Breadcrumb -->
+                <nav class="mb-6">
+                    <ol class="flex items-center space-x-2 text-sm text-gray-500">
+                        <li><a href="{% url 'home:index' %}" class="hover:text-primary">Accueil</a></li>
+                        <li><span class="mx-2">/</span></li>
+                        <li><a href="{% url 'author:author_list' %}" class="hover:text-primary">Auteurs</a></li>
+                        <li><span class="mx-2">/</span></li>
+                        <li class="text-gray-900">{{ author.display_name|truncatechars:50 }}</li>
+                    </ol>
+                    {% if user.is_superuser %}
+                    <div class="mt-4">
+                        <a href="{% url 'admin_panel:authors' %}" class="inline-flex items-center px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-md transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            Retour à l'administration
+                        </a>
+                    </div>
+                    {% endif %}
+                </nav>
+
+                <!-- Author Meta -->
+                <div class="mb-6">
+                    <h1 class="text-4xl font-serif font-bold text-dark mb-4">{{ author.display_name }}</h1>
+                        <p class="text-gray-600 text-xl">
+                            {% if author.birth_date %}
+                            Né le {{ author.birth_date|date:"d F Y" }}
+                            {% endif %}
+                            {% if author.death_date %}
+                            • Décédé le {{ author.death_date|date:"d F Y" }}
+                            {% elif author.birth_date %}
+                            • {{ author.get_age }} ans
+                            {% endif %}
+                        </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Author Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <!-- Author Image -->
+                <div class="relative">
+                    {% if author.photo %}
+                    <img src="{{ author.photo.url }}" alt="{{ author.display_name }}" class="w-full h-64 md:h-96 object-cover">
+                    {% else %}
+                    <div class="w-full h-64 md:h-96 bg-gray-200 flex items-center justify-center">
+                        <div class="text-center">
+                            <i class="fas fa-user text-6xl text-gray-400 mb-4"></i>
+                            <p class="text-gray-500 text-lg">Aucune photo disponible</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <!-- Overlay with author name -->
+                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
+                        <h2 class="text-3xl font-bold text-white mb-2">{{ author.display_name }}</h2>
+                        {% if author.pen_name %}
+                        <p class="text-gray-200">Nom de plume de {{ author.full_name }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Author Body -->
+                <div class="p-8">
+                    <!-- Contact Info -->
+                    {% if author.email or author.website %}
+                    <div class="mb-8 p-6 bg-gray-50 rounded-lg">
+                        <h3 class="text-lg font-semibold text-dark mb-4">Contact</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {% if author.email %}
+                            <div class="flex items-center">
+                                <i class="fas fa-envelope mr-3 text-primary text-lg"></i>
+                                <a href="mailto:{{ author.email }}" class="hover:text-primary text-gray-700">{{ author.email }}</a>
+                            </div>
+                            {% endif %}
+                            {% if author.website %}
+                            <div class="flex items-center">
+                                <i class="fas fa-globe mr-3 text-primary text-lg"></i>
+                                <a href="{{ author.website }}" target="_blank" rel="noopener" class="hover:text-primary text-gray-700">Site web</a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Biography -->
+                    {% if author.biography %}
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-serif font-bold text-dark mb-4">Biographie</h2>
+                        <div class="prose prose-lg max-w-none">
+                            {{ author.biography|safe }}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-serif font-bold text-dark mb-4">Biographie</h2>
+                        <p class="text-gray-500">Aucune biographie disponible pour le moment.</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Author Actions -->
+                    <div class="pt-8 border-t border-gray-200 flex justify-between items-center">
+                        <div class="flex space-x-4">
+                            <a href="{% url 'author:author_list' %}" 
+                               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-arrow-left mr-2"></i>Retour aux auteurs
+                            </a>
+                        </div>
+                        
+                        {% if user.is_authenticated %}
+                        <div class="flex space-x-2">
+                            <a href="{% url 'author:author_update' author.pk %}" 
+                               class="inline-flex items-center px-4 py-2 border border-primary text-primary rounded-md hover:bg-primary hover:text-white transition-colors">
+                                <i class="fas fa-edit mr-2"></i>Modifier
+                            </a>
+                            <a href="{% url 'author:author_delete' author.pk %}" 
+                               class="inline-flex items-center px-4 py-2 border border-red-300 text-red-700 rounded-md hover:bg-red-50 transition-colors"
+                               onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet auteur ?')">
+                                <i class="fas fa-trash mr-2"></i>Supprimer
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Similar Authors -->
+            {% if related_authors %}
+            <div class="mt-12">
+                <h2 class="text-2xl font-serif font-bold text-dark mb-6">Autres auteurs</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {% for related_author in related_authors %}
+                    <article class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+                        {% if related_author.photo %}
+                            <img src="{{ related_author.photo.url }}" alt="{{ related_author.display_name }}" class="w-full h-48 object-cover">
+                        {% else %}
+                            <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                                <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="p-4">
+                            <h3 class="text-lg font-bold text-dark mb-2">{{ related_author.display_name }}</h3>
+                            {% if related_author.short_bio %}
+                            <p class="text-gray-700 text-sm mb-3">{{ related_author.short_bio|truncatewords:15 }}</p>
+                            {% endif %}
+                            <a href="{% url 'author:author_detail' related_author.pk %}" 
+                               class="text-primary hover:text-secondary transition-colors text-sm">
+                                Découvrir
+                            </a>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

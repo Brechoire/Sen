@@ -17,8 +17,21 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("ckeditor/", include('ckeditor_uploader.urls')),
     path("", include("home.urls")),
+    path("news/", include("news.urls")),
+    path("compte/", include("accounts.urls")),
+    path("auteurs/", include("author.urls")),
+    path("boutique/", include("shop.urls")),
+    path("administration/", include("admin_panel.urls")),
 ]
+
+# TEMPORAIRE : Forcer Django à servir les fichiers statiques même en production
+# Cela va résoudre le problème immédiatement
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

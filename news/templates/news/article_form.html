@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if article %}Modifier l'article{% else %}Nouvel article{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-8">
+            <div class="max-w-4xl mx-auto">
+                <h1 class="text-3xl font-serif font-bold text-dark mb-2">
+                    {% if article %}Modifier l'article{% else %}Nouvel article{% endif %}
+                </h1>
+                <p class="text-gray-600">
+                    {% if article %}Modifiez les informations de votre article{% else %}Créez un nouvel article pour partager vos actualités littéraires{% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-lg shadow-md p-8">
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- Messages -->
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="p-4 rounded-md {% if message.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <!-- Title -->
+                    <div>
+                        <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Titre de l'article *
+                        </label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.title.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Slug -->
+                    <div>
+                        <label for="{{ form.slug.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Slug (URL) *
+                        </label>
+                        {{ form.slug }}
+                        <p class="mt-1 text-sm text-gray-500">Laissez vide pour générer automatiquement à partir du titre</p>
+                        {% if form.slug.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.slug.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Author -->
+                    <div>
+                        <label for="{{ form.author.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Auteur *
+                        </label>
+                        {{ form.author }}
+                        {% if form.author.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.author.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Status -->
+                    <div>
+                        <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Statut
+                        </label>
+                        {{ form.status }}
+                        {% if form.status.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.status.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Image -->
+                    <div>
+                        <label for="{{ form.image.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Image de l'article
+                        </label>
+                        {{ form.image }}
+                        {% if article and article.image %}
+                            <div class="mt-2">
+                                <img src="{{ article.image.url }}" alt="Image actuelle" class="h-32 w-32 object-cover rounded-md">
+                                <p class="text-sm text-gray-500 mt-1">Image actuelle</p>
+                            </div>
+                        {% endif %}
+                        {% if form.image.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.image.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Excerpt -->
+                    <div>
+                        <label for="{{ form.excerpt.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Extrait (optionnel)
+                        </label>
+                        {{ form.excerpt }}
+                        <p class="mt-1 text-sm text-gray-500">Un court résumé de l'article qui apparaîtra dans la liste</p>
+                        {% if form.excerpt.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.excerpt.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Content -->
+                    <div>
+                        <label for="{{ form.content.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Contenu de l'article *
+                        </label>
+                        <div class="ckeditor-wrapper">
+                            {{ form.content }}
+                        </div>
+                        {% if form.content.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.content.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+                        <a href="{% if article %}{% url 'news:article_detail' article.slug %}{% else %}{% url 'news:article_list' %}{% endif %}" 
+                           class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                            <i class="fas fa-arrow-left mr-2"></i>Annuler
+                        </a>
+                        
+                        <div class="flex space-x-4">
+                            <button type="submit" name="save_draft" value="1" 
+                                    class="inline-flex items-center px-6 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-save mr-2"></i>Enregistrer comme brouillon
+                            </button>
+                            <button type="submit" 
+                                    class="inline-flex items-center px-6 py-2 border border-transparent rounded-md text-white bg-primary hover:bg-secondary transition-colors">
+                                <i class="fas fa-check mr-2"></i>
+                                {% if article %}Mettre à jour{% else %}Créer l'article{% endif %}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const titleInput = document.getElementById('{{ form.title.id_for_label }}');
+    const slugInput = document.getElementById('{{ form.slug.id_for_label }}');
+    
+    // Fonction pour générer le slug à partir du titre
+    function generateSlug(title) {
+        return title
+            .toLowerCase()
+            .trim()
+            .replace(/[éèêë]/g, 'e')
+            .replace(/[àáâä]/g, 'a')
+            .replace(/[ç]/g, 'c')
+            .replace(/[ùúûü]/g, 'u')
+            .replace(/[ôö]/g, 'o')
+            .replace(/[îï]/g, 'i')
+            .replace(/[^a-z0-9\s-]/g, '') // Supprimer les caractères spéciaux
+            .replace(/\s+/g, '-') // Remplacer les espaces par des tirets
+            .replace(/-+/g, '-') // Remplacer les tirets multiples par un seul
+            .replace(/^-|-$/g, ''); // Supprimer les tirets en début et fin
+    }
+    
+    // Générer le slug quand l'utilisateur tape dans le champ titre
+    titleInput.addEventListener('input', function() {
+        if (slugInput.value === '' || slugInput.dataset.autoGenerated === 'true') {
+            const slug = generateSlug(this.value);
+            slugInput.value = slug;
+            slugInput.dataset.autoGenerated = 'true';
+        }
+    });
+    
+    // Permettre la modification manuelle du slug
+    slugInput.addEventListener('input', function() {
+        this.dataset.autoGenerated = 'false';
+    });
+    
+    // Générer le slug initial si le titre est déjà rempli
+    if (titleInput.value && slugInput.value === '') {
+        const slug = generateSlug(titleInput.value);
+        slugInput.value = slug;
+        slugInput.dataset.autoGenerated = 'true';
+    }
+    
+    // Vérifier que CKEditor est chargé et l'initialiser
+    function initCKEditor() {
+        if (typeof CKEDITOR !== 'undefined') {
+            console.log('CKEditor chargé avec succès');
+            // CKEditor devrait s'initialiser automatiquement
+            return true;
+        } else {
+            console.log('CKEditor non chargé, tentative de rechargement...');
+            return false;
+        }
+    }
+    
+    // Essayer d'initialiser CKEditor
+    if (!initCKEditor()) {
+        // Attendre un peu et réessayer
+        setTimeout(function() {
+            if (!initCKEditor()) {
+                console.log('CKEditor toujours non disponible');
+            }
+        }, 2000);
+    }
+});
+</script>
+{% endblock %}

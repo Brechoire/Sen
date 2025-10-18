@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% csrf_token %}
+
+{% block title %}{{ category.name }} - Éditions Sen{% endblock %}
+{% block meta_description %}{{ category.description|truncatewords:20 }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-8">
+            <nav class="flex mb-4" aria-label="Breadcrumb">
+                <ol class="flex items-center space-x-2">
+                    <li><a href="{% url 'home:index' %}" class="text-gray-500 hover:text-primary">Accueil</a></li>
+                    <li><span class="text-gray-400">/</span></li>
+                    <li><a href="{% url 'shop:shop_home' %}" class="text-gray-500 hover:text-primary">Boutique</a></li>
+                    <li><span class="text-gray-400">/</span></li>
+                    <li class="text-gray-900 font-medium">{{ category.name }}</li>
+                </ol>
+            </nav>
+            <h1 class="text-3xl font-serif font-bold text-dark mb-4">{{ category.name }}</h1>
+            {% if category.description %}
+                <p class="text-gray-600 max-w-3xl">{{ category.description }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8">
+        {% if books %}
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                <p class="text-gray-600 mb-4 sm:mb-0">
+                    {{ books|length }} livre{{ books|length|pluralize }} dans cette catégorie
+                </p>
+            </div>
+
+            <!-- Grille des livres -->
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {% for book in books %}
+                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                    <div class="aspect-w-3 aspect-h-4">
+                        {% if book.cover_image %}
+                            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="w-full h-64 object-cover">
+                        {% else %}
+                            <div class="w-full h-64 bg-gray-200 flex items-center justify-center">
+                                <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                </svg>
+                            </div>
+                        {% endif %}
+                        {% if book.is_on_sale %}
+                            <div class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-sm font-semibold">
+                                -{{ book.discount_percentage }}%
+                            </div>
+                        {% elif book.is_featured %}
+                            <div class="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded text-sm font-semibold">
+                                Mis en avant
+                            </div>
+                        {% elif book.is_bestseller %}
+                            <div class="absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 rounded text-sm font-semibold">
+                                Best-seller
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold mb-2 line-clamp-2">{{ book.title }}</h3>
+                        <p class="text-gray-600 mb-2">{{ book.author.display_name }}</p>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-xl font-bold text-primary">
+                                {% if book.is_on_sale %}
+                                    <span class="text-sm text-gray-500 line-through">{{ book.price }} €</span>
+                                    {{ book.discount_price }} €
+                                {% else %}
+                                    {{ book.price }} €
+                                {% endif %}
+                            </span>
+                            <span class="text-sm text-gray-500">{{ book.format|title }}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="addToCart({{ book.id }})" 
+                                    class="flex-1 bg-primary text-white py-2 px-3 rounded hover:bg-secondary transition-colors text-sm font-semibold">
+                                Ajouter
+                            </button>
+                            <a href="{{ book.get_absolute_url }}" class="flex-1 bg-gray-200 text-gray-700 text-center py-2 px-3 rounded hover:bg-gray-300 transition-colors text-sm font-semibold">
+                                Voir
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if books.has_other_pages %}
+            <div class="mt-12 flex justify-center">
+                <nav class="flex items-center space-x-2">
+                    {% if books.has_previous %}
+                        <a href="?page=1" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50">
+                            Première
+                        </a>
+                        <a href="?page={{ books.previous_page_number }}" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50">
+                            Précédent
+                        </a>
+                    {% endif %}
+
+                    <span class="px-3 py-2 text-sm font-medium text-gray-700 bg-primary text-white border border-primary">
+                        Page {{ books.number }} sur {{ books.paginator.num_pages }}
+                    </span>
+
+                    {% if books.has_next %}
+                        <a href="?page={{ books.next_page_number }}" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50">
+                            Suivant
+                        </a>
+                        <a href="?page={{ books.paginator.num_pages }}" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50">
+                            Dernière
+                        </a>
+                    {% endif %}
+                </nav>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-12">
+                <div class="text-gray-400 mb-4">
+                    <svg class="mx-auto h-24 w-24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun livre dans cette catégorie</h3>
+                <p class="text-gray-500 mb-6">Cette catégorie ne contient pas encore de livres</p>
+                <a href="{% url 'shop:book_list' %}" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-secondary transition-colors">
+                    Voir tous les livres
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+</style>
+{% endblock %}

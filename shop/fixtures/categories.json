@@ -1,0 +1,68 @@
+[
+  {
+    "model": "shop.category",
+    "pk": 1,
+    "fields": {
+      "name": "Littérature française",
+      "slug": "litterature-francaise",
+      "description": "Romans et nouvelles de la littérature française contemporaine et classique",
+      "is_active": true,
+      "created_at": "2025-01-27T10:00:00Z"
+    }
+  },
+  {
+    "model": "shop.category",
+    "pk": 2,
+    "fields": {
+      "name": "Poésie",
+      "slug": "poesie",
+      "description": "Recueils de poésie et anthologies poétiques",
+      "is_active": true,
+      "created_at": "2025-01-27T10:00:00Z"
+    }
+  },
+  {
+    "model": "shop.category",
+    "pk": 3,
+    "fields": {
+      "name": "Essais",
+      "slug": "essais",
+      "description": "Essais littéraires, philosophiques et culturels",
+      "is_active": true,
+      "created_at": "2025-01-27T10:00:00Z"
+    }
+  },
+  {
+    "model": "shop.category",
+    "pk": 4,
+    "fields": {
+      "name": "Théâtre",
+      "slug": "theatre",
+      "description": "Pièces de théâtre et dramaturgie contemporaine",
+      "is_active": true,
+      "created_at": "2025-01-27T10:00:00Z"
+    }
+  },
+  {
+    "model": "shop.category",
+    "pk": 5,
+    "fields": {
+      "name": "Biographies",
+      "slug": "biographies",
+      "description": "Biographies et mémoires d'écrivains et personnalités",
+      "is_active": true,
+      "created_at": "2025-01-27T10:00:00Z"
+    }
+  },
+  {
+    "model": "shop.category",
+    "pk": 6,
+    "fields": {
+      "name": "Jeunesse",
+      "slug": "jeunesse",
+      "description": "Livres pour enfants et adolescents",
+      "is_active": true,
+      "created_at": "2025-01-27T10:00:00Z"
+    }
+  }
+]

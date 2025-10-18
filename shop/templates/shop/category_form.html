@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if object %}Modifier la catégorie{% else %}Ajouter une catégorie{% endif %} - Éditions Sen
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-8">
+            <h1 class="text-3xl font-serif font-bold text-dark mb-4">
+                {% if object %}Modifier la catégorie{% else %}Ajouter une nouvelle catégorie{% endif %}
+            </h1>
+            <p class="text-gray-600">
+                {% if object %}Modifiez les informations de la catégorie "{{ object.name }}"{% else %}Remplissez les informations pour créer une nouvelle catégorie{% endif %}
+            </p>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-2xl mx-auto">
+            <form method="post" class="space-y-8">
+                {% csrf_token %}
+                
+                <!-- Messages d'erreur -->
+                {% if form.errors %}
+                <div class="bg-red-50 border border-red-200 rounded-md p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-red-800">Erreurs dans le formulaire</h3>
+                            <div class="mt-2 text-sm text-red-700">
+                                <ul class="list-disc list-inside space-y-1">
+                                    {% for field, errors in form.errors.items %}
+                                        {% for error in errors %}
+                                            <li>{{ field|title }}: {{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Informations de la catégorie -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold mb-6">Informations de la catégorie</h2>
+                    <div class="space-y-6">
+                        <div>
+                            <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.name.label }} <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.name }}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.slug.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.slug.label }} <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.slug }}
+                            <p class="text-sm text-gray-500 mt-1">URL de la catégorie (ex: nom-de-la-categorie)</p>
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.description.label }}
+                            </label>
+                            {{ form.description }}
+                            <p class="text-sm text-gray-500 mt-1">Description de la catégorie (optionnel)</p>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <label class="flex items-center">
+                                {{ form.is_active }}
+                                <span class="ml-2 text-sm text-gray-700">{{ form.is_active.label }}</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Boutons d'action -->
+                <div class="flex justify-end space-x-4">
+                    <a href="{% url 'shop:book_list' %}" class="bg-gray-300 text-gray-700 py-2 px-6 rounded-lg hover:bg-gray-400 transition-colors">
+                        Annuler
+                    </a>
+                    <button type="submit" class="bg-primary text-white py-2 px-6 rounded-lg hover:bg-secondary transition-colors">
+                        {% if object %}Mettre à jour{% else %}Créer la catégorie{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

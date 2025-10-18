@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% csrf_token %}
+
+{% block title %}Tous les livres - Éditions Sen{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 class="text-3xl font-serif font-bold text-dark mb-4">Tous les livres</h1>
+                    <p class="text-gray-600">Découvrez notre collection complète de livres</p>
+                </div>
+                {% if user.is_superuser %}
+                <a href="{% url 'admin_panel:books' %}" class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-md transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Administration
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Sidebar avec filtres -->
+            <aside class="lg:w-1/4">
+                <div class="bg-white rounded-lg shadow-md p-6 sticky top-24">
+                    <h3 class="text-lg font-semibold mb-4">Filtrer les livres</h3>
+                    
+                    <form method="get" class="space-y-6">
+                        <!-- Recherche -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Recherche</label>
+                            <input type="text" name="query" value="{{ search_form.query.value|default:'' }}" 
+                                   placeholder="Titre, auteur..." 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                        </div>
+
+                        <!-- Catégorie -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Catégorie</label>
+                            <select name="category" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                <option value="">Toutes les catégories</option>
+                                {% for category in categories %}
+                                    <option value="{{ category.slug }}" {% if search_form.category.value == category.slug %}selected{% endif %}>
+                                        {{ category.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Auteur -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Auteur</label>
+                            <select name="author" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                <option value="">Tous les auteurs</option>
+                                {% for author in search_form.author.field.queryset %}
+                                    <option value="{{ author.id }}" {% if search_form.author.value == author.id %}selected{% endif %}>
+                                        {{ author.display_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Prix -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Prix</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="number" name="price_min" value="{{ search_form.price_min.value|default:'' }}" 
+                                       placeholder="Min" step="0.01" min="0"
+                                       class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                <input type="number" name="price_max" value="{{ search_form.price_max.value|default:'' }}" 
+                                       placeholder="Max" step="0.01" min="0"
+                                       class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            </div>
+                        </div>
+
+                        <!-- Format -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Format</label>
+                            <select name="format" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                <option value="">Tous les formats</option>
+                                {% for value, label in search_form.format.field.choices %}
+                                    {% if value %}
+                                        <option value="{{ value }}" {% if search_form.format.value == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Tri -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Trier par</label>
+                            <select name="sort_by" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                {% for value, label in search_form.sort_by.field.choices %}
+                                    <option value="{{ value }}" {% if search_form.sort_by.value == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button type="submit" class="flex-1 bg-primary text-white py-2 px-4 rounded-md hover:bg-secondary transition-colors">
+                                Filtrer
+                            </button>
+                            <a href="{% url 'shop:book_list' %}" class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition-colors text-center">
+                                Effacer
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </aside>
+
+            <!-- Contenu principal -->
+            <main class="lg:w-3/4">
+                <!-- Résultats et tri -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                    <p class="text-gray-600 mb-4 sm:mb-0">
+                        {% if books %}
+                            {{ books|length }} livre{{ books|length|pluralize }} trouvé{{ books|length|pluralize }}
+                        {% else %}
+                            Aucun livre trouvé
+                        {% endif %}
+                    </p>
+                </div>
+
+                <!-- Grille des livres -->
+                {% if books %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {% for book in books %}
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                            <div class="aspect-w-3 aspect-h-4">
+                                {% if book.cover_image %}
+                            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="w-full h-64 object-cover">
+                        {% else %}
+                            <div class="w-full h-64 bg-gray-200 flex items-center justify-center">
+                                <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                </svg>
+                            </div>
+                        {% endif %}
+                                {% if book.is_on_sale %}
+                                    <div class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-sm font-semibold">
+                                        -{{ book.discount_percentage }}%
+                                    </div>
+                                {% elif book.is_featured %}
+                                    <div class="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded text-sm font-semibold">
+                                        Mis en avant
+                                    </div>
+                                {% elif book.is_bestseller %}
+                                    <div class="absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 rounded text-sm font-semibold">
+                                        Best-seller
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="p-6">
+                                <h3 class="text-lg font-semibold mb-2 line-clamp-2">{{ book.title }}</h3>
+                                <p class="text-gray-600 mb-2">{{ book.author.display_name }}</p>
+                                {% if book.category %}
+                                    <p class="text-sm text-gray-500 mb-3">{{ book.category.name }}</p>
+                                {% endif %}
+                                <div class="flex justify-between items-center mb-4">
+                                    <span class="text-xl font-bold text-primary">
+                                        {% if book.is_on_sale %}
+                                            <span class="text-sm text-gray-500 line-through">{{ book.price }} €</span>
+                                            {{ book.discount_price }} €
+                                        {% else %}
+                                            {{ book.price }} €
+                                        {% endif %}
+                                    </span>
+                                    <span class="text-sm text-gray-500">{{ book.format|title }}</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="addToCart({{ book.id }})" 
+                                            class="flex-1 bg-primary text-white py-2 px-3 rounded hover:bg-secondary transition-colors text-sm font-semibold">
+                                        Ajouter
+                                    </button>
+                                    <a href="{{ book.get_absolute_url }}" class="flex-1 bg-gray-200 text-gray-700 text-center py-2 px-3 rounded hover:bg-gray-300 transition-colors text-sm font-semibold">
+                                        Voir
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if is_paginated %}
+                    <div class="mt-12 flex justify-center">
+                        <nav class="flex items-center space-x-2">
+                            {% if page_obj.has_previous %}
+                                <a href="?{% if request.GET.query %}query={{ request.GET.query }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.author %}author={{ request.GET.author }}&{% endif %}{% if request.GET.price_min %}price_min={{ request.GET.price_min }}&{% endif %}{% if request.GET.price_max %}price_max={{ request.GET.price_max }}&{% endif %}{% if request.GET.format %}format={{ request.GET.format }}&{% endif %}{% if request.GET.sort_by %}sort_by={{ request.GET.sort_by }}&{% endif %}page=1" 
+                                   class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50">
+                                    Première
+                                </a>
+                                <a href="?{% if request.GET.query %}query={{ request.GET.query }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.author %}author={{ request.GET.author }}&{% endif %}{% if request.GET.price_min %}price_min={{ request.GET.price_min }}&{% endif %}{% if request.GET.price_max %}price_max={{ request.GET.price_max }}&{% endif %}{% if request.GET.format %}format={{ request.GET.format }}&{% endif %}{% if request.GET.sort_by %}sort_by={{ request.GET.sort_by }}&{% endif %}page={{ page_obj.previous_page_number }}" 
+                                   class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50">
+                                    Précédent
+                                </a>
+                            {% endif %}
+
+                            <span class="px-3 py-2 text-sm font-medium text-gray-700 bg-primary text-white border border-primary">
+                                Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+                            </span>
+
+                            {% if page_obj.has_next %}
+                                <a href="?{% if request.GET.query %}query={{ request.GET.query }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.author %}author={{ request.GET.author }}&{% endif %}{% if request.GET.price_min %}price_min={{ request.GET.price_min }}&{% endif %}{% if request.GET.price_max %}price_max={{ request.GET.price_max }}&{% endif %}{% if request.GET.format %}format={{ request.GET.format }}&{% endif %}{% if request.GET.sort_by %}sort_by={{ request.GET.sort_by }}&{% endif %}page={{ page_obj.next_page_number }}" 
+                                   class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50">
+                                    Suivant
+                                </a>
+                                <a href="?{% if request.GET.query %}query={{ request.GET.query }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.author %}author={{ request.GET.author }}&{% endif %}{% if request.GET.price_min %}price_min={{ request.GET.price_min }}&{% endif %}{% if request.GET.price_max %}price_max={{ request.GET.price_max }}&{% endif %}{% if request.GET.format %}format={{ request.GET.format }}&{% endif %}{% if request.GET.sort_by %}sort_by={{ request.GET.sort_by }}&{% endif %}page={{ page_obj.paginator.num_pages }}" 
+                                   class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50">
+                                    Dernière
+                                </a>
+                            {% endif %}
+                        </nav>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-12">
+                        <div class="text-gray-400 mb-4">
+                            <svg class="mx-auto h-24 w-24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun livre trouvé</h3>
+                        <p class="text-gray-500 mb-6">Essayez de modifier vos critères de recherche</p>
+                        <a href="{% url 'shop:book_list' %}" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-secondary transition-colors">
+                            Voir tous les livres
+                        </a>
+                    </div>
+                {% endif %}
+            </main>
+        </div>
+    </div>
+</div>
+
+<style>
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+</style>
+{% endblock %}

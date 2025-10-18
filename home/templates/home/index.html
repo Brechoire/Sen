@@ -5,300 +5,202 @@
 
 {% block content %}
 
-
 <!-- Hero Section -->
-<section class="bg-gradient-to-br from-[#166534] to-[#0f4c1f] text-white py-20">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center">
-            <h1 class="text-4xl md:text-6xl font-serif font-bold mb-6 leading-tight">
-                Révéler des histoires qui font rêver
-            </h1>
-            <p class="text-xl md:text-2xl mb-8 max-w-3xl mx-auto leading-relaxed">
-                Depuis juin 2025, les Éditions Sen découvrent et accompagnent des voix littéraires uniques pour créer des œuvres qui résonnent à travers le temps.
-            </p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="#" class="bg-white text-[#166534] px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200">
-                    Découvrir nos livres
-                </a>
-                <a href="#" class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-[#166534] transition-colors duration-200">
-                    Proposer un manuscrit
-                </a>
-            </div>
-        </div>
+<section class="bg-gradient-to-r from-primary to-secondary text-white py-20">
+    <div class="container mx-auto px-4 text-center">
+        <h2 class="text-4xl md:text-5xl font-serif font-bold mb-6">Révéler des histoires qui inspirent</h2>
+        <p class="text-xl max-w-3xl mx-auto mb-8">Depuis juin 2025, les Éditions Sen découvrent et accompagnent des voix littéraires uniques pour créer des œuvres qui résonnent à travers le temps.</p>
+        <a href="#" class="inline-block bg-accent hover:bg-opacity-90 text-white font-medium py-3 px-6 rounded-md transition-all shadow-lg hover:shadow-xl">Découvrir nos univers</a>
     </div>
 </section>
 
-<!-- Notre mission -->
+<!-- Présentation -->
 <section class="py-16 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl md:text-4xl font-serif font-bold text-[#166534] mb-6">Notre mission</h2>
-        </div>
-        <div class="max-w-4xl mx-auto">
-            <p class="text-lg text-gray-700 leading-relaxed mb-6">
-                Les Éditions Sen ont été fondées avec une conviction : la littérature a le pouvoir de transformer notre rapport au monde et à nous-mêmes.
-            </p>
-            <p class="text-lg text-gray-700 leading-relaxed mb-6">
-                Nous publions des œuvres qui invitent à la réflexion, à la contemplation et à l'éveil des consciences, tout en offrant une expérience littéraire de qualité.
-            </p>
-            <p class="text-lg text-gray-700 leading-relaxed">
-                Notre équipe éditoriale accompagne chaque auteur dans un processus créatif respectueux, valorisant l'authenticité et la singularité de chaque voix.
-            </p>
+    <div class="container mx-auto px-4">
+        <div class="flex flex-col md:flex-row items-center">
+            <div class="md:w-1/2 mb-8 md:mb-0 md:pr-12">
+                <h2 class="text-3xl font-serif font-bold text-dark mb-6">Notre mission</h2>
+                <p class="text-xl mb-6">Les Éditions Sen ont été fondées avec une conviction : la littérature a le pouvoir de transformer notre rapport au monde et à nous-mêmes.</p>
+                <p class="text-xl mb-6">Nous publions des œuvres qui invitent à la réflexion, à la contemplation et à l'éveil des consciences, tout en offrant une expérience littéraire de qualité.</p>
+                <p class="text-xl">Notre équipe éditoriale accompagne chaque auteur dans un processus créatif respectueux, valorisant l'authenticité et la singularité de chaque voix.</p>
+            </div>
+            <div class="md:w-1/2 grid grid-cols-2 gap-4">
+                <div class="bg-light p-6 rounded-lg">
+                    <span class="text-4xl text-accent font-bold">120+</span>
+                    <p class="text-dark">Titres publiés</p>
+                </div>
+                <div class="bg-light p-6 rounded-lg">
+                    <span class="text-4xl text-accent font-bold">65</span>
+                    <p class="text-dark">Auteurs</p>
+                </div>
+                <div class="bg-light p-6 rounded-lg">
+                    <span class="text-4xl text-accent font-bold">12</span>
+                    <p class="text-dark">Prix littéraires</p>
+                </div>
+                <div class="bg-light p-6 rounded-lg">
+                    <span class="text-4xl text-accent font-bold">18</span>
+                    <p class="text-dark">Années d'existence</p>
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
-<!-- Nos engagements -->
+<!-- Galerie des livres -->
 <section class="py-16 bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl md:text-4xl font-serif font-bold text-[#166534] mb-6">Nos Engagements</h2>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div class="text-center p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
-                <div class="w-16 h-16 bg-[#166534] rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
+    <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-serif font-bold text-dark mb-2 text-center">Le plaisir de la découverte</h2>
+        <p class="text-center text-gray-600 text-lg mb-12 max-w-3xl mx-auto">Offrir aux lecteurs des expériences littéraires uniques et enrichissantes.</p>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Livre 1 -->
+            <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+                <img src="{% static 'images/a1.jpg' %}" alt="Couverture du livre" class="w-full h-64 object-cover">
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-dark mb-2">Le Silence des Étoiles</h3>
+                    <p class="text-gray-600 mb-4">Par Marie Laurent</p>
+                    <p class="text-gray-700 text-lg mb-6">Un roman poétique qui explore les thèmes de la solitude et de la connexion humaine à travers l'histoire d'un astronome reclus.</p>
+                    <a href="#" class="inline-block bg-primary hover:bg-secondary text-white font-medium py-2 px-4 rounded transition-colors">En savoir plus</a>
                 </div>
-                <h3 class="text-xl font-semibold text-[#166534] mb-3">L'éveil des consciences</h3>
-                <p class="text-gray-600">Des œuvres qui invitent à la réflexion et transforment notre regard sur le monde</p>
             </div>
-            
-            <div class="text-center p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
-                <div class="w-16 h-16 bg-[#166534] rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                    </svg>
+            <!-- Livre 2 -->
+            <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+                <img src="{% static 'images/a2.webp' %}" alt="Couverture du livre" class="w-full h-64 object-cover">
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-dark mb-2">Échos d'Automne</h3>
+                    <p class="text-gray-600 mb-4">Par Thomas Rivière</p>
+                    <p class="text-gray-700 text-lg mb-6">Une fresque historique captivante qui nous plonge dans la France rurale du XIXe siècle et ses bouleversements sociaux.</p>
+                    <a href="#" class="inline-block bg-primary hover:bg-secondary text-white font-medium py-2 px-4 rounded transition-colors">En savoir plus</a>
                 </div>
-                <h3 class="text-xl font-semibold text-[#166534] mb-3">Soutenir les voix émergentes</h3>
-                <p class="text-gray-600">Accompagner les nouveaux talents dans leur parcours créatif</p>
             </div>
-            
-            <div class="text-center p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
-                <div class="w-16 h-16 bg-[#166534] rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+            <!-- Livre 3 -->
+            <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+                <img src="{% static 'images/a3.webp' %}" alt="Couverture du livre" class="w-full h-64 object-cover">
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-dark mb-2">L'Équilibre des Mondes</h3>
+                    <p class="text-gray-600 mb-4">Par Sophia Mendes</p>
+                    <p class="text-gray-700 text-lg mb-6">Un roman de science-fiction philosophique qui interroge notre rapport à la technologie et à l'environnement.</p>
+                    <a href="#" class="inline-block bg-primary hover:bg-secondary text-white font-medium py-2 px-4 rounded transition-colors">En savoir plus</a>
                 </div>
-                <h3 class="text-xl font-semibold text-[#166534] mb-3">L'authenticité avant tout</h3>
-                <p class="text-gray-600">Valoriser la singularité et l'originalité de chaque voix littéraire</p>
-            </div>
-            
-            <div class="text-center p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
-                <div class="w-16 h-16 bg-[#166534] rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                </div>
-                <h3 class="text-xl font-semibold text-[#166534] mb-3">Le plaisir de la découverte</h3>
-                <p class="text-gray-600">Offrir aux lecteurs des expériences littéraires uniques et enrichissantes</p>
             </div>
         </div>
         
         <div class="text-center mt-12">
-            <h3 class="text-2xl font-serif font-bold text-[#166534] mb-4">Vous avez une histoire à raconter ?</h3>
-            <a href="#" class="bg-[#166534] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#0f4c1f] transition-colors duration-200">
-                Proposez votre manuscrit
-            </a>
-        </div>
-    </div>
-</section>
-
-<!-- Nos dernières parutions -->
-<section class="py-16 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl md:text-4xl font-serif font-bold text-[#166534] mb-6">Nos dernières parutions</h2>
-            <p class="text-lg text-gray-600 max-w-3xl mx-auto">
-                Découvrez les œuvres qui ont récemment enrichi nos univers et qui reflètent notre engagement pour une littérature de qualité.
-            </p>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="bg-gray-50 rounded-lg p-6 hover:shadow-lg transition-shadow duration-200">
-                <div class="w-full h-48 bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
-                    <span class="text-gray-500">Image du livre</span>
-                </div>
-                <h3 class="text-xl font-semibold text-[#166534] mb-2">Titre du livre</h3>
-                <p class="text-gray-600 mb-2">Auteur</p>
-                <p class="text-sm text-gray-500">Description courte du livre...</p>
-            </div>
-            
-            <div class="bg-gray-50 rounded-lg p-6 hover:shadow-lg transition-shadow duration-200">
-                <div class="w-full h-48 bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
-                    <span class="text-gray-500">Image du livre</span>
-                </div>
-                <h3 class="text-xl font-semibold text-[#166534] mb-2">Titre du livre</h3>
-                <p class="text-gray-600 mb-2">Auteur</p>
-                <p class="text-sm text-gray-500">Description courte du livre...</p>
-            </div>
-            
-            <div class="bg-gray-50 rounded-lg p-6 hover:shadow-lg transition-shadow duration-200">
-                <div class="w-full h-48 bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
-                    <span class="text-gray-500">Image du livre</span>
-                </div>
-                <h3 class="text-xl font-semibold text-[#166534] mb-2">Titre du livre</h3>
-                <p class="text-gray-600 mb-2">Auteur</p>
-                <p class="text-sm text-gray-500">Description courte du livre...</p>
-            </div>
+            <a href="#" class="inline-block border-2 border-primary text-primary hover:bg-primary hover:text-white font-medium py-3 px-6 rounded-md transition-colors">Voir tous nos univers</a>
         </div>
     </div>
 </section>
 
 <!-- Auteurs en vedette -->
-<section class="py-16 bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl md:text-4xl font-serif font-bold text-[#166534] mb-6">Auteurs en vedette</h2>
-            <p class="text-lg text-gray-600 max-w-3xl mx-auto">
-                Rencontrez les plumes exceptionnelles qui font la richesse et la diversité des Éditions Sen.
-            </p>
-        </div>
+<section class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-serif font-bold text-dark mb-2 text-center">Auteurs en vedette</h2>
+        <p class="text-center text-gray-600 text-lg mb-12 max-w-3xl mx-auto">Rencontrez les plumes exceptionnelles qui font la richesse et la diversité des Éditions Sen.</p>
+        
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div class="text-center">
-                <div class="w-32 h-32 bg-gray-300 rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <span class="text-gray-500">Photo</span>
+            {% for author in featured_authors %}
+            <div class="flex flex-col items-center text-center">
+                <div class="w-40 h-40 rounded-full overflow-hidden mb-6">
+                    {% if author.photo %}
+                    <img src="{{ author.photo.url }}" alt="Portrait de {{ author.display_name }}" class="w-full h-full object-cover">
+                    {% else %}
+                    <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                        <i class="fas fa-user text-4xl text-gray-400"></i>
+                    </div>
+                    {% endif %}
                 </div>
-                <h3 class="text-xl font-semibold text-[#166534] mb-2">Nom de l'auteur</h3>
-                <p class="text-gray-600 mb-2">Biographie courte...</p>
-                <a href="#" class="text-[#166534] hover:underline">Voir ses œuvres</a>
+                <h3 class="text-xl font-bold text-dark mb-2">{{ author.display_name }}</h3>
+                <p class="text-gray-600 mb-4">{{ author.nationality }}</p>
+                {% if author.short_bio %}
+                <p class="text-gray-700 text-lg mb-4">{{ author.short_bio|truncatewords:25 }}</p>
+                {% else %}
+                <p class="text-gray-700 text-lg mb-4">Découvrez l'univers littéraire de {{ author.display_name }}.</p>
+                {% endif %}
+                <a href="{% url 'author:author_detail' author.pk %}" class="text-primary hover:text-secondary transition-colors">Découvrir sa bibliographie</a>
             </div>
-            
-            <div class="text-center">
-                <div class="w-32 h-32 bg-gray-300 rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <span class="text-gray-500">Photo</span>
-                </div>
-                <h3 class="text-xl font-semibold text-[#166534] mb-2">Nom de l'auteur</h3>
-                <p class="text-gray-600 mb-2">Biographie courte...</p>
-                <a href="#" class="text-[#166534] hover:underline">Voir ses œuvres</a>
+            {% empty %}
+            <div class="col-span-full text-center py-12">
+                <i class="fas fa-user text-6xl text-gray-300 mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-600 mb-2">Aucun auteur en vedette</h3>
+                <p class="text-gray-500">Les auteurs mis en avant apparaîtront ici.</p>
+                {% if user.is_authenticated %}
+                <a href="{% url 'author:author_create' %}" class="inline-block mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors">
+                    Ajouter un auteur
+                </a>
+                {% endif %}
             </div>
-            
-            <div class="text-center">
-                <div class="w-32 h-32 bg-gray-300 rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <span class="text-gray-500">Photo</span>
-                </div>
-                <h3 class="text-xl font-semibold text-[#166534] mb-2">Nom de l'auteur</h3>
-                <p class="text-gray-600 mb-2">Biographie courte...</p>
-                <a href="#" class="text-[#166534] hover:underline">Voir ses œuvres</a>
-            </div>
+            {% endfor %}
         </div>
     </div>
 </section>
 
-<!-- Actualités littéraires -->
-<section class="py-16 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl md:text-4xl font-serif font-bold text-[#166534] mb-6">Actualités littéraires</h2>
-            <p class="text-lg text-gray-600 max-w-3xl mx-auto">
-                Restez informés des dernières nouvelles de notre maison d'édition et du monde littéraire.
-            </p>
-        </div>
+<!-- Articles et actualités -->
+<section class="py-16 bg-gray-50">
+    <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-serif font-bold text-dark mb-2 text-center">Actualités littéraires</h2>
+        <p class="text-center text-gray-600 text-lg mb-12 max-w-3xl mx-auto">Restez informé des dernières nouvelles de notre maison d'édition et du monde littéraire.</p>
+        
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <article class="bg-gray-50 rounded-lg p-6 hover:shadow-lg transition-shadow duration-200">
-                <div class="w-full h-48 bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
-                    <span class="text-gray-500">Image actualité</span>
-                </div>
-                <h3 class="text-xl font-semibold text-[#166534] mb-2">Titre de l'actualité</h3>
-                <p class="text-sm text-gray-500 mb-2">Date de publication</p>
-                <p class="text-gray-600 mb-4">Résumé de l'actualité...</p>
-                <a href="#" class="text-[#166534] hover:underline">Lire la suite</a>
-            </article>
-            
-            <article class="bg-gray-50 rounded-lg p-6 hover:shadow-lg transition-shadow duration-200">
-                <div class="w-full h-48 bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
-                    <span class="text-gray-500">Image actualité</span>
-                </div>
-                <h3 class="text-xl font-semibold text-[#166534] mb-2">Titre de l'actualité</h3>
-                <p class="text-sm text-gray-500 mb-2">Date de publication</p>
-                <p class="text-gray-600 mb-4">Résumé de l'actualité...</p>
-                <a href="#" class="text-[#166534] hover:underline">Lire la suite</a>
-            </article>
-            
-            <article class="bg-gray-50 rounded-lg p-6 hover:shadow-lg transition-shadow duration-200">
-                <div class="w-full h-48 bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
-                    <span class="text-gray-500">Image actualité</span>
-                </div>
-                <h3 class="text-xl font-semibold text-[#166534] mb-2">Titre de l'actualité</h3>
-                <p class="text-sm text-gray-500 mb-2">Date de publication</p>
-                <p class="text-gray-600 mb-4">Résumé de l'actualité...</p>
-                <a href="#" class="text-[#166534] hover:underline">Lire la suite</a>
-            </article>
+            {% if latest_articles %}
+                {% for article in latest_articles %}
+                <article class="bg-white rounded-lg overflow-hidden shadow-md">
+                    {% if article.image %}
+                        <img src="{{ article.image.url }}" alt="{{ article.title }}" class="w-full h-48 object-cover">
+                    {% else %}
+                        <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                            <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                    {% endif %}
+                    <div class="p-6">
+                        <p class="text-accent text-sm mb-2">{{ article.published_at|date:"d F Y" }}</p>
+                        <h3 class="text-xl font-bold text-dark mb-3">{{ article.title }}</h3>
+                        <p class="text-gray-600 text-sm mb-2">Par {{ article.author }}</p>
+                        <p class="text-gray-700 mb-4">
+                            {% if article.excerpt %}
+                                {{ article.excerpt|truncatewords:20 }}
+                            {% else %}
+                                {{ article.content|striptags|truncatewords:20 }}
+                            {% endif %}
+                        </p>
+                        <a href="{% url 'news:article_detail' article.slug %}" class="text-primary hover:text-secondary transition-colors">Lire la suite</a>
+                    </div>
+                </article>
+                {% endfor %}
+            {% else %}
+                <!-- Articles par défaut si aucun article n'est disponible -->
+                <article class="bg-white rounded-lg overflow-hidden shadow-md">
+                    <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                        <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-accent text-sm mb-2">Aucun article disponible</p>
+                        <h3 class="text-xl font-bold text-dark mb-3">Créez votre premier article</h3>
+                        <p class="text-gray-700 mb-4">Commencez par créer des articles pour partager vos actualités littéraires avec vos lecteurs.</p>
+                        <a href="{% url 'news:article_create' %}" class="text-primary hover:text-secondary transition-colors">Créer un article</a>
+                    </div>
+                </article>
+            {% endif %}
+        </div>
+        
+        <div class="text-center mt-12">
+            <a href="{% url 'news:article_list' %}" class="inline-block border-2 border-primary text-primary hover:bg-primary hover:text-white font-medium py-3 px-6 rounded-md transition-colors">Toutes les actualités</a>
         </div>
     </div>
 </section>
 
 <!-- Newsletter -->
-<section class="py-16 bg-[#166534] text-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center">
-            <h2 class="text-3xl md:text-4xl font-serif font-bold mb-6">Restez informés</h2>
-            <p class="text-xl mb-8 max-w-2xl mx-auto">
-                Suivez-nous sur les réseaux sociaux pour être au courant des actualités de la maison d'édition.
-            </p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <div class="flex space-x-4">
-                    <!-- Facebook -->
-                    <a href="#" class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center hover:bg-opacity-30 transition-colors duration-200" aria-label="Suivez-nous sur Facebook">
-                        <svg class="w-6 h-6" fill="#166534" viewBox="0 0 24 24">
-                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                        </svg>
-                    </a>
-                    <!-- LinkedIn -->
-                    <a href="#" class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center hover:bg-opacity-30 transition-colors duration-200" aria-label="Suivez-nous sur LinkedIn">
-                        <svg class="w-6 h-6" fill="#166534" viewBox="0 0 24 24">
-                            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                        </svg>
-                    </a>
-                    <!-- Instagram -->
-                    <a href="#" class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center hover:bg-opacity-30 transition-colors duration-200" aria-label="Suivez-nous sur Instagram">
-                        <svg class="w-6 h-6" fill="#166534" viewBox="0 0 24 24">
-                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                        </svg>
-                    </a>
-                </div>
-                <div class="text-center sm:text-left">
-                    <p class="text-sm opacity-90">Suivez-nous pour ne rien manquer</p>
-                </div>
-            </div>
-        </div>
+<section class="py-12 bg-accent text-white">
+    <div class="container mx-auto px-4 text-center">
+        <h2 class="text-2xl font-serif font-bold mb-4">Restez informé</h2>
+        <p class="max-w-2xl mx-auto mb-8">Inscrivez-vous à notre newsletter pour recevoir nos actualités, nos événements et nos offres exclusives directement dans votre boîte mail.</p>
+        <form class="max-w-md mx-auto flex flex-col sm:flex-row gap-3">
+            <input type="email" placeholder="Votre adresse email" class="flex-grow py-3 px-4 rounded-md text-dark focus:outline-none">
+            <button type="submit" class="bg-dark hover:bg-opacity-90 text-white font-medium py-3 px-6 rounded-md transition-colors">S'inscrire</button>
+        </form>
     </div>
 </section>
-
-<!-- Footer -->
-<footer class="bg-gray-900 text-white py-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div class="col-span-1 md:col-span-2">
-                <h3 class="text-2xl font-serif font-bold mb-4">Éditions Sen</h3>
-                <p class="text-gray-300 mb-4 max-w-md">
-                    Révéler des histoires qui font rêver. Depuis juin 2025, nous découvrons et accompagnons des voix littéraires uniques.
-                </p>
-            </div>
-            
-            <div>
-                <h4 class="text-lg font-semibold mb-4">Navigation</h4>
-                <ul class="space-y-2">
-                    <li><a href="#" class="text-gray-300 hover:text-white transition-colors duration-200">À propos</a></li>
-                    <li><a href="#" class="text-gray-300 hover:text-white transition-colors duration-200">Nos livres</a></li>
-                    <li><a href="#" class="text-gray-300 hover:text-white transition-colors duration-200">Auteurs</a></li>
-                    <li><a href="#" class="text-gray-300 hover:text-white transition-colors duration-200">Actualités</a></li>
-                </ul>
-            </div>
-            
-            <div>
-                <h4 class="text-lg font-semibold mb-4">Contact</h4>
-                <ul class="space-y-2 text-gray-300">
-                    <li>contact@editions-sen.fr</li>
-                    <li>+33 1 23 45 67 89</li>
-                    <li>123 Rue de la Littérature<br>75001 Paris, France</li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="border-t border-gray-700 mt-8 pt-8 text-center">
-            <p class="text-gray-400">&copy; 2025 Éditions Sen. Tous droits réservés.</p>
-        </div>
-    </div>
-</footer>
 {% endblock %}

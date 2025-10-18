@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}À propos - Éditions Sen{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-8">
+            <div class="max-w-4xl mx-auto">
+                <!-- Breadcrumb -->
+                <nav class="mb-6">
+                    <ol class="flex items-center space-x-2 text-sm text-gray-500">
+                        <li><a href="{% url 'home:index' %}" class="hover:text-primary">Accueil</a></li>
+                        <li><span class="mx-2">/</span></li>
+                        <li class="text-gray-900">À propos</li>
+                    </ol>
+                </nav>
+
+                <h1 class="text-4xl font-serif font-bold text-dark mb-4">À propos des Éditions Sen</h1>
+                <p class="text-gray-600 text-xl">Découvrez les visages et les valeurs qui font des Éditions Sen une maison d'édition unique.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notre histoire -->
+    <div class="container mx-auto px-4 py-12">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-lg shadow-md overflow-hidden mb-12">
+                <div class="p-8">
+                    <h2 class="text-3xl font-serif font-bold text-dark mb-6">Notre histoire</h2>
+                    <div class="prose prose-lg max-w-none">
+                        <p class="text-lg text-gray-700 mb-6">
+                            <strong>Joséphine Rabot, Fondatrice</strong>
+                        </p>
+                        <p class="text-lg text-gray-700 mb-6">
+                            Éditions Sen est bien plus qu'une maison d'édition. C'est une histoire née d'un rêve — celui d'une éditrice passionnée, portée depuis l'enfance par l'amour des mots, des livres et des mondes qu'ils ouvrent. Ce rêve, longtemps mûri dans le silence des bibliothèques et les marges de carnets griffonnés, est aujourd'hui devenu réalité : une maison d'édition indépendante dédiée à celles et ceux qui osent croire en leur voix.
+                        </p>
+                        <p class="text-lg text-gray-700 mb-6">
+                            Chez les Éditions Sen, nous croyons que chaque auteur a en lui une étincelle unique. Notre mission est simple : transformer les manuscrits portés par le cœur en livres qui trouvent leur public, et accompagner les auteurs avec respect, bienveillance et exigence.
+                        </p>
+                        <p class="text-lg text-gray-700 mb-6">
+                            Nous savons ce que représente l'écriture d'un livre — une aventure intérieure, un rêve souvent longtemps gardé secret. C'est pourquoi nous plaçons l'humain au centre de notre démarche éditoriale. Publier un ouvrage, ce n'est pas seulement produire un objet littéraire ; c'est donner naissance à une vision, à une voix, à un rêve qui se partage.
+                        </p>
+                        <p class="text-lg text-gray-700 mb-6 font-medium text-primary">
+                            Éditions Sen, c'est le point de rencontre entre un rêve d'éditrice et les rêves d'auteurs en devenir. Ensemble, faisons de l'imaginaire une réalité.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Le parcours de Joséphine -->
+    <div class="bg-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-gray-50 rounded-lg p-8">
+                    <h2 class="text-3xl font-serif font-bold text-dark mb-6">Le parcours de Joséphine</h2>
+                    <div class="prose prose-lg max-w-none">
+                        <p class="text-lg text-gray-700 mb-6">
+                            Depuis toujours, Joséphine Rabot vit au rythme des mots. Très tôt, elle découvre dans la lecture un refuge, un voyage, un miroir. Les livres l'accompagnent, la façonnent, et nourrissent un amour inaltérable pour les histoires, les idées, les voix singulières. L'écriture, quant à elle, devient son langage secret, celui qu'elle explore en silence, sur les marges de ses cahiers puis dans les pages de ses propres textes.
+                        </p>
+                        <p class="text-lg text-gray-700 mb-6">
+                            Au fil des années, ce lien intime avec la littérature s'est transformé en vocation : celle d'éditrice. Joséphine Rabot rêve alors d'un lieu où les auteurs pourraient trouver une écoute attentive, un accompagnement sincère et rigoureux, et surtout, un espace où leur rêve de publier devient possible.
+                        </p>
+                        <p class="text-lg text-gray-700 mb-6">
+                            Ce rêve, elle le concrétise aujourd'hui avec la création des Éditions Sen — une maison née de la passion, de la persévérance, et de l'envie profonde de faire exister des livres portés par des voix authentiques. Pour elle, chaque manuscrit est une promesse, chaque auteur une rencontre.
+                        </p>
+                        <p class="text-lg text-gray-700 mb-6 font-medium text-primary">
+                            Éditrice de cœur et de conviction, Joséphine Rabot met son regard sensible et exigeant au service de celles et ceux qui, comme elle, croient que les mots peuvent changer une vie — à commencer par la leur.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nos valeurs -->
+    <div class="container mx-auto px-4 py-12">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="p-8">
+                    <h2 class="text-3xl font-serif font-bold text-dark mb-6">Nos valeurs</h2>
+                    <p class="text-lg text-gray-600 mb-8">Les principes qui guident nos choix éditoriaux et notre relation avec les auteurs.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <!-- Exigence littéraire -->
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-serif font-bold text-dark mb-4">Exigence littéraire</h3>
+                            <p class="text-gray-700">
+                                Nous croyons à la littérature qui dure, celle qui résiste au temps par sa qualité d'écriture et la profondeur de son propos. Chaque livre que nous publions est le fruit d'un travail minutieux d'édition, visant l'excellence sans compromis.
+                            </p>
+                        </div>
+
+                        <!-- Diversité des voix -->
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-serif font-bold text-dark mb-4">Diversité des voix</h3>
+                            <p class="text-gray-700">
+                                Nous cherchons activement à publier des auteurs aux parcours et aux origines diverses, convaincus que la richesse de la littérature réside dans la multiplicité des regards qu'elle porte sur le monde.
+                            </p>
+                        </div>
+
+                        <!-- Accompagnement des auteurs -->
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-serif font-bold text-dark mb-4">Accompagnement des auteurs</h3>
+                            <p class="text-gray-700">
+                                Nous concevons l'édition comme un compagnonnage au long cours. Nos auteurs bénéficient d'un suivi personnalisé, d'un travail éditorial approfondi et d'un soutien dans la durée, bien au-delà de la simple publication de leurs œuvres.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact -->
+    <div class="bg-primary py-12">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto text-center">
+                <h2 class="text-3xl font-serif font-bold text-white mb-4">Envie d'en savoir plus ?</h2>
+                <p class="text-xl text-white mb-8">N'hésitez pas à nous contacter pour toute question concernant notre maison d'édition, nos auteurs ou l'envoi de manuscrits.</p>
+                <a href="{% url 'home:index' %}" 
+                   class="inline-flex items-center px-8 py-3 border-2 border-white text-white rounded-lg hover:bg-white hover:text-primary transition-colors text-lg font-medium">
+                    <i class="fas fa-envelope mr-2"></i>Nous contacter
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
