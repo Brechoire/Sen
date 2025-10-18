@@ -84,22 +84,29 @@ if not DEBUG:
     # En production, désactiver l'affichage des erreurs détaillées
     ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
     
-    # Logging pour les erreurs en production
+    # Configuration de logging simplifiée pour la production
+    # Utilise les logs système au lieu de fichiers locaux
     LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+                'style': '{',
+            },
+        },
         'handlers': {
-            'file': {
+            'console': {
                 'level': 'ERROR',
-                'class': 'logging.FileHandler',
-                'filename': BASE_DIR / 'logs' / 'django_errors.log',
+                'class': 'logging.StreamHandler',
+                'formatter': 'verbose'
             },
         },
         'loggers': {
             'django': {
-                'handlers': ['file'],
+                'handlers': ['console'],
                 'level': 'ERROR',
-                'propagate': True,
+                'propagate': False,
             },
         },
     }
