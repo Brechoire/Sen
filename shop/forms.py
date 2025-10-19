@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Book, Category, BookImage, Review, Order, ShopSettings, Payment, Refund
+from .models import Book, Category, BookImage, Review, Order, ShopSettings, Payment, Refund, PromoCode, LoyaltyProgram
 from author.models import Author
 
 
@@ -507,3 +507,179 @@ class RefundRequestForm(forms.ModelForm):
         if amount <= 0:
             raise ValidationError('Le montant doit être positif')
         return amount
+
+
+class PromoCodeForm(forms.Form):
+    """Formulaire pour appliquer un code promo"""
+    
+    code = forms.CharField(
+        max_length=50,
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+            'placeholder': 'Entrez votre code promo',
+            'style': 'text-transform: uppercase;'
+        }),
+        label="Code promo"
+    )
+    
+    def clean_code(self):
+        code = self.cleaned_data.get('code', '').strip().upper()
+        if not code:
+            raise ValidationError('Veuillez entrer un code promo')
+        return code
+
+
+class LoyaltyProgramForm(forms.ModelForm):
+    """Formulaire pour créer et modifier un programme de fidélité"""
+    
+    class Meta:
+        model = LoyaltyProgram
+        fields = [
+            'name', 'description', 'is_active', 'min_purchases', 'min_amount',
+            'discount_type', 'discount_value', 'max_discount_amount', 'min_cart_amount',
+            'valid_from', 'valid_until'
+        ]
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Nom du programme'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'rows': 3,
+                'placeholder': 'Description du programme'
+            }),
+            'min_purchases': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'min': '1'
+            }),
+            'min_amount': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'step': '0.01',
+                'min': '0'
+            }),
+            'discount_type': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
+            }),
+            'discount_value': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'step': '0.01',
+                'min': '0'
+            }),
+            'max_discount_amount': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'step': '0.01',
+                'min': '0'
+            }),
+            'min_cart_amount': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'step': '0.01',
+                'min': '0'
+            }),
+            'valid_from': forms.DateTimeInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'type': 'datetime-local'
+            }),
+            'valid_until': forms.DateTimeInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'type': 'datetime-local'
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['description'].required = False
+        self.fields['max_discount_amount'].required = False
+        self.fields['valid_until'].required = False
+        self.fields['min_amount'].initial = 0
+        self.fields['min_cart_amount'].initial = 0
+
+
+class PromoCodeCreateForm(forms.ModelForm):
+    """Formulaire pour créer un code promo"""
+    
+    class Meta:
+        model = PromoCode
+        fields = [
+            'code', 'name', 'description', 'discount_type', 'discount_value',
+            'max_discount_amount', 'min_cart_amount', 'max_uses', 'max_uses_per_user',
+            'valid_from', 'valid_until', 'is_active'
+        ]
+        widgets = {
+            'code': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'WELCOME10',
+                'style': 'text-transform: uppercase;'
+            }),
+            'name': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Code de bienvenue'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'rows': 3,
+                'placeholder': 'Description du code promo'
+            }),
+            'discount_type': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
+            }),
+            'discount_value': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'step': '0.01',
+                'min': '0'
+            }),
+            'max_discount_amount': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'step': '0.01',
+                'min': '0'
+            }),
+            'min_cart_amount': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'step': '0.01',
+                'min': '0'
+            }),
+            'max_uses': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'min': '1'
+            }),
+            'max_uses_per_user': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'min': '1'
+            }),
+            'valid_from': forms.DateTimeInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'type': 'datetime-local'
+            }),
+            'valid_until': forms.DateTimeInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'type': 'datetime-local'
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['description'].required = False
+        self.fields['max_discount_amount'].required = False
+        self.fields['max_uses'].required = False
+        self.fields['valid_until'].required = False
+        self.fields['min_cart_amount'].initial = 0
+        self.fields['max_uses_per_user'].initial = 1
+        self.fields['is_active'].initial = True
+    
+    def clean_code(self):
+        code = self.cleaned_data.get('code', '').strip().upper()
+        if not code:
+            raise ValidationError('Le code promo est requis')
+        return code
+    
+    def clean_discount_value(self):
+        discount_type = self.cleaned_data.get('discount_type')
+        discount_value = self.cleaned_data.get('discount_value')
+        
+        if discount_type != 'free_shipping' and not discount_value:
+            raise ValidationError('La valeur de réduction est requise')
+        
+        if discount_type == 'percentage' and discount_value and discount_value > 100:
+            raise ValidationError('Le pourcentage ne peut pas dépasser 100%')
+        
+        return discount_value

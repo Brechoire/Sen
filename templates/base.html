@@ -184,19 +184,16 @@
                     <h3 class="text-xl font-serif font-bold mb-4">Liens Rapides</h3>
                     <ul class="space-y-2">
                         <li><a href="#" class="hover:text-accent transition-colors">Nos univers</a></li>
-                        <li><a href="#" class="hover:text-accent transition-colors">Auteurs</a></li>
-                        <li><a href="#" class="hover:text-accent transition-colors">Actualités</a></li>
-                        <li><a href="#" class="hover:text-accent transition-colors">Événements</a></li>
-                        <li><a href="#" class="hover:text-accent transition-colors">Manuscrits</a></li>
+                        <li><a href="{% url 'author:author_list' %}" class="hover:text-accent transition-colors">Auteurs</a></li>
+                        <li><a href="{% url 'news:article_list' %}" class="hover:text-accent transition-colors">Actualités</a></li>
                     </ul>
                 </div>
                 <!-- Informations -->
                 <div>
                     <h3 class="text-xl font-serif font-bold mb-4">Informations</h3>
                     <ul class="space-y-2">
-                        <li><a href="#" class="hover:text-accent transition-colors">Mentions légales</a></li>
-                        <li><a href="#" class="hover:text-accent transition-colors">Politique de confidentialité</a></li>
-                        <li><a href="#" class="hover:text-accent transition-colors">Conditions générales de vente</a></li>
+                        <li><a href="{% url 'home:mentions_legales' %}" class="hover:text-accent transition-colors">Mentions légales</a></li>
+                        <li><a href="{% url 'home:conditions_generales_vente' %}" class="hover:text-accent transition-colors">Conditions générales de vente</a></li>
                         <li><a href="#" class="hover:text-accent transition-colors">Livraisons</a></li>
                         <li><a href="#" class="hover:text-accent transition-colors">FAQ</a></li>
                     </ul>

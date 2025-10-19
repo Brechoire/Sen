@@ -285,4 +285,26 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const titleInput = document.querySelector('#id_title');
+    const slugInput = document.querySelector('#id_slug');
+    
+    if (titleInput && slugInput) {
+        // Génération automatique du slug à partir du titre
+        titleInput.addEventListener('input', function() {
+            const slug = this.value
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '') // Supprimer les accents
+                .replace(/[^a-z0-9\s-]/g, '') // Supprimer les caractères spéciaux
+                .replace(/\s+/g, '-') // Remplacer les espaces par des tirets
+                .replace(/-+/g, '-') // Supprimer les tirets multiples
+                .trim('-'); // Supprimer les tirets en début/fin
+            slugInput.value = slug;
+        });
+    }
+});
+</script>
 {% endblock %}

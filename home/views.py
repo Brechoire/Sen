@@ -46,3 +46,18 @@ def contact(request):
         'form': form,
     }
     return render(request, 'home/contact.html', context)
+
+
+def mentions_legales(request):
+    """Vue pour la page des mentions légales des Éditions Sen"""
+    return render(request, 'home/mentions-legales.html')
+
+
+def politique_confidentialite(request):
+    """Vue pour la page de politique de confidentialité des Éditions Sen"""
+    return render(request, 'home/politique-confidentialite.html')
+
+
+def conditions_generales_vente(request):
+    """Vue pour la page des conditions générales de vente des Éditions Sen"""
+    return render(request, 'home/conditions-generales-vente.html')

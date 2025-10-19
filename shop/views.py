@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponseRedirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -10,8 +11,9 @@ from django.http import JsonResponse
 from django.db import transaction
 from decimal import Decimal
 
-from .models import Book, Category, BookImage, Review, Cart, CartItem, Order, OrderItem, Payment, ShopSettings, Refund
-from .forms import BookForm, CategoryForm, BookImageForm, ReviewForm, BookSearchForm, CheckoutForm, PaymentMethodForm, RefundRequestForm
+from .models import Book, Category, BookImage, Review, Cart, CartItem, Order, OrderItem, Payment, ShopSettings, Refund, PromoCode, UserLoyaltyStatus
+from .forms import BookForm, CategoryForm, BookImageForm, ReviewForm, BookSearchForm, CheckoutForm, PaymentMethodForm, RefundRequestForm, PromoCodeForm
+from .services import PromoCodeService, LoyaltyService, DiscountService, CartService
 from .paypal_api import create_paypal_order, capture_paypal_order
 from django.conf import settings
 from author.models import Author
@@ -149,7 +151,7 @@ class BookCreateView(LoginRequiredMixin, CreateView):
     model = Book
     form_class = BookForm
     template_name = 'shop/book_form.html'
-    success_url = reverse_lazy('shop:book_list')
+    success_url = reverse_lazy('admin_panel:books')
     
     def form_valid(self, form):
         messages.success(self.request, 'Le livre a été créé avec succès.')
@@ -164,7 +166,7 @@ class BookUpdateView(LoginRequiredMixin, UpdateView):
     slug_field = 'slug'
     
     def get_success_url(self):
-        return reverse('shop:book_detail', kwargs={'slug': self.object.slug})
+        return reverse('admin_panel:books')
     
     def form_valid(self, form):
         messages.success(self.request, 'Le livre a été modifié avec succès.')
@@ -746,8 +748,34 @@ def paypal_success(request):
 @login_required
 def paypal_cancel(request):
     """Vue appelée si l'utilisateur annule le paiement PayPal"""
-    messages.warning(request, 'Paiement annulé. Vous pouvez réessayer plus tard.')
+    messages.warning(request, 'Paiement PayPal annulé.')
     return redirect('shop:order_list')
+
+
+@login_required
+def manual_payment(request, order_id):
+    """Vue pour le paiement manuel par virement bancaire"""
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    
+    if order.payment_status != 'pending':
+        messages.error(request, 'Cette commande a déjà été traitée.')
+        return redirect('shop:order_detail', order_id=order.id)
+    
+    # Mettre à jour le paiement pour indiquer qu'il s'agit d'un paiement manuel
+    payment = order.payment
+    payment.payment_method = 'bank_transfer'
+    payment.status = 'pending'
+    payment.save()
+    
+    # Ici, vous pourriez envoyer un email avec les coordonnées bancaires
+    # ou afficher une page avec les informations de paiement
+    
+    context = {
+        'order': order,
+        'payment': payment,
+    }
+    
+    return render(request, 'shop/manual_payment.html', context)
 
 
 @login_required
@@ -852,3 +880,119 @@ def refund_list(request):
     }
     
     return render(request, 'shop/refund_list.html', context)
+
+
+def apply_promo_code(request):
+    """Vue AJAX pour appliquer un code promo"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
+    
+    form = PromoCodeForm(request.POST)
+    if not form.is_valid():
+        return JsonResponse({'error': form.errors['code'][0]}, status=400)
+    
+    code = form.cleaned_data['code']
+    
+    # Récupérer le panier
+    cart = CartService.get_or_create_cart(request.user, request.session.session_key)
+    
+    # Appliquer le code promo
+    success, message = PromoCodeService.apply_promo_code(code, request.user, cart)
+    
+    if success:
+        # Recalculer les totaux
+        discounts = DiscountService.calculate_cart_discounts(request.user, cart)
+        
+        return JsonResponse({
+            'success': True,
+            'message': message,
+            'discounts': {
+                'loyalty_discount': float(discounts['loyalty_discount']),
+                'promo_discount': float(discounts['promo_discount']),
+                'total_discount': float(discounts['total_discount']),
+            },
+            'cart_total': float(cart.total_price),
+            'final_total': float(cart.total_price - discounts['total_discount'])
+        })
+    else:
+        return JsonResponse({'error': message}, status=400)
+
+
+def remove_promo_code(request):
+    """Vue AJAX pour supprimer un code promo"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Méthode non autorisée'}, status=405)
+    
+    # Récupérer le panier
+    cart = CartService.get_or_create_cart(request.user, request.session.session_key)
+    
+    # Supprimer le code promo
+    success, message = PromoCodeService.remove_promo_code(cart)
+    
+    if success:
+        # Recalculer les totaux
+        discounts = DiscountService.calculate_cart_discounts(request.user, cart)
+        
+        return JsonResponse({
+            'success': True,
+            'message': message,
+            'discounts': {
+                'loyalty_discount': float(discounts['loyalty_discount']),
+                'promo_discount': float(discounts['promo_discount']),
+                'total_discount': float(discounts['total_discount']),
+            },
+            'cart_total': float(cart.total_price),
+            'final_total': float(cart.total_price - discounts['total_discount'])
+        })
+    else:
+        return JsonResponse({'error': message}, status=400)
+
+
+@login_required
+def loyalty_status(request):
+    """Vue pour afficher le statut de fidélité de l'utilisateur"""
+    loyalty_status = LoyaltyService.get_or_create_loyalty_status(request.user)
+    loyalty_program = loyalty_status.get_available_loyalty_discount()
+    
+    context = {
+        'loyalty_status': loyalty_status,
+        'loyalty_program': loyalty_program,
+    }
+    
+    return render(request, 'shop/loyalty_status.html', context)
+
+
+def get_cart_discounts(request):
+    """Vue AJAX pour récupérer les réductions du panier"""
+    cart = CartService.get_or_create_cart(request.user, request.session.session_key)
+    discounts = DiscountService.calculate_cart_discounts(request.user, cart)
+    
+    return JsonResponse({
+        'discounts': {
+            'loyalty_discount': float(discounts['loyalty_discount']),
+            'promo_discount': float(discounts['promo_discount']),
+            'total_discount': float(discounts['total_discount']),
+        },
+        'cart_total': float(cart.total_price),
+        'final_total': float(cart.total_price - discounts['total_discount']),
+        'loyalty_program': {
+            'name': discounts['loyalty_program'].name if discounts['loyalty_program'] else None,
+            'discount_value': float(discounts['loyalty_program'].discount_value) if discounts['loyalty_program'] else 0,
+            'discount_type': discounts['loyalty_program'].discount_type if discounts['loyalty_program'] else None,
+        } if discounts['loyalty_program'] else None,
+        'promo_code': {
+            'code': discounts['promo_code'].code if discounts['promo_code'] else None,
+            'name': discounts['promo_code'].name if discounts['promo_code'] else None,
+        } if discounts['promo_code'] else None,
+    })
+
+
+# Vues de redirection vers l'administration
+def redirect_to_admin_create_book(request):
+    """Redirige vers la création de livre dans l'administration"""
+    return HttpResponseRedirect(reverse('admin_panel:create_book'))
+
+
+def redirect_to_admin_books(request, slug=None):
+    """Redirige vers la liste des livres dans l'administration"""
+    return HttpResponseRedirect(reverse('admin_panel:books'))

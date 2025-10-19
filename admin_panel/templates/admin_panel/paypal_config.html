@@ -1,0 +1,155 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load static %}
+
+{% block title %}Configuration PayPal - Administration{% endblock %}
+
+{% block admin_content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- En-tête -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Configuration PayPal</h1>
+            <p class="mt-2 text-gray-600">Configurez les paramètres PayPal pour activer les paiements</p>
+        </div>
+
+        <!-- Statut actuel -->
+        <div class="bg-white rounded-lg shadow-sm border p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Statut actuel</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="p-4 rounded-lg {% if paypal_client_id and paypal_client_id != 'test_client_id' %}bg-green-50 border border-green-200{% else %}bg-red-50 border border-red-200{% endif %}">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            {% if paypal_client_id and paypal_client_id != 'test_client_id' %}
+                                <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
+                            {% else %}
+                                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                </svg>
+                            {% endif %}
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium {% if paypal_client_id and paypal_client_id != 'test_client_id' %}text-green-800{% else %}text-red-800{% endif %}">
+                                Client ID
+                            </h3>
+                            <p class="text-sm {% if paypal_client_id and paypal_client_id != 'test_client_id' %}text-green-700{% else %}text-red-700{% endif %}">
+                                {% if paypal_client_id and paypal_client_id != 'test_client_id' %}
+                                    Configuré
+                                {% else %}
+                                    Non configuré
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 rounded-lg {% if paypal_client_secret and paypal_client_secret != 'test_client_secret' %}bg-green-50 border border-green-200{% else %}bg-red-50 border border-red-200{% endif %}">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            {% if paypal_client_secret and paypal_client_secret != 'test_client_secret' %}
+                                <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
+                            {% else %}
+                                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                </svg>
+                            {% endif %}
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium {% if paypal_client_secret and paypal_client_secret != 'test_client_secret' %}text-green-800{% else %}text-red-800{% endif %}">
+                                Client Secret
+                            </h3>
+                            <p class="text-sm {% if paypal_client_secret and paypal_client_secret != 'test_client_secret' %}text-green-700{% else %}text-red-700{% endif %}">
+                                {% if paypal_client_secret and paypal_client_secret != 'test_client_secret' %}
+                                    Configuré
+                                {% else %}
+                                    Non configuré
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 rounded-lg bg-blue-50 border border-blue-200">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-blue-800">Mode</h3>
+                            <p class="text-sm text-blue-700">{{ paypal_mode|title }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="bg-white rounded-lg shadow-sm border p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Instructions de configuration</h2>
+            <div class="prose max-w-none">
+                <ol class="list-decimal list-inside space-y-4">
+                    <li>
+                        <strong>Créez un compte PayPal Developer :</strong>
+                        <p class="text-sm text-gray-600 mt-1">
+                            Rendez-vous sur <a href="https://developer.paypal.com/" target="_blank" class="text-blue-600 hover:text-blue-800">developer.paypal.com</a> 
+                            et connectez-vous avec votre compte PayPal.
+                        </p>
+                    </li>
+                    <li>
+                        <strong>Créez une application :</strong>
+                        <p class="text-sm text-gray-600 mt-1">
+                            Dans le tableau de bord, cliquez sur "Create App" et remplissez les informations requises.
+                        </p>
+                    </li>
+                    <li>
+                        <strong>Récupérez vos identifiants :</strong>
+                        <p class="text-sm text-gray-600 mt-1">
+                            Copiez le "Client ID" et le "Client Secret" de votre application.
+                        </p>
+                    </li>
+                    <li>
+                        <strong>Configurez les variables d'environnement :</strong>
+                        <p class="text-sm text-gray-600 mt-1">
+                            Ajoutez ces variables à votre fichier <code>.env</code> ou configurez-les dans votre environnement :
+                        </p>
+                        <div class="mt-2 p-3 bg-gray-100 rounded-md">
+                            <code class="text-sm">
+                                PAYPAL_CLIENT_ID=votre_client_id_ici<br>
+                                PAYPAL_CLIENT_SECRET=votre_client_secret_ici<br>
+                                PAYPAL_MODE=sandbox
+                            </code>
+                        </div>
+                    </li>
+                    <li>
+                        <strong>Redémarrez le serveur :</strong>
+                        <p class="text-sm text-gray-600 mt-1">
+                            Après avoir configuré les variables, redémarrez votre serveur Django.
+                        </p>
+                    </li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Test de configuration -->
+        <div class="bg-white rounded-lg shadow-sm border p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Test de configuration</h2>
+            <p class="text-sm text-gray-600 mb-4">
+                Testez votre configuration PayPal en créant une commande de test.
+            </p>
+            <div class="flex space-x-4">
+                <a href="{% url 'shop:checkout' %}" class="bg-primary text-white px-4 py-2 rounded-lg font-medium hover:bg-secondary transition-colors">
+                    Tester le paiement
+                </a>
+                <button onclick="location.reload()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                    Actualiser la page
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

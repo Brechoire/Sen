@@ -1,0 +1,407 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load static %}
+
+{% block title %}Codes promo - Administration{% endblock %}
+
+{% block admin_content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- En-tête -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Codes promo</h1>
+                    <p class="mt-2 text-gray-600">Gérez les codes promotionnels pour attirer et fidéliser vos clients</p>
+                </div>
+                <a href="{% url 'admin_panel:create_promo_code' %}" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-secondary transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Nouveau code
+                </a>
+            </div>
+        </div>
+
+        <!-- Filtres -->
+        <div class="bg-white rounded-lg shadow-sm border mb-6">
+            <div class="p-6">
+                <form method="get" class="flex flex-wrap gap-4">
+                    <div class="flex-1 min-w-64">
+                        <input type="text" name="search" value="{{ search }}" placeholder="Rechercher un code promo..." 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    <div>
+                        <select name="status" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                            <option value="all" {% if status == 'all' %}selected{% endif %}>Tous les statuts</option>
+                            <option value="active" {% if status == 'active' %}selected{% endif %}>Actifs</option>
+                            <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactifs</option>
+                            <option value="expired" {% if status == 'expired' %}selected{% endif %}>Expirés</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        Filtrer
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Statistiques rapides -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow-sm border p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Codes actifs</p>
+                        <p class="text-2xl font-semibold text-gray-900">
+                            {% for code in page_obj %}
+                                {% if code.is_valid and code.is_active %}{{ forloop.counter0|add:1 }}{% endif %}
+                            {% empty %}
+                                0
+                            {% endfor %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-sm border p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Utilisations totales</p>
+                        <p class="text-2xl font-semibold text-gray-900">
+                            {% for code in page_obj %}
+                                {% if forloop.first %}{{ code.usage_count|add:0 }}{% endif %}
+                            {% empty %}
+                                0
+                            {% endfor %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-sm border p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Codes expirés</p>
+                        <p class="text-2xl font-semibold text-gray-900">
+                            {% for code in page_obj %}
+                                {% if code.valid_until and code.valid_until < now %}{{ forloop.counter0|add:1 }}{% endif %}
+                            {% empty %}
+                                0
+                            {% endfor %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-sm border p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Total codes</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ page_obj.paginator.count }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Liste des codes promo -->
+        <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
+            {% if page_obj %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Détails</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Réduction</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Utilisations</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Période</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for code in page_obj %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10">
+                                            <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div class="ml-4">
+                                            <code class="text-sm font-mono font-bold text-gray-900 bg-gray-100 px-2 py-1 rounded">{{ code.code }}</code>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm font-medium text-gray-900">{{ code.name }}</div>
+                                    {% if code.description %}
+                                        <div class="text-sm text-gray-500">{{ code.description|truncatechars:60 }}</div>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center">
+                                        {% if code.discount_type == 'percentage' %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                                </svg>
+                                                {{ code.discount_value }}%
+                                            </span>
+                                        {% elif code.discount_type == 'fixed' %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                                                </svg>
+                                                {{ code.discount_value }}€
+                                            </span>
+                                        {% elif code.discount_type == 'free_shipping' %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                                </svg>
+                                                Livraison gratuite
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    {% if code.max_discount_amount %}
+                                        <div class="text-xs text-gray-500 mt-1">Max: {{ code.max_discount_amount }}€</div>
+                                    {% endif %}
+                                    {% if code.min_cart_amount > 0 %}
+                                        <div class="text-xs text-gray-500">Min: {{ code.min_cart_amount }}€</div>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900">
+                                        <div class="flex items-center">
+                                            <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                            </svg>
+                                            {{ code.usage_count }}
+                                            {% if code.max_uses %}
+                                                / {{ code.max_uses }}
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-xs text-gray-500 mt-1">{{ code.max_uses_per_user }} par utilisateur</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900">
+                                        <div class="flex items-center">
+                                            <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            Du {{ code.valid_from|date:"d/m/Y" }}
+                                        </div>
+                                        {% if code.valid_until %}
+                                            <div class="text-xs text-gray-500 mt-1">au {{ code.valid_until|date:"d/m/Y" }}</div>
+                                        {% else %}
+                                            <div class="text-xs text-gray-500 mt-1">(illimité)</div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if code.is_valid %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                            </svg>
+                                            Valide
+                                        </span>
+                                    {% elif not code.is_active %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                            </svg>
+                                            Inactif
+                                        </span>
+                                    {% elif code.valid_until and code.valid_until < now %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                            </svg>
+                                            Expiré
+                                        </span>
+                                    {% else %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                            </svg>
+                                            Non valide
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex space-x-2">
+                                        <a href="{% url 'admin_panel:toggle_promo_code' code.id %}" 
+                                           class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md {% if code.is_active %}text-yellow-700 bg-yellow-100 hover:bg-yellow-200{% else %}text-green-700 bg-green-100 hover:bg-green-200{% endif %} transition-colors"
+                                           title="{% if code.is_active %}Désactiver{% else %}Activer{% endif %}">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{% if code.is_active %}M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z{% else %}M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293H15M9 10V9a2 2 0 012-2h2a2 2 0 012 2v1M9 10v6a2 2 0 002 2h2a2 2 0 002-2v-6{% endif %}" />
+                                            </svg>
+                                            {% if code.is_active %}Désactiver{% else %}Activer{% endif %}
+                                        </a>
+                                        <a href="{% url 'admin_panel:delete_promo_code' code.id %}" 
+                                           class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 transition-colors"
+                                           onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce code promo ?')"
+                                           title="Supprimer">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                            Supprimer
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="px-6 py-12 text-center">
+                                    <div class="flex flex-col items-center">
+                                        <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                        </svg>
+                                        <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun code promo</h3>
+                                        <p class="text-gray-500 mb-4">Commencez par créer votre premier code promo.</p>
+                                        <a href="{% url 'admin_panel:create_promo_code' %}" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-secondary transition-colors">
+                                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                            </svg>
+                                            Créer un code
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1 flex justify-between sm:hidden">
+                            {% if page_obj.has_previous %}
+                                <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}" 
+                                   class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                    Précédent
+                                </a>
+                            {% endif %}
+                            {% if page_obj.has_next %}
+                                <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}" 
+                                   class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                    Suivant
+                                </a>
+                            {% endif %}
+                        </div>
+                        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-sm text-gray-700">
+                                    Affichage de
+                                    <span class="font-medium">{{ page_obj.start_index }}</span>
+                                    à
+                                    <span class="font-medium">{{ page_obj.end_index }}</span>
+                                    sur
+                                    <span class="font-medium">{{ page_obj.paginator.count }}</span>
+                                    résultats
+                                </p>
+                            </div>
+                            <div>
+                                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                    {% if page_obj.has_previous %}
+                                        <a href="?page=1{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}" 
+                                           class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                            <span class="sr-only">Premier</span>
+                                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M15.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 010 1.414zm-6 0a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 1.414L5.414 10l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                                            </svg>
+                                        </a>
+                                        <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}" 
+                                           class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                            <span class="sr-only">Précédent</span>
+                                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                        </a>
+                                    {% endif %}
+                                    
+                                    <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-primary text-sm font-medium text-white">
+                                        {{ page_obj.number }}
+                                    </span>
+                                    
+                                    {% if page_obj.has_next %}
+                                        <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}" 
+                                           class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                            <span class="sr-only">Suivant</span>
+                                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                        </a>
+                                        <a href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}" 
+                                           class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                            <span class="sr-only">Dernier</span>
+                                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                            </svg>
+                                        </a>
+                                    {% endif %}
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% else %}
+                <div class="px-6 py-12 text-center">
+                    <div class="flex flex-col items-center">
+                        <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun code promo</h3>
+                        <p class="text-gray-500 mb-4">Commencez par créer votre premier code promo.</p>
+                        <a href="{% url 'admin_panel:create_promo_code' %}" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-secondary transition-colors">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Créer un code
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

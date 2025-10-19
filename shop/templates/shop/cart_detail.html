@@ -110,10 +110,51 @@
                         <div class="p-6">
                             <h2 class="text-xl font-semibold mb-6">Résumé de la commande</h2>
                             
+                            <!-- Code promo -->
+                            <div class="mb-6">
+                                <div id="promo-code-section">
+                                    <div class="flex space-x-2">
+                                        <input type="text" id="promo-code-input" placeholder="Code promo" 
+                                               class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
+                                        <button onclick="applyPromoCode()" 
+                                                class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors text-sm">
+                                            Appliquer
+                                        </button>
+                                    </div>
+                                    <div id="promo-code-message" class="mt-2 text-sm hidden"></div>
+                                </div>
+                                
+                                <div id="applied-promo" class="hidden mt-2 p-3 bg-green-50 border border-green-200 rounded-md">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <svg class="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                            </svg>
+                                            <span class="text-sm text-green-800" id="applied-promo-text"></span>
+                                        </div>
+                                        <button onclick="removePromoCode()" class="text-red-600 hover:text-red-800 text-sm">
+                                            Supprimer
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div class="space-y-4">
                                 <div class="flex justify-between">
                                     <span class="text-gray-600">Sous-total ({{ cart.total_items }} article{{ cart.total_items|pluralize }})</span>
                                     <span id="subtotal">{{ cart.total_price }} €</span>
+                                </div>
+                                
+                                <!-- Réduction de fidélité -->
+                                <div id="loyalty-discount" class="hidden flex justify-between text-green-600">
+                                    <span id="loyalty-discount-label">Réduction fidélité</span>
+                                    <span id="loyalty-discount-amount">-0.00 €</span>
+                                </div>
+                                
+                                <!-- Réduction code promo -->
+                                <div id="promo-discount" class="hidden flex justify-between text-green-600">
+                                    <span id="promo-discount-label">Code promo</span>
+                                    <span id="promo-discount-amount">-0.00 €</span>
                                 </div>
                                 
                                 {% if cart.total_discount > 0 %}
@@ -259,5 +300,135 @@ function proceedToCheckout() {
     // Rediriger vers la page de commande
     window.location.href = '{% url "shop:checkout" %}';
 }
+
+// Fonction pour appliquer un code promo
+function applyPromoCode() {
+    const code = document.getElementById('promo-code-input').value.trim().toUpperCase();
+    if (!code) {
+        showPromoMessage('Veuillez entrer un code promo', 'error');
+        return;
+    }
+    
+    fetch('{% url "shop:apply_promo_code" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: `code=${encodeURIComponent(code)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showPromoMessage(data.message, 'success');
+            updateDiscounts(data);
+            showAppliedPromo(data.promo_code);
+        } else {
+            showPromoMessage(data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showPromoMessage('Une erreur est survenue', 'error');
+    });
+}
+
+// Fonction pour supprimer un code promo
+function removePromoCode() {
+    fetch('{% url "shop:remove_promo_code" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showPromoMessage(data.message, 'success');
+            updateDiscounts(data);
+            hideAppliedPromo();
+        } else {
+            showPromoMessage(data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showPromoMessage('Une erreur est survenue', 'error');
+    });
+}
+
+// Fonction pour afficher un message de code promo
+function showPromoMessage(message, type) {
+    const messageDiv = document.getElementById('promo-code-message');
+    messageDiv.textContent = message;
+    messageDiv.className = `mt-2 text-sm ${type === 'success' ? 'text-green-600' : 'text-red-600'}`;
+    messageDiv.classList.remove('hidden');
+    
+    // Masquer le message après 5 secondes
+    setTimeout(() => {
+        messageDiv.classList.add('hidden');
+    }, 5000);
+}
+
+// Fonction pour afficher le code promo appliqué
+function showAppliedPromo(promoCode) {
+    const appliedDiv = document.getElementById('applied-promo');
+    const appliedText = document.getElementById('applied-promo-text');
+    appliedText.textContent = `Code "${promoCode.code}" appliqué`;
+    appliedDiv.classList.remove('hidden');
+}
+
+// Fonction pour masquer le code promo appliqué
+function hideAppliedPromo() {
+    const appliedDiv = document.getElementById('applied-promo');
+    appliedDiv.classList.add('hidden');
+}
+
+// Fonction pour mettre à jour les réductions
+function updateDiscounts(data) {
+    const discounts = data.discounts;
+    
+    // Mettre à jour le sous-total
+    document.getElementById('subtotal').textContent = `${discounts.cart_total.toFixed(2)} €`;
+    
+    // Afficher/masquer la réduction de fidélité
+    const loyaltyDiscount = document.getElementById('loyalty-discount');
+    if (discounts.loyalty_discount > 0) {
+        document.getElementById('loyalty-discount-amount').textContent = `-${discounts.loyalty_discount.toFixed(2)} €`;
+        loyaltyDiscount.classList.remove('hidden');
+    } else {
+        loyaltyDiscount.classList.add('hidden');
+    }
+    
+    // Afficher/masquer la réduction code promo
+    const promoDiscount = document.getElementById('promo-discount');
+    if (discounts.promo_discount > 0) {
+        document.getElementById('promo-discount-amount').textContent = `-${discounts.promo_discount.toFixed(2)} €`;
+        promoDiscount.classList.remove('hidden');
+    } else {
+        promoDiscount.classList.add('hidden');
+    }
+    
+    // Mettre à jour le total
+    document.getElementById('total-price').textContent = `${data.final_total.toFixed(2)} €`;
+}
+
+// Charger les réductions au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('{% url "shop:get_cart_discounts" %}')
+    .then(response => response.json())
+    .then(data => {
+        updateDiscounts(data);
+        
+        // Afficher le code promo appliqué s'il y en a un
+        if (data.promo_code) {
+            showAppliedPromo(data.promo_code);
+        }
+    })
+    .catch(error => {
+        console.error('Erreur lors du chargement des réductions:', error);
+    });
+});
 </script>
 {% endblock %}

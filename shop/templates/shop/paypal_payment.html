@@ -88,14 +88,41 @@
                 </div>
 
                 <!-- Conteneur PayPal -->
-                <div id="paypal-button-container" class="mb-6"></div>
+                <div id="paypal-button-container" class="mb-6">
+                    <div id="paypal-loading" class="text-center py-4">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        <p class="mt-2 text-sm text-gray-600">Chargement du bouton PayPal...</p>
+                    </div>
+                </div>
+                
+                <!-- Messages d'erreur -->
+                <div id="paypal-error" class="hidden mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-red-800">Erreur PayPal</h3>
+                            <div class="mt-2 text-sm text-red-700">
+                                <p id="paypal-error-message">Une erreur est survenue lors du chargement de PayPal.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
                 <!-- Alternative : Redirection directe -->
                 <div class="mt-4 p-4 bg-gray-50 rounded-lg">
                     <p class="text-sm text-gray-600 mb-3">Problème avec le bouton PayPal ?</p>
-                    <button id="direct-paypal-btn" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
-                        Ouvrir PayPal dans un nouvel onglet
-                    </button>
+                    <div class="space-y-2">
+                        <button id="direct-paypal-btn" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                            Ouvrir PayPal dans un nouvel onglet
+                        </button>
+                        <button id="manual-payment-btn" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors">
+                            Paiement manuel (virement bancaire)
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Informations de sécurité -->
@@ -131,10 +158,64 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const orderId = {{ order.id }};
-    const totalAmount = {{ order.total_amount|floatformat:2 }};
+    const orderId = {{ order.id|safe }};
+    const totalAmount = parseFloat('{{ order.total_amount|floatformat:2 }}');
+    const paypalClientId = '{{ paypal_client_id|escapejs }}';
+    const isDebugMode = {% if settings.PAYPAL_DEBUG %}true{% else %}false{% endif %};
     
-    paypal.Buttons({
+    // Fonction pour afficher les erreurs
+    function showError(message) {
+        document.getElementById('paypal-loading').style.display = 'none';
+        document.getElementById('paypal-error').classList.remove('hidden');
+        document.getElementById('paypal-error-message').textContent = message;
+        console.error('Erreur PayPal:', message);
+    }
+    
+    // Fonction pour masquer le loading
+    function hideLoading() {
+        document.getElementById('paypal-loading').style.display = 'none';
+    }
+    
+    // Timeout pour détecter si PayPal ne se charge pas
+    let paypalLoadTimeout = setTimeout(function() {
+        if (typeof paypal === 'undefined') {
+            showError('PayPal SDK n\'a pas pu être chargé dans les temps. Cela peut être dû à un bloqueur de publicités ou à un problème de connexion. Veuillez désactiver temporairement vos extensions ou essayer le bouton de secours ci-dessous.');
+        }
+    }, 10000); // 10 secondes de timeout
+    
+    // Vérifier si PayPal est chargé
+    if (typeof paypal === 'undefined') {
+        // Attendre un peu plus pour voir si PayPal se charge
+        setTimeout(function() {
+            if (typeof paypal === 'undefined') {
+                clearTimeout(paypalLoadTimeout);
+                showError('PayPal SDK n\'a pas pu être chargé. Cela peut être dû à un bloqueur de publicités ou à un problème de connexion. Veuillez désactiver temporairement vos extensions ou essayer le bouton de secours ci-dessous.');
+                return;
+            } else {
+                clearTimeout(paypalLoadTimeout);
+                initializePayPal();
+            }
+        }, 2000);
+    } else {
+        clearTimeout(paypalLoadTimeout);
+        initializePayPal();
+    }
+    
+    function initializePayPal() {
+        // Vérifier les paramètres PayPal
+        if (!paypalClientId || paypalClientId === 'test_client_id') {
+            showError('Configuration PayPal manquante. Veuillez configurer PAYPAL_CLIENT_ID dans les paramètres.');
+            return;
+        }
+        
+        if (isDebugMode) {
+            console.log('Mode debug PayPal activé');
+            console.log('Client ID:', paypalClientId);
+            console.log('Order ID:', orderId);
+            console.log('Amount:', totalAmount);
+        }
+        
+        paypal.Buttons({
         style: {
             layout: 'vertical',
             color: 'blue',
@@ -142,6 +223,10 @@ document.addEventListener('DOMContentLoaded', function() {
             label: 'paypal'
         },
         createOrder: function(data, actions) {
+            if (isDebugMode) {
+                console.log('Création de commande PayPal...');
+            }
+            
             return fetch('/boutique/api/paypal/create-order/', {
                 method: 'POST',
                 headers: {
@@ -153,12 +238,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     amount: totalAmount
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (isDebugMode) {
+                    console.log('Réponse API:', response.status);
+                }
+                return response.json();
+            })
             .then(data => {
+                if (isDebugMode) {
+                    console.log('Données reçues:', data);
+                }
                 if (data.error) {
                     throw new Error(data.error);
                 }
+                hideLoading();
                 return data.id;
+            })
+            .catch(error => {
+                console.error('Erreur lors de la création de commande:', error);
+                showError('Erreur lors de la création de la commande PayPal: ' + error.message);
+                throw error;
             });
         },
         
@@ -203,10 +302,31 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Paiement annulé:', data);
             window.location.href = '{% url "shop:paypal_cancel" %}';
         }
-    }).render('#paypal-button-container');
+    }).render('#paypal-button-container')
+    .then(() => {
+        // Masquer le loading quand le bouton est rendu
+        hideLoading();
+        if (isDebugMode) {
+            console.log('Bouton PayPal rendu avec succès');
+        }
+    })
+    .catch((error) => {
+        console.error('Erreur lors du rendu du bouton PayPal:', error);
+        showError('Impossible de charger le bouton PayPal. Vérifiez votre configuration.');
+    });
     
     // Bouton de redirection directe
     document.getElementById('direct-paypal-btn').addEventListener('click', function() {
+        if (isDebugMode) {
+            console.log('Tentative de redirection directe vers PayPal...');
+        }
+        
+        // Désactiver le bouton pendant le chargement
+        const btn = this;
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Création de la commande...';
+        
         // Créer une commande PayPal et rediriger
         fetch('/boutique/api/paypal/create-order/', {
             method: 'POST',
@@ -219,21 +339,47 @@ document.addEventListener('DOMContentLoaded', function() {
                 amount: totalAmount
             })
         })
-        .then(response => response.json())
+        .then(response => {
+            if (isDebugMode) {
+                console.log('Réponse redirection directe:', response.status);
+            }
+            return response.json();
+        })
         .then(data => {
+            if (isDebugMode) {
+                console.log('Données redirection:', data);
+            }
             if (data.error) {
                 throw new Error(data.error);
             }
             
             // Rediriger vers PayPal dans un nouvel onglet
-            const paypalUrl = data.links.find(link => link.rel === 'approve').href;
-            window.open(paypalUrl, '_blank');
+            const approvalLink = data.links ? data.links.find(link => link.rel === 'approve') : null;
+            if (approvalLink && approvalLink.href) {
+                window.open(approvalLink.href, '_blank');
+            } else {
+                throw new Error('URL d\'approbation PayPal non trouvée');
+            }
         })
         .catch(error => {
-            console.error('Erreur:', error);
-            alert('Erreur lors de la création de la commande: ' + error.message);
+            console.error('Erreur redirection directe:', error);
+            showError('Erreur lors de la création de la commande: ' + error.message);
+        })
+        .finally(() => {
+            // Réactiver le bouton
+            btn.disabled = false;
+            btn.textContent = originalText;
         });
     });
+    
+    // Bouton de paiement manuel
+    document.getElementById('manual-payment-btn').addEventListener('click', function() {
+        if (confirm('Voulez-vous passer au paiement par virement bancaire ? Vous recevrez les coordonnées bancaires par email.')) {
+            // Rediriger vers une page de paiement manuel ou envoyer un email
+            window.location.href = '{% url "shop:manual_payment" order.id %}';
+        }
+    });
+    } // Fin de la fonction initializePayPal
 });
 </script>
 

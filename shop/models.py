@@ -167,6 +167,7 @@ class Cart(models.Model):
     """Modèle pour le panier d'achat"""
     user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='carts', null=True, blank=True, verbose_name="Utilisateur")
     session_key = models.CharField(max_length=40, blank=True, null=True, verbose_name="Clé de session")
+    session_data = models.JSONField(default=dict, blank=True, verbose_name="Données de session")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Date de modification")
     
@@ -470,6 +471,346 @@ class Refund(models.Model):
     def can_be_approved(self):
         """Vérifie si le remboursement peut être approuvé"""
         return self.status == 'pending'
+
+
+class LoyaltyProgram(models.Model):
+    """Modèle pour le programme de fidélité"""
+    
+    name = models.CharField(max_length=100, verbose_name="Nom du programme")
+    description = models.TextField(blank=True, verbose_name="Description")
+    is_active = models.BooleanField(default=True, verbose_name="Actif")
+    
+    # Conditions pour obtenir la réduction
+    min_purchases = models.PositiveIntegerField(
+        default=10, 
+        verbose_name="Nombre minimum d'achats"
+    )
+    min_amount = models.DecimalField(
+        max_digits=8, 
+        decimal_places=2, 
+        default=0.00,
+        verbose_name="Montant minimum d'achat (€)"
+    )
+    
+    # Réduction accordée
+    DISCOUNT_TYPE_CHOICES = [
+        ('percentage', 'Pourcentage'),
+        ('fixed', 'Montant fixe'),
+    ]
+    discount_type = models.CharField(
+        max_length=20, 
+        choices=DISCOUNT_TYPE_CHOICES, 
+        default='percentage',
+        verbose_name="Type de réduction"
+    )
+    discount_value = models.DecimalField(
+        max_digits=8, 
+        decimal_places=2,
+        verbose_name="Valeur de la réduction"
+    )
+    
+    # Limites
+    max_discount_amount = models.DecimalField(
+        max_digits=8, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        verbose_name="Montant maximum de réduction (€)"
+    )
+    min_cart_amount = models.DecimalField(
+        max_digits=8, 
+        decimal_places=2, 
+        default=0.00,
+        verbose_name="Montant minimum du panier (€)"
+    )
+    
+    # Période de validité
+    valid_from = models.DateTimeField(
+        default=timezone.now,
+        verbose_name="Valide à partir de"
+    )
+    valid_until = models.DateTimeField(
+        null=True, 
+        blank=True,
+        verbose_name="Valide jusqu'à"
+    )
+    
+    # Métadonnées
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Date de modification")
+    
+    class Meta:
+        verbose_name = "Programme de fidélité"
+        verbose_name_plural = "Programmes de fidélité"
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return self.name
+    
+    @property
+    def is_valid(self):
+        """Vérifie si le programme est valide"""
+        now = timezone.now()
+        if not self.is_active:
+            return False
+        if self.valid_from > now:
+            return False
+        if self.valid_until and self.valid_until < now:
+            return False
+        return True
+    
+    def calculate_discount(self, cart_total):
+        """Calcule la réduction pour un montant de panier donné"""
+        if not self.is_valid or cart_total < self.min_cart_amount:
+            return 0
+        
+        if self.discount_type == 'percentage':
+            discount = (cart_total * self.discount_value) / 100
+        else:  # fixed
+            discount = self.discount_value
+        
+        # Appliquer la limite maximale si définie
+        if self.max_discount_amount:
+            discount = min(discount, self.max_discount_amount)
+        
+        return discount
+
+
+class PromoCode(models.Model):
+    """Modèle pour les codes promo"""
+    
+    # Informations de base
+    code = models.CharField(max_length=50, unique=True, verbose_name="Code promo")
+    name = models.CharField(max_length=100, verbose_name="Nom du code")
+    description = models.TextField(blank=True, verbose_name="Description")
+    
+    # Type de réduction
+    DISCOUNT_TYPE_CHOICES = [
+        ('percentage', 'Pourcentage'),
+        ('fixed', 'Montant fixe'),
+        ('free_shipping', 'Livraison gratuite'),
+    ]
+    discount_type = models.CharField(
+        max_length=20, 
+        choices=DISCOUNT_TYPE_CHOICES, 
+        default='percentage',
+        verbose_name="Type de réduction"
+    )
+    discount_value = models.DecimalField(
+        max_digits=8, 
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Valeur de la réduction"
+    )
+    
+    # Limites
+    max_discount_amount = models.DecimalField(
+        max_digits=8, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        verbose_name="Montant maximum de réduction (€)"
+    )
+    min_cart_amount = models.DecimalField(
+        max_digits=8, 
+        decimal_places=2, 
+        default=0.00,
+        verbose_name="Montant minimum du panier (€)"
+    )
+    
+    # Limites d'utilisation
+    max_uses = models.PositiveIntegerField(
+        null=True, 
+        blank=True,
+        verbose_name="Nombre maximum d'utilisations"
+    )
+    max_uses_per_user = models.PositiveIntegerField(
+        default=1,
+        verbose_name="Utilisations maximum par utilisateur"
+    )
+    
+    # Période de validité
+    valid_from = models.DateTimeField(
+        default=timezone.now,
+        verbose_name="Valide à partir de"
+    )
+    valid_until = models.DateTimeField(
+        null=True, 
+        blank=True,
+        verbose_name="Valide jusqu'à"
+    )
+    
+    # Statut
+    is_active = models.BooleanField(default=True, verbose_name="Actif")
+    
+    # Métadonnées
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Date de modification")
+    
+    class Meta:
+        verbose_name = "Code promo"
+        verbose_name_plural = "Codes promo"
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.code} - {self.name}"
+    
+    @property
+    def is_valid(self):
+        """Vérifie si le code promo est valide"""
+        now = timezone.now()
+        if not self.is_active:
+            return False
+        if self.valid_from > now:
+            return False
+        if self.valid_until and self.valid_until < now:
+            return False
+        if self.max_uses and self.usage_count >= self.max_uses:
+            return False
+        return True
+    
+    @property
+    def usage_count(self):
+        """Retourne le nombre d'utilisations du code"""
+        return self.uses.count()
+    
+    def can_be_used_by_user(self, user):
+        """Vérifie si un utilisateur peut utiliser ce code"""
+        if not self.is_valid:
+            return False
+        
+        if self.max_uses_per_user:
+            user_uses = self.uses.filter(user=user).count()
+            if user_uses >= self.max_uses_per_user:
+                return False
+        
+        return True
+    
+    def calculate_discount(self, cart_total):
+        """Calcule la réduction pour un montant de panier donné"""
+        if not self.is_valid or cart_total < self.min_cart_amount:
+            return 0
+        
+        if self.discount_type == 'free_shipping':
+            return 0  # La logique de livraison gratuite sera gérée ailleurs
+        
+        if self.discount_type == 'percentage':
+            discount = (cart_total * self.discount_value) / 100
+        else:  # fixed
+            discount = self.discount_value
+        
+        # Appliquer la limite maximale si définie
+        if self.max_discount_amount:
+            discount = min(discount, self.max_discount_amount)
+        
+        return discount
+
+
+class PromoCodeUse(models.Model):
+    """Modèle pour tracer l'utilisation des codes promo"""
+    
+    promo_code = models.ForeignKey(
+        PromoCode, 
+        on_delete=models.CASCADE, 
+        related_name='uses',
+        verbose_name="Code promo"
+    )
+    user = models.ForeignKey(
+        'accounts.User', 
+        on_delete=models.CASCADE,
+        verbose_name="Utilisateur"
+    )
+    order = models.ForeignKey(
+        'Order', 
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        verbose_name="Commande"
+    )
+    discount_amount = models.DecimalField(
+        max_digits=8, 
+        decimal_places=2,
+        verbose_name="Montant de la réduction"
+    )
+    used_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Date d'utilisation"
+    )
+    
+    class Meta:
+        verbose_name = "Utilisation de code promo"
+        verbose_name_plural = "Utilisations de codes promo"
+        ordering = ['-used_at']
+        unique_together = ['promo_code', 'order']  # Un code par commande
+    
+    def __str__(self):
+        return f"{self.promo_code.code} utilisé par {self.user.username}"
+
+
+class UserLoyaltyStatus(models.Model):
+    """Modèle pour suivre le statut de fidélité des utilisateurs"""
+    
+    user = models.OneToOneField(
+        'accounts.User', 
+        on_delete=models.CASCADE,
+        related_name='loyalty_status',
+        verbose_name="Utilisateur"
+    )
+    total_purchases = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Nombre total d'achats"
+    )
+    total_spent = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        default=0.00,
+        verbose_name="Montant total dépensé (€)"
+    )
+    loyalty_points = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Points de fidélité"
+    )
+    last_purchase_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Date du dernier achat"
+    )
+    
+    # Métadonnées
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Date de modification")
+    
+    class Meta:
+        verbose_name = "Statut de fidélité"
+        verbose_name_plural = "Statuts de fidélité"
+    
+    def __str__(self):
+        return f"Fidélité de {self.user.username}"
+    
+    def update_loyalty_status(self, order_amount):
+        """Met à jour le statut de fidélité après un achat"""
+        self.total_purchases += 1
+        self.total_spent += order_amount
+        self.last_purchase_date = timezone.now()
+        
+        # Calculer les points de fidélité (1 point par euro dépensé)
+        self.loyalty_points += int(order_amount)
+        
+        self.save()
+    
+    def get_available_loyalty_discount(self):
+        """Retourne la réduction de fidélité disponible"""
+        # Trouver le programme de fidélité applicable
+        loyalty_program = LoyaltyProgram.objects.filter(
+            is_active=True,
+            min_purchases__lte=self.total_purchases,
+            min_amount__lte=self.total_spent
+        ).order_by('-min_purchases', '-min_amount').first()
+        
+        if loyalty_program:
+            return loyalty_program
+        return None
 
 
 class ShopSettings(models.Model):

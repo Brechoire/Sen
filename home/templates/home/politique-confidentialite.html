@@ -1,0 +1,416 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Politique de confidentialité - Éditions Sen{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="container mx-auto px-4 max-w-4xl">
+        <!-- En-tête -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-serif font-bold text-primary mb-4">Politique de confidentialité</h1>
+            <p class="text-lg text-gray-600">Protection et traitement de vos données personnelles</p>
+            <div class="w-24 h-1 bg-primary mx-auto mt-6"></div>
+        </div>
+
+        <!-- Contenu principal -->
+        <div class="bg-white rounded-lg shadow-lg p-8 prose prose-lg max-w-none">
+            
+            <!-- Introduction -->
+            <section class="mb-8">
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-r-lg">
+                    <p class="mb-0 text-blue-800">
+                        <strong>Dernière mise à jour :</strong> {{ "now"|date:"d F Y" }}<br>
+                        Cette politique de confidentialité décrit comment Éditions Sen collecte, utilise et protège vos informations personnelles lorsque vous utilisez notre site web.
+                    </p>
+                </div>
+            </section>
+
+            <!-- 1. Responsable du traitement -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">1. Responsable du traitement des données</h2>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <p class="mb-2"><strong>Raison sociale :</strong> Éditions Sen</p>
+                    <p class="mb-2"><strong>Adresse :</strong> [Adresse complète à compléter]</p>
+                    <p class="mb-2"><strong>Email :</strong> <a href="mailto:contact@editionssen.fr" class="text-primary hover:text-secondary underline">contact@editionssen.fr</a></p>
+                    <p class="mb-2"><strong>Téléphone :</strong> [Numéro de téléphone à compléter]</p>
+                    <p class="mb-0"><strong>Délégué à la protection des données :</strong> [Nom et contact du DPO à compléter]</p>
+                </div>
+            </section>
+
+            <!-- 2. Données collectées -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">2. Données personnelles collectées</h2>
+                
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">2.1. Données collectées directement</h3>
+                <div class="bg-gray-50 p-6 rounded-lg mb-6">
+                    <h4 class="font-bold mb-3">Données d'identification :</h4>
+                    <ul class="list-disc pl-6 mb-4">
+                        <li>Nom et prénom</li>
+                        <li>Adresse email</li>
+                        <li>Numéro de téléphone</li>
+                        <li>Date de naissance (optionnelle)</li>
+                    </ul>
+                    
+                    <h4 class="font-bold mb-3">Données de facturation et livraison :</h4>
+                    <ul class="list-disc pl-6 mb-4">
+                        <li>Adresse postale complète</li>
+                        <li>Informations de paiement (traitées par nos prestataires sécurisés)</li>
+                        <li>Préférences de livraison</li>
+                    </ul>
+                    
+                    <h4 class="font-bold mb-3">Données de communication :</h4>
+                    <ul class="list-disc pl-6">
+                        <li>Messages et demandes de contact</li>
+                        <li>Avis et commentaires sur nos produits</li>
+                        <li>Préférences de communication</li>
+                    </ul>
+                </div>
+
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">2.2. Données collectées automatiquement</h3>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <h4 class="font-bold mb-3">Données de navigation :</h4>
+                    <ul class="list-disc pl-6 mb-4">
+                        <li>Adresse IP et localisation approximative</li>
+                        <li>Type de navigateur et système d'exploitation</li>
+                        <li>Pages visitées et durée de visite</li>
+                        <li>Site web d'origine (referrer)</li>
+                    </ul>
+                    
+                    <h4 class="font-bold mb-3">Cookies et technologies similaires :</h4>
+                    <ul class="list-disc pl-6">
+                        <li>Cookies de session et persistants</li>
+                        <li>Pixels de suivi et balises web</li>
+                        <li>Identifiants publicitaires</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 3. Finalités du traitement -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">3. Finalités et bases légales du traitement</h2>
+                
+                <div class="space-y-6">
+                    <div class="border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-lg font-bold text-primary mb-3">3.1. Exécution du contrat (Article 6.1.b RGPD)</h3>
+                        <ul class="list-disc pl-6 mb-3">
+                            <li>Gestion des commandes et livraisons</li>
+                            <li>Facturation et paiement</li>
+                            <li>Service client et support technique</li>
+                            <li>Gestion des comptes utilisateurs</li>
+                        </ul>
+                        <p class="text-sm text-gray-600"><strong>Base légale :</strong> Nécessaire à l'exécution du contrat de vente</p>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-lg font-bold text-primary mb-3">3.2. Intérêt légitime (Article 6.1.f RGPD)</h3>
+                        <ul class="list-disc pl-6 mb-3">
+                            <li>Amélioration de nos services et produits</li>
+                            <li>Analyse du comportement des utilisateurs</li>
+                            <li>Prévention de la fraude et sécurité</li>
+                            <li>Développement de nouveaux produits</li>
+                        </ul>
+                        <p class="text-sm text-gray-600"><strong>Base légale :</strong> Intérêt légitime à améliorer nos services</p>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-lg font-bold text-primary mb-3">3.3. Consentement (Article 6.1.a RGPD)</h3>
+                        <ul class="list-disc pl-6 mb-3">
+                            <li>Marketing direct et communications commerciales</li>
+                            <li>Cookies non essentiels</li>
+                            <li>Newsletter et actualités</li>
+                            <li>Personnalisation de la publicité</li>
+                        </ul>
+                        <p class="text-sm text-gray-600"><strong>Base légale :</strong> Consentement libre et éclairé</p>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-lg font-bold text-primary mb-3">3.4. Obligation légale (Article 6.1.c RGPD)</h3>
+                        <ul class="list-disc pl-6 mb-3">
+                            <li>Conservation des données de facturation (10 ans)</li>
+                            <li>Respect des obligations comptables</li>
+                            <li>Lutte contre le blanchiment d'argent</li>
+                        </ul>
+                        <p class="text-sm text-gray-600"><strong>Base légale :</strong> Obligations légales françaises</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. Partage des données -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">4. Partage et transfert des données</h2>
+                
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">4.1. Prestataires de services</h3>
+                <div class="bg-gray-50 p-6 rounded-lg mb-6">
+                    <p class="mb-4">Nous partageons vos données avec des prestataires de confiance pour :</p>
+                    <ul class="list-disc pl-6 mb-4">
+                        <li><strong>Hébergement :</strong> [Nom de l'hébergeur] - Stockage sécurisé des données</li>
+                        <li><strong>Paiement :</strong> [Prestataire de paiement] - Traitement sécurisé des transactions</li>
+                        <li><strong>Livraison :</strong> [Transporteurs] - Gestion des expéditions</li>
+                        <li><strong>Marketing :</strong> [Outils marketing] - Envoi d'emails et campagnes</li>
+                        <li><strong>Analytique :</strong> [Outils d'analyse] - Analyse du trafic et comportement</li>
+                    </ul>
+                    <p class="text-sm text-gray-600">Tous nos prestataires sont liés par des accords de confidentialité stricts.</p>
+                </div>
+
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">4.2. Transferts internationaux</h3>
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-lg">
+                    <p class="mb-2 text-yellow-800">
+                        <strong>Attention :</strong> Certains de nos prestataires peuvent être situés hors de l'Union Européenne.
+                    </p>
+                    <p class="text-yellow-800">
+                        Dans ce cas, nous nous assurons que des garanties appropriées sont en place (clauses contractuelles types, décision d'adéquation, etc.).
+                    </p>
+                </div>
+            </section>
+
+            <!-- 5. Conservation des données -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">5. Durée de conservation des données</h2>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse border border-gray-300">
+                        <thead class="bg-primary text-white">
+                            <tr>
+                                <th class="border border-gray-300 p-3 text-left">Type de données</th>
+                                <th class="border border-gray-300 p-3 text-left">Durée de conservation</th>
+                                <th class="border border-gray-300 p-3 text-left">Justification</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="border border-gray-300 p-3">Données de commande</td>
+                                <td class="border border-gray-300 p-3">10 ans</td>
+                                <td class="border border-gray-300 p-3">Obligation légale comptable</td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="border border-gray-300 p-3">Données de compte utilisateur</td>
+                                <td class="border border-gray-300 p-3">3 ans après dernière activité</td>
+                                <td class="border border-gray-300 p-3">Intérêt légitime</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-300 p-3">Données marketing</td>
+                                <td class="border border-gray-300 p-3">3 ans après retrait du consentement</td>
+                                <td class="border border-gray-300 p-3">Consentement</td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="border border-gray-300 p-3">Cookies analytiques</td>
+                                <td class="border border-gray-300 p-3">13 mois maximum</td>
+                                <td class="border border-gray-300 p-3">Consentement</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-300 p-3">Données de contact</td>
+                                <td class="border border-gray-300 p-3">3 ans après dernier contact</td>
+                                <td class="border border-gray-300 p-3">Intérêt légitime</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 6. Droits des utilisateurs -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">6. Vos droits concernant vos données personnelles</h2>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                        <h3 class="text-lg font-bold text-primary mb-3">Droit d'accès (Article 15 RGPD)</h3>
+                        <p class="text-sm mb-3">Vous pouvez demander une copie de toutes vos données personnelles que nous détenons.</p>
+                        <p class="text-xs text-gray-600">Délai de réponse : 1 mois</p>
+                    </div>
+
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+                        <h3 class="text-lg font-bold text-primary mb-3">Droit de rectification (Article 16 RGPD)</h3>
+                        <p class="text-sm mb-3">Vous pouvez demander la correction de données inexactes ou incomplètes.</p>
+                        <p class="text-xs text-gray-600">Délai de réponse : 1 mois</p>
+                    </div>
+
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+                        <h3 class="text-lg font-bold text-primary mb-3">Droit à l'effacement (Article 17 RGPD)</h3>
+                        <p class="text-sm mb-3">Vous pouvez demander la suppression de vos données dans certaines conditions.</p>
+                        <p class="text-xs text-gray-600">Délai de réponse : 1 mois</p>
+                    </div>
+
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                        <h3 class="text-lg font-bold text-primary mb-3">Droit à la portabilité (Article 20 RGPD)</h3>
+                        <p class="text-sm mb-3">Vous pouvez récupérer vos données dans un format structuré et lisible.</p>
+                        <p class="text-xs text-gray-600">Délai de réponse : 1 mois</p>
+                    </div>
+
+                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                        <h3 class="text-lg font-bold text-primary mb-3">Droit d'opposition (Article 21 RGPD)</h3>
+                        <p class="text-sm mb-3">Vous pouvez vous opposer au traitement de vos données pour le marketing.</p>
+                        <p class="text-xs text-gray-600">Délai de réponse : 1 mois</p>
+                    </div>
+
+                    <div class="bg-orange-50 border border-orange-200 rounded-lg p-6">
+                        <h3 class="text-lg font-bold text-primary mb-3">Droit de limitation (Article 18 RGPD)</h3>
+                        <p class="text-sm mb-3">Vous pouvez demander la limitation du traitement dans certaines situations.</p>
+                        <p class="text-xs text-gray-600">Délai de réponse : 1 mois</p>
+                    </div>
+                </div>
+
+                <div class="mt-6 bg-primary text-white p-6 rounded-lg">
+                    <h3 class="text-lg font-bold mb-3">Comment exercer vos droits ?</h3>
+                    <p class="mb-3">Pour exercer l'un de ces droits, contactez-nous :</p>
+                    <ul class="list-disc pl-6 mb-4">
+                        <li>Email : <a href="mailto:contact@editionssen.fr" class="text-white hover:text-light underline">contact@editionssen.fr</a></li>
+                        <li>Courrier : [Adresse postale complète]</li>
+                        <li>En précisant votre demande et en joignant une copie de votre pièce d'identité</li>
+                    </ul>
+                    <p class="text-sm">Nous nous engageons à vous répondre dans un délai d'un mois maximum.</p>
+                </div>
+            </section>
+
+            <!-- 7. Sécurité des données -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">7. Sécurité et protection des données</h2>
+                
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <h3 class="text-lg font-bold text-primary mb-3">Mesures techniques et organisationnelles</h3>
+                    <ul class="list-disc pl-6 mb-4">
+                        <li><strong>Chiffrement :</strong> Données chiffrées en transit et au repos</li>
+                        <li><strong>Accès sécurisé :</strong> Authentification forte et accès limité</li>
+                        <li><strong>Surveillance :</strong> Monitoring continu des systèmes</li>
+                        <li><strong>Sauvegardes :</strong> Sauvegardes régulières et sécurisées</li>
+                        <li><strong>Formation :</strong> Personnel formé à la protection des données</li>
+                        <li><strong>Audits :</strong> Vérifications régulières de sécurité</li>
+                    </ul>
+                    
+                    <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg mt-4">
+                        <p class="text-red-800 text-sm">
+                            <strong>En cas de violation de données :</strong> Nous nous engageons à notifier la CNIL et les personnes concernées dans les 72 heures si la violation présente un risque élevé.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 8. Cookies -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">8. Politique des cookies</h2>
+                
+                <div class="space-y-4">
+                    <div class="border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-lg font-bold text-primary mb-3">Cookies strictement nécessaires</h3>
+                        <p class="text-sm mb-2">Ces cookies sont indispensables au fonctionnement du site :</p>
+                        <ul class="list-disc pl-6 text-sm">
+                            <li>Cookies de session pour la navigation</li>
+                            <li>Cookies de sécurité et authentification</li>
+                            <li>Cookies de préférences de langue</li>
+                        </ul>
+                        <p class="text-xs text-gray-600 mt-2"><strong>Base légale :</strong> Intérêt légitime (fonctionnement du site)</p>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-lg font-bold text-primary mb-3">Cookies analytiques</h3>
+                        <p class="text-sm mb-2">Ces cookies nous aident à comprendre l'utilisation du site :</p>
+                        <ul class="list-disc pl-6 text-sm">
+                            <li>Google Analytics (anonymisé)</li>
+                            <li>Statistiques de visite</li>
+                            <li>Pages les plus consultées</li>
+                        </ul>
+                        <p class="text-xs text-gray-600 mt-2"><strong>Base légale :</strong> Consentement</p>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-lg font-bold text-primary mb-3">Cookies marketing</h3>
+                        <p class="text-sm mb-2">Ces cookies permettent la personnalisation publicitaire :</p>
+                        <ul class="list-disc pl-6 text-sm">
+                            <li>Réseaux publicitaires</li>
+                            <li>Retargeting</li>
+                            <li>Mesure d'efficacité des campagnes</li>
+                        </ul>
+                        <p class="text-xs text-gray-600 mt-2"><strong>Base légale :</strong> Consentement</p>
+                    </div>
+                </div>
+
+                <div class="mt-6 bg-blue-50 border-l-4 border-blue-400 p-6 rounded-r-lg">
+                    <h3 class="text-lg font-bold text-blue-800 mb-3">Gestion de vos préférences</h3>
+                    <p class="text-blue-800 mb-3">Vous pouvez gérer vos préférences de cookies :</p>
+                    <ul class="list-disc pl-6 text-blue-800 text-sm">
+                        <li>Via le bandeau de consentement lors de votre première visite</li>
+                        <li>Dans les paramètres de votre navigateur</li>
+                        <li>En nous contactant directement</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 9. Mineurs -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">9. Protection des mineurs</h2>
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-lg">
+                    <p class="text-yellow-800 mb-3">
+                        <strong>Important :</strong> Notre site n'est pas destiné aux mineurs de moins de 16 ans.
+                    </p>
+                    <p class="text-yellow-800">
+                        Nous ne collectons pas sciemment de données personnelles de mineurs. Si vous êtes parent et que vous pensez que votre enfant nous a fourni des données personnelles, contactez-nous immédiatement.
+                    </p>
+                </div>
+            </section>
+
+            <!-- 10. Modifications -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">10. Modifications de cette politique</h2>
+                <p class="mb-4">Nous nous réservons le droit de modifier cette politique de confidentialité à tout moment. Les modifications importantes vous seront notifiées par :</p>
+                <ul class="list-disc pl-6 mb-4">
+                    <li>Email à l'adresse associée à votre compte</li>
+                    <li>Notification sur le site web</li>
+                    <li>Bandeau d'information lors de votre prochaine visite</li>
+                </ul>
+                <p class="text-sm text-gray-600">Nous vous encourageons à consulter régulièrement cette page pour rester informé de nos pratiques.</p>
+            </section>
+
+            <!-- 11. Contact et réclamations -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">11. Contact et réclamations</h2>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-primary text-white p-6 rounded-lg">
+                        <h3 class="text-lg font-bold mb-3">Questions sur vos données</h3>
+                        <p class="mb-3">Pour toute question concernant le traitement de vos données :</p>
+                        <ul class="list-disc pl-6 text-sm">
+                            <li>Email : <a href="mailto:contact@editionssen.fr" class="text-white hover:text-light underline">contact@editionssen.fr</a></li>
+                            <li>Téléphone : [Numéro à compléter]</li>
+                            <li>Courrier : [Adresse complète]</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-gray-100 p-6 rounded-lg">
+                        <h3 class="text-lg font-bold text-primary mb-3">Réclamation à la CNIL</h3>
+                        <p class="mb-3">Si vous estimez que vos droits ne sont pas respectés, vous pouvez saisir la CNIL :</p>
+                        <ul class="list-disc pl-6 text-sm">
+                            <li>Site web : <a href="https://www.cnil.fr" class="text-primary hover:text-secondary underline" target="_blank">www.cnil.fr</a></li>
+                            <li>Téléphone : 01 53 73 22 22</li>
+                            <li>Courrier : 3 Place de Fontenoy - TSA 80715 - 75334 PARIS CEDEX 07</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dernière mise à jour -->
+            <div class="border-t border-gray-200 pt-6 mt-8">
+                <p class="text-sm text-gray-500 text-center">
+                    <strong>Dernière mise à jour :</strong> {{ "now"|date:"d F Y" }}<br>
+                    <strong>Version :</strong> 1.0
+                </p>
+            </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="text-center mt-8 space-x-4">
+            <a href="{% url 'home:index' %}" class="inline-flex items-center bg-primary hover:bg-secondary text-white px-6 py-3 rounded-lg transition-colors font-medium">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Retour à l'accueil
+            </a>
+            <a href="{% url 'home:mentions_legales' %}" class="inline-flex items-center bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors font-medium">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Mentions légales
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

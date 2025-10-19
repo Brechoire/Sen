@@ -9,7 +9,7 @@
             <h2 class="text-3xl font-bold text-dark">Gestion des livres</h2>
             <p class="text-gray-600 mt-2">Gérez le catalogue de livres</p>
         </div>
-        <a href="{% url 'shop:book_create' %}" class="bg-primary hover:bg-secondary text-white px-4 py-2 rounded-lg transition-colors">
+        <a href="{% url 'admin_panel:create_book' %}" class="bg-primary hover:bg-secondary text-white px-4 py-2 rounded-lg transition-colors">
             <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
@@ -119,10 +119,15 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                 <a href="{% url 'shop:book_detail' book.slug %}" class="text-primary hover:text-secondary">Voir</a>
-                                <a href="{% url 'shop:book_update' book.slug %}" class="text-blue-600 hover:text-blue-900">Modifier</a>
+                                <a href="{% url 'admin_panel:edit_book' book.id %}" class="text-blue-600 hover:text-blue-900">Modifier</a>
                                 <a href="{% url 'admin_panel:toggle_book' book.id %}" 
                                    class="{% if book.is_available %}text-yellow-600 hover:text-yellow-900{% else %}text-green-600 hover:text-green-900{% endif %}">
                                     {% if book.is_available %}Désactiver{% else %}Activer{% endif %}
+                                </a>
+                                <a href="{% url 'admin_panel:delete_book' book.id %}" 
+                                   class="text-red-600 hover:text-red-900"
+                                   onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce livre ?')">
+                                    Supprimer
                                 </a>
                             </td>
                         </tr>
@@ -200,7 +205,7 @@
                 <h3 class="mt-2 text-sm font-medium text-gray-900">Aucun livre</h3>
                 <p class="mt-1 text-sm text-gray-500">Commencez par ajouter un nouveau livre.</p>
                 <div class="mt-6">
-                    <a href="{% url 'shop:book_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-secondary">
+                    <a href="{% url 'admin_panel:create_book' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-secondary">
                         <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                         </svg>

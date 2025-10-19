@@ -236,9 +236,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = 'accounts.User'
 
 # Configuration PayPal
-PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID', '')
-PAYPAL_CLIENT_SECRET = os.environ.get('PAYPAL_CLIENT_SECRET', '')
+# Configuration PayPal
+PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID', 'test_client_id')
+PAYPAL_CLIENT_SECRET = os.environ.get('PAYPAL_CLIENT_SECRET', 'test_client_secret')
 PAYPAL_MODE = os.environ.get('PAYPAL_MODE', 'sandbox')
+
+# Mode debug pour PayPal
+PAYPAL_DEBUG = os.environ.get('PAYPAL_DEBUG', 'True').lower() == 'true'
 
 # Configuration Email
 EMAIL_HOST = os.environ.get('EMAIL_HOST', '')

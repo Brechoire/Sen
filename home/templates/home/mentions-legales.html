@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mentions légales - Éditions Sen{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="container mx-auto px-4 max-w-4xl">
+        <!-- En-tête -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-serif font-bold text-primary mb-4">Mentions légales</h1>
+            <p class="text-lg text-gray-600">Informations légales concernant le site web des Éditions Sen</p>
+            <div class="w-24 h-1 bg-primary mx-auto mt-6"></div>
+        </div>
+
+        <!-- Contenu principal -->
+        <div class="bg-white rounded-lg shadow-lg p-8 prose prose-lg max-w-none">
+            
+            <!-- 1. Éditeur du site -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">1. Éditeur du site</h2>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <p class="mb-2"><strong>Raison sociale :</strong> Éditions Sen</p>
+                    <p class="mb-2"><strong>Forme juridique :</strong> Société par actions simplifiée (SAS)</p>
+                    <p class="mb-2"><strong>Siège social :</strong> [Adresse complète à compléter]</p>
+                    <p class="mb-2"><strong>Capital social :</strong> [Montant à compléter]</p>
+                    <p class="mb-2"><strong>RCS :</strong> [Numéro RCS à compléter]</p>
+                    <p class="mb-2"><strong>SIRET :</strong> [Numéro SIRET à compléter]</p>
+                    <p class="mb-2"><strong>Code APE :</strong> 5811Z - Édition de livres</p>
+                    <p class="mb-2"><strong>TVA intracommunautaire :</strong> [Numéro TVA à compléter]</p>
+                    <p class="mb-2"><strong>Directeur de la publication :</strong> [Nom du directeur à compléter]</p>
+                    <p class="mb-2"><strong>Email :</strong> contact@editionssen.fr</p>
+                    <p class="mb-2"><strong>Téléphone :</strong> [Numéro de téléphone à compléter]</p>
+                </div>
+            </section>
+
+            <!-- 2. Hébergement -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">2. Hébergement du site</h2>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <p class="mb-2"><strong>Hébergeur :</strong> [Nom de l'hébergeur à compléter]</p>
+                    <p class="mb-2"><strong>Adresse :</strong> [Adresse de l'hébergeur à compléter]</p>
+                    <p class="mb-2"><strong>Téléphone :</strong> [Téléphone de l'hébergeur à compléter]</p>
+                    <p class="mb-2"><strong>Site web :</strong> <a href="#" class="text-primary hover:text-secondary underline">[Site web de l'hébergeur]</a></p>
+                </div>
+            </section>
+
+            <!-- 3. Propriété intellectuelle -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">3. Propriété intellectuelle</h2>
+                <p class="mb-4">L'ensemble du contenu du présent site, incluant, de façon non limitative, les textes, images, vidéos, graphismes, logos, icônes, sons, logiciels, est la propriété exclusive de la société Éditions Sen, à l'exception des marques, logos ou contenus appartenant à d'autres sociétés partenaires ou auteurs.</p>
+                
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">3.1. Droits d'auteur</h3>
+                <p class="mb-4">Toute reproduction, représentation, modification, publication, adaptation de tout ou partie des éléments du site, quel que soit le moyen ou le procédé utilisé, est interdite, sauf autorisation écrite préalable de la société Éditions Sen.</p>
+                
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">3.2. Marques et logos</h3>
+                <p class="mb-4">Les marques et logos reproduits sur ce site sont déposés par les sociétés qui en sont propriétaires. Toute reproduction non autorisée de ces marques, dessins et modèles constitue une contrefaçon passible de sanctions pénales.</p>
+                
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">3.3. Contenu des utilisateurs</h3>
+                <p class="mb-4">En cas de publication de contenu par les utilisateurs (commentaires, avis, etc.), ceux-ci s'engagent à ne pas porter atteinte aux droits de tiers et à respecter les lois en vigueur. La société Éditions Sen se réserve le droit de supprimer tout contenu illicite ou inapproprié.</p>
+            </section>
+
+            <!-- 4. Collecte et traitement des données personnelles -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">4. Collecte et traitement des données personnelles</h2>
+                <p class="mb-4">Conformément au Règlement Général sur la Protection des Données (RGPD) et à la loi française "Informatique et Libertés", nous vous informons sur la collecte et le traitement de vos données personnelles.</p>
+                
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">4.1. Responsable du traitement</h3>
+                <p class="mb-4">La société Éditions Sen est responsable du traitement des données personnelles collectées sur ce site.</p>
+                
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">4.2. Données collectées</h3>
+                <ul class="list-disc pl-6 mb-4">
+                    <li>Données d'identification (nom, prénom, email)</li>
+                    <li>Données de contact (adresse, téléphone)</li>
+                    <li>Données de navigation (adresse IP, cookies)</li>
+                    <li>Données de commande (historique des achats)</li>
+                </ul>
+                
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">4.3. Finalités du traitement</h3>
+                <ul class="list-disc pl-6 mb-4">
+                    <li>Gestion des commandes et livraisons</li>
+                    <li>Communication commerciale (avec votre consentement)</li>
+                    <li>Amélioration des services</li>
+                    <li>Respect des obligations légales</li>
+                </ul>
+                
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">4.4. Vos droits</h3>
+                <p class="mb-4">Vous disposez des droits suivants concernant vos données personnelles :</p>
+                <ul class="list-disc pl-6 mb-4">
+                    <li>Droit d'accès et de rectification</li>
+                    <li>Droit à l'effacement</li>
+                    <li>Droit à la portabilité</li>
+                    <li>Droit d'opposition</li>
+                    <li>Droit de limitation du traitement</li>
+                </ul>
+                <p class="mb-4">Pour exercer ces droits, contactez-nous à : <a href="mailto:contact@editionssen.fr" class="text-primary hover:text-secondary underline">contact@editionssen.fr</a></p>
+            </section>
+
+            <!-- 5. Cookies -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">5. Politique des cookies</h2>
+                <p class="mb-4">Ce site utilise des cookies pour améliorer votre expérience de navigation et analyser le trafic du site.</p>
+                
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">5.1. Types de cookies utilisés</h3>
+                <ul class="list-disc pl-6 mb-4">
+                    <li><strong>Cookies essentiels :</strong> Nécessaires au fonctionnement du site</li>
+                    <li><strong>Cookies analytiques :</strong> Pour analyser l'utilisation du site</li>
+                    <li><strong>Cookies de préférences :</strong> Pour mémoriser vos choix</li>
+                    <li><strong>Cookies marketing :</strong> Pour personnaliser la publicité (avec votre consentement)</li>
+                </ul>
+                
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">5.2. Gestion des cookies</h3>
+                <p class="mb-4">Vous pouvez accepter ou refuser les cookies non essentiels via le bandeau de consentement ou en modifiant les paramètres de votre navigateur.</p>
+            </section>
+
+            <!-- 6. Responsabilité -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">6. Limitation de responsabilité</h2>
+                <p class="mb-4">Les informations contenues sur ce site sont aussi précises que possible et le site remis à jour à différentes périodes de l'année, mais peut toutefois contenir des inexactitudes ou des omissions.</p>
+                
+                <p class="mb-4">Si vous constatez une lacune, erreur ou ce qui parait être un dysfonctionnement, merci de bien vouloir le signaler par email, à l'adresse contact@editionssen.fr, en décrivant le problème de la manière la plus précise possible.</p>
+                
+                <p class="mb-4">Tout contenu téléchargé se fait aux risques et périls de l'utilisateur et sous sa seule responsabilité. En conséquence, ne saurait être tenu responsable d'un quelconque dommage subi par l'ordinateur de l'utilisateur ou d'une quelconque perte de données consécutives au téléchargement d'un contenu.</p>
+            </section>
+
+            <!-- 7. Liens hypertextes -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">7. Liens hypertextes</h2>
+                <p class="mb-4">Des liens hypertextes peuvent être présents sur le site. L'utilisateur est informé qu'en cliquant sur ces liens, il sortira du site editionssen.fr. Ce dernier n'a pas de contrôle sur les pages web sur lesquelles aboutissent ces liens et ne saurait, en aucun cas, être responsable de leur contenu.</p>
+            </section>
+
+            <!-- 8. Droit applicable -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">8. Droit applicable et juridiction compétente</h2>
+                <p class="mb-4">Tout litige en relation avec l'utilisation du site editionssen.fr est soumis au droit français. Il est fait attribution exclusive de juridiction aux tribunaux compétents de [Ville du tribunal compétent].</p>
+            </section>
+
+            <!-- 9. Contact -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">9. Contact</h2>
+                <div class="bg-primary text-white p-6 rounded-lg">
+                    <p class="mb-2"><strong>Pour toute question concernant ces mentions légales :</strong></p>
+                    <p class="mb-2">Email : <a href="mailto:contact@editionssen.fr" class="text-white hover:text-light underline">contact@editionssen.fr</a></p>
+                    <p class="mb-2">Téléphone : [Numéro de téléphone à compléter]</p>
+                    <p class="mb-0">Adresse : [Adresse complète à compléter]</p>
+                </div>
+            </section>
+
+            <!-- Dernière mise à jour -->
+            <div class="border-t border-gray-200 pt-6 mt-8">
+                <p class="text-sm text-gray-500 text-center">
+                    <strong>Dernière mise à jour :</strong> {{ "now"|date:"d F Y" }}
+                </p>
+            </div>
+        </div>
+
+        <!-- Bouton retour -->
+        <div class="text-center mt-8">
+            <a href="{% url 'home:index' %}" class="inline-flex items-center bg-primary hover:bg-secondary text-white px-6 py-3 rounded-lg transition-colors font-medium">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Retour à l'accueil
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

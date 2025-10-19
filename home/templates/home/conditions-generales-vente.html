@@ -1,0 +1,430 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Conditions générales de vente - Éditions Sen{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="container mx-auto px-4 max-w-4xl">
+        <!-- En-tête -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-serif font-bold text-primary mb-4">Conditions générales de vente</h1>
+            <p class="text-lg text-gray-600">Règles et conditions applicables à vos achats</p>
+            <div class="w-24 h-1 bg-primary mx-auto mt-6"></div>
+        </div>
+
+        <!-- Contenu principal -->
+        <div class="bg-white rounded-lg shadow-lg p-8 prose prose-lg max-w-none">
+            
+            <!-- Introduction -->
+            <section class="mb-8">
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-r-lg">
+                    <p class="mb-0 text-blue-800">
+                        <strong>Dernière mise à jour :</strong> {{ "now"|date:"d F Y" }}<br>
+                        Les présentes conditions générales de vente régissent les relations contractuelles entre Éditions Sen et ses clients. Toute commande implique l'acceptation sans réserve de ces conditions.
+                    </p>
+                </div>
+            </section>
+
+            <!-- 1. Informations légales -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">1. Informations légales</h2>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <h3 class="text-lg font-bold text-primary mb-3">Vendeur :</h3>
+                    <p class="mb-2"><strong>Raison sociale :</strong> Éditions Sen</p>
+                    <p class="mb-2"><strong>Forme juridique :</strong> Société par actions simplifiée (SAS)</p>
+                    <p class="mb-2"><strong>Siège social :</strong> [Adresse complète à compléter]</p>
+                    <p class="mb-2"><strong>RCS :</strong> [Numéro RCS à compléter]</p>
+                    <p class="mb-2"><strong>SIRET :</strong> [Numéro SIRET à compléter]</p>
+                    <p class="mb-2"><strong>TVA intracommunautaire :</strong> [Numéro TVA à compléter]</p>
+                    <p class="mb-2"><strong>Email :</strong> <a href="mailto:contact@editionssen.fr" class="text-primary hover:text-secondary underline">contact@editionssen.fr</a></p>
+                    <p class="mb-0"><strong>Téléphone :</strong> [Numéro de téléphone à compléter]</p>
+                </div>
+            </section>
+
+            <!-- 2. Objet -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">2. Objet</h2>
+                <p class="mb-4">Les présentes conditions générales de vente ont pour objet de définir les conditions dans lesquelles Éditions Sen vend et livre les produits commandés par les clients sur le site web <strong>editionssen.fr</strong>.</p>
+                
+                <div class="bg-primary text-white p-6 rounded-lg">
+                    <h3 class="text-lg font-bold mb-3">Produits concernés :</h3>
+                    <ul class="list-disc pl-6">
+                        <li>Livres et ouvrages édités par Éditions Sen</li>
+                        <li>Produits dérivés (marque-pages, cartes postales, etc.)</li>
+                        <li>Abonnements et services numériques</li>
+                        <li>Produits promotionnels et cadeaux</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 3. Acceptation des conditions -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">3. Acceptation des conditions</h2>
+                <p class="mb-4">L'achat de produits sur le site <strong>editionssen.fr</strong> implique l'acceptation pleine et entière des présentes conditions générales de vente par l'acheteur.</p>
+                
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-lg">
+                    <p class="text-yellow-800 mb-3">
+                        <strong>Important :</strong> Ces conditions prévalent sur toutes autres conditions figurant dans les documents du client, sauf dérogation expresse et écrite d'Éditions Sen.
+                    </p>
+                    <p class="text-yellow-800">
+                        Éditions Sen se réserve le droit de modifier ces conditions à tout moment. Les conditions applicables sont celles en vigueur au jour de la commande.
+                    </p>
+                </div>
+            </section>
+
+            <!-- 4. Commande -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">4. Processus de commande</h2>
+                
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">4.1. Création de compte</h3>
+                <p class="mb-4">Pour passer une commande, le client peut :</p>
+                <ul class="list-disc pl-6 mb-6">
+                    <li>Créer un compte client (recommandé)</li>
+                    <li>Commander en tant qu'invité</li>
+                </ul>
+
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">4.2. Processus de commande</h3>
+                <div class="bg-gray-50 p-6 rounded-lg mb-6">
+                    <ol class="list-decimal pl-6 space-y-2">
+                        <li><strong>Sélection des produits :</strong> Ajout des articles au panier</li>
+                        <li><strong>Vérification du panier :</strong> Contrôle des quantités et prix</li>
+                        <li><strong>Informations de livraison :</strong> Saisie de l'adresse de livraison</li>
+                        <li><strong>Choix du mode de livraison :</strong> Sélection parmi les options proposées</li>
+                        <li><strong>Paiement :</strong> Saisie des informations de paiement</li>
+                        <li><strong>Confirmation :</strong> Validation finale de la commande</li>
+                    </ol>
+                </div>
+
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">4.3. Confirmation de commande</h3>
+                <p class="mb-4">Une fois la commande validée, le client reçoit :</p>
+                <ul class="list-disc pl-6 mb-4">
+                    <li>Un email de confirmation immédiat</li>
+                    <li>Un numéro de commande unique</li>
+                    <li>Le récapitulatif détaillé de sa commande</li>
+                </ul>
+            </section>
+
+            <!-- 5. Prix et modalités de paiement -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">5. Prix et modalités de paiement</h2>
+                
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">5.1. Prix des produits</h3>
+                <div class="bg-gray-50 p-6 rounded-lg mb-6">
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li>Les prix sont indiqués en euros TTC (Toutes Taxes Comprises)</li>
+                        <li>Les prix sont valables au jour de la commande</li>
+                        <li>Éditions Sen se réserve le droit de modifier ses prix à tout moment</li>
+                        <li>Les prix applicables sont ceux affichés sur le site au moment de la commande</li>
+                    </ul>
+                </div>
+
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">5.2. Frais de port</h3>
+                <div class="overflow-x-auto mb-6">
+                    <table class="w-full border-collapse border border-gray-300">
+                        <thead class="bg-primary text-white">
+                            <tr>
+                                <th class="border border-gray-300 p-3 text-left">Montant de la commande</th>
+                                <th class="border border-gray-300 p-3 text-left">Frais de port</th>
+                                <th class="border border-gray-300 p-3 text-left">Délai de livraison</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="border border-gray-300 p-3">Moins de 25 €</td>
+                                <td class="border border-gray-300 p-3">4,95 €</td>
+                                <td class="border border-gray-300 p-3">3-5 jours ouvrés</td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="border border-gray-300 p-3">De 25 € à 50 €</td>
+                                <td class="border border-gray-300 p-3">2,95 €</td>
+                                <td class="border border-gray-300 p-3">3-5 jours ouvrés</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-300 p-3">Plus de 50 €</td>
+                                <td class="border border-gray-300 p-3">Gratuit</td>
+                                <td class="border border-gray-300 p-3">3-5 jours ouvrés</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">5.3. Modes de paiement acceptés</h3>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+                        <h4 class="font-bold text-green-800 mb-3">Paiements en ligne sécurisés :</h4>
+                        <ul class="list-disc pl-6 text-green-800 text-sm">
+                            <li>Carte bancaire (Visa, Mastercard, American Express)</li>
+                            <li>PayPal</li>
+                            <li>Virement bancaire (sur demande)</li>
+                        </ul>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                        <h4 class="font-bold text-blue-800 mb-3">Sécurité :</h4>
+                        <ul class="list-disc pl-6 text-blue-800 text-sm">
+                            <li>Chiffrement SSL 256 bits</li>
+                            <li>Conformité PCI DSS</li>
+                            <li>Aucune conservation des données bancaires</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. Livraison -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">6. Livraison</h2>
+                
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">6.1. Zones de livraison</h3>
+                <div class="bg-gray-50 p-6 rounded-lg mb-6">
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>France métropolitaine :</strong> Livraison standard et express</li>
+                        <li><strong>Outre-mer :</strong> Livraison possible (frais supplémentaires)</li>
+                        <li><strong>Union Européenne :</strong> Livraison possible (frais supplémentaires)</li>
+                        <li><strong>Reste du monde :</strong> Sur demande uniquement</li>
+                    </ul>
+                </div>
+
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">6.2. Délais de livraison</h3>
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-r-lg mb-6">
+                    <p class="text-blue-800 mb-3">
+                        <strong>Délai standard :</strong> 3 à 5 jours ouvrés après expédition
+                    </p>
+                    <p class="text-blue-800 mb-3">
+                        <strong>Délai express :</strong> 24 à 48h après expédition (frais supplémentaires)
+                    </p>
+                    <p class="text-blue-800">
+                        <strong>Note :</strong> Les délais sont donnés à titre indicatif et ne constituent pas un engagement ferme.
+                    </p>
+                </div>
+
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">6.3. Suivi de commande</h3>
+                <p class="mb-4">Le client peut suivre sa commande :</p>
+                <ul class="list-disc pl-6 mb-4">
+                    <li>Via son compte client sur le site</li>
+                    <li>Par email avec le numéro de suivi</li>
+                    <li>En contactant notre service client</li>
+                </ul>
+
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">6.4. Réception et contrôle</h3>
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-lg">
+                    <p class="text-yellow-800 mb-3">
+                        <strong>Important :</strong> Le client doit vérifier l'état des colis à la réception.
+                    </p>
+                    <p class="text-yellow-800">
+                        En cas de dommage ou de non-conformité, le client dispose de 48h pour signaler le problème à notre service client.
+                    </p>
+                </div>
+            </section>
+
+            <!-- 7. Droit de rétractation -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">7. Droit de rétractation</h2>
+                
+                <div class="bg-green-50 border-l-4 border-green-400 p-6 rounded-r-lg mb-6">
+                    <p class="text-green-800 mb-3">
+                        <strong>Délai de rétractation :</strong> 14 jours calendaires à compter de la réception des produits
+                    </p>
+                    <p class="text-green-800">
+                        Le client peut retourner les produits sans justification et sans pénalité, sauf exceptions prévues par la loi.
+                    </p>
+                </div>
+
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">7.1. Procédure de retour</h3>
+                <div class="bg-gray-50 p-6 rounded-lg mb-6">
+                    <ol class="list-decimal pl-6 space-y-2">
+                        <li><strong>Demande de retour :</strong> Contact du service client</li>
+                        <li><strong>Autorisation :</strong> Envoi du formulaire de rétractation</li>
+                        <li><strong>Préparation :</strong> Emballage soigneux des produits</li>
+                        <li><strong>Expédition :</strong> Envoi à nos frais (si défaut de conformité)</li>
+                        <li><strong>Remboursement :</strong> Sous 14 jours après réception</li>
+                    </ol>
+                </div>
+
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">7.2. Conditions de retour</h3>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+                        <h4 class="font-bold text-green-800 mb-3">Produits acceptés :</h4>
+                        <ul class="list-disc pl-6 text-green-800 text-sm">
+                            <li>Produits en parfait état</li>
+                            <li>Emballage d'origine intact</li>
+                            <li>Accessoires et documentation inclus</li>
+                            <li>Retour dans les délais</li>
+                        </ul>
+                    </div>
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+                        <h4 class="font-bold text-red-800 mb-3">Produits refusés :</h4>
+                        <ul class="list-disc pl-6 text-red-800 text-sm">
+                            <li>Produits endommagés par le client</li>
+                            <li>Produits personnalisés</li>
+                            <li>Produits numériques ouverts</li>
+                            <li>Retour hors délai</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">7.3. Remboursement</h3>
+                <p class="mb-4">Le remboursement s'effectue :</p>
+                <ul class="list-disc pl-6 mb-4">
+                    <li>Par le même moyen de paiement que la commande</li>
+                    <li>Dans un délai de 14 jours après réception du retour</li>
+                    <li>Déduction faite des frais de retour si à la charge du client</li>
+                </ul>
+            </section>
+
+            <!-- 8. Garanties -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">8. Garanties</h2>
+                
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">8.1. Garantie légale de conformité</h3>
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-r-lg mb-6">
+                    <p class="text-blue-800 mb-3">
+                        <strong>Durée :</strong> 2 ans à compter de la délivrance du bien
+                    </p>
+                    <p class="text-blue-800">
+                        Le vendeur est tenu de livrer un bien conforme au contrat et répond des défauts de conformité existant au moment de la délivrance.
+                    </p>
+                </div>
+
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">8.2. Garantie des vices cachés</h3>
+                <p class="mb-4">Le client peut invoquer la garantie des vices cachés si :</p>
+                <ul class="list-disc pl-6 mb-4">
+                    <li>Le défaut existait au moment de la vente</li>
+                    <li>Le défaut rend le produit impropre à son usage</li>
+                    <li>Le défaut était caché et non apparent</li>
+                </ul>
+
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">8.3. Service après-vente</h3>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <p class="mb-3">Pour toute réclamation concernant nos produits :</p>
+                    <ul class="list-disc pl-6">
+                        <li>Contact : <a href="mailto:contact@editionssen.fr" class="text-primary hover:text-secondary underline">contact@editionssen.fr</a></li>
+                        <li>Délai de réponse : 48h ouvrées</li>
+                        <li>Pièces justificatives : facture, photos si nécessaire</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 9. Responsabilité -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">9. Responsabilité</h2>
+                
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">9.1. Limitation de responsabilité</h3>
+                <p class="mb-4">La responsabilité d'Éditions Sen ne saurait être engagée en cas de :</p>
+                <ul class="list-disc pl-6 mb-6">
+                    <li>Force majeure ou événement imprévisible</li>
+                    <li>Faute du client ou d'un tiers</li>
+                    <li>Utilisation non conforme des produits</li>
+                    <li>Dommages indirects ou perte de profits</li>
+                </ul>
+
+                <h3 class="text-xl font-serif font-bold text-primary mb-3">9.2. Disponibilité des produits</h3>
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-lg">
+                    <p class="text-yellow-800 mb-3">
+                        <strong>Important :</strong> Les produits sont proposés dans la limite des stocks disponibles.
+                    </p>
+                    <p class="text-yellow-800">
+                        En cas d'indisponibilité, le client sera informé dans les plus brefs délais et pourra soit annuler sa commande, soit reporter la livraison.
+                    </p>
+                </div>
+            </section>
+
+            <!-- 10. Propriété intellectuelle -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">10. Propriété intellectuelle</h2>
+                <p class="mb-4">Tous les éléments du site (textes, images, logos, marques) sont protégés par le droit de la propriété intellectuelle et sont la propriété exclusive d'Éditions Sen ou de ses partenaires.</p>
+                
+                <div class="bg-red-50 border-l-4 border-red-400 p-6 rounded-r-lg">
+                    <p class="text-red-800 mb-3">
+                        <strong>Interdiction :</strong> Toute reproduction, représentation, modification ou adaptation sans autorisation expresse est interdite.
+                    </p>
+                    <p class="text-red-800">
+                        Le non-respect de cette clause peut entraîner des poursuites judiciaires.
+                    </p>
+                </div>
+            </section>
+
+            <!-- 11. Protection des données -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">11. Protection des données personnelles</h2>
+                <p class="mb-4">Le traitement des données personnelles est régi par notre <a href="{% url 'home:politique_confidentialite' %}" class="text-primary hover:text-secondary underline">Politique de confidentialité</a>.</p>
+                
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-r-lg">
+                    <p class="text-blue-800">
+                        <strong>Conformité RGPD :</strong> Nous nous engageons à respecter le Règlement Général sur la Protection des Données et à protéger vos informations personnelles.
+                    </p>
+                </div>
+            </section>
+
+            <!-- 12. Droit applicable et juridiction -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">12. Droit applicable et juridiction</h2>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>Droit applicable :</strong> Droit français</li>
+                        <li><strong>Juridiction compétente :</strong> Tribunaux de [Ville du tribunal compétent]</li>
+                        <li><strong>Médiation :</strong> En cas de litige, une médiation peut être proposée</li>
+                        <li><strong>Langue :</strong> Les présentes conditions sont rédigées en français</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 13. Contact -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-serif font-bold text-primary mb-4">13. Contact et réclamations</h2>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-primary text-white p-6 rounded-lg">
+                        <h3 class="text-lg font-bold mb-3">Service client</h3>
+                        <ul class="list-disc pl-6 text-sm">
+                            <li>Email : <a href="mailto:contact@editionssen.fr" class="text-white hover:text-light underline">contact@editionssen.fr</a></li>
+                            <li>Téléphone : [Numéro à compléter]</li>
+                            <li>Horaires : [Horaires d'ouverture]</li>
+                            <li>Courrier : [Adresse complète]</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-gray-100 p-6 rounded-lg">
+                        <h3 class="text-lg font-bold text-primary mb-3">Réclamations</h3>
+                        <p class="text-sm mb-3">Pour toute réclamation :</p>
+                        <ul class="list-disc pl-6 text-sm">
+                            <li>Délai de réponse : 48h ouvrées</li>
+                            <li>Pièces à fournir : facture, description du problème</li>
+                            <li>Suivi : numéro de ticket de réclamation</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dernière mise à jour -->
+            <div class="border-t border-gray-200 pt-6 mt-8">
+                <p class="text-sm text-gray-500 text-center">
+                    <strong>Dernière mise à jour :</strong> {{ "now"|date:"d F Y" }}<br>
+                    <strong>Version :</strong> 1.0
+                </p>
+            </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="text-center mt-8 space-x-4">
+            <a href="{% url 'home:index' %}" class="inline-flex items-center bg-primary hover:bg-secondary text-white px-6 py-3 rounded-lg transition-colors font-medium">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Retour à l'accueil
+            </a>
+            <a href="{% url 'home:mentions_legales' %}" class="inline-flex items-center bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors font-medium">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Mentions légales
+            </a>
+            <a href="{% url 'home:politique_confidentialite' %}" class="inline-flex items-center bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors font-medium">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+                Confidentialité
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

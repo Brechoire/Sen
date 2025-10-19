@@ -10,10 +10,10 @@ urlpatterns = [
     path('livre/<slug:slug>/', views.BookDetailView.as_view(), name='book_detail'),
     path('categorie/<slug:slug>/', views.CategoryDetailView.as_view(), name='category_detail'),
     
-    # Gestion des livres (admin)
-    path('admin/livre/ajouter/', views.BookCreateView.as_view(), name='book_create'),
-    path('admin/livre/<slug:slug>/modifier/', views.BookUpdateView.as_view(), name='book_update'),
-    path('admin/livre/<slug:slug>/supprimer/', views.BookDeleteView.as_view(), name='book_delete'),
+    # Gestion des livres (admin) - Redirige vers l'administration
+    path('admin/livre/ajouter/', views.redirect_to_admin_create_book, name='book_create'),
+    path('admin/livre/<slug:slug>/modifier/', views.redirect_to_admin_books, name='book_update'),
+    path('admin/livre/<slug:slug>/supprimer/', views.redirect_to_admin_books, name='book_delete'),
     
     # Gestion des catégories (admin)
     path('admin/categorie/ajouter/', views.CategoryCreateView.as_view(), name='category_create'),
@@ -35,6 +35,9 @@ urlpatterns = [
     path('api/livres/', views.get_books_ajax, name='books_ajax'),
     path('api/recherche/', views.book_search_suggestions, name='search_suggestions'),
     path('api/panier/', views.cart_summary, name='cart_summary'),
+    path('api/code-promo/appliquer/', views.apply_promo_code, name='apply_promo_code'),
+    path('api/code-promo/supprimer/', views.remove_promo_code, name='remove_promo_code'),
+    path('api/reductions/', views.get_cart_discounts, name='get_cart_discounts'),
     
     # Commandes et paiements
     path('commande/', views.checkout, name='checkout'),
@@ -43,9 +46,11 @@ urlpatterns = [
     path('commande/<int:order_id>/annuler/', views.cancel_order, name='cancel_order'),
     path('commande/<int:order_id>/remboursement/', views.request_refund, name='request_refund'),
     path('mes-remboursements/', views.refund_list, name='refund_list'),
+    path('fidelite/', views.loyalty_status, name='loyalty_status'),
     path('paiement/paypal/<int:order_id>/', views.paypal_payment, name='paypal_payment'),
     path('paiement/paypal/success/', views.paypal_success, name='paypal_success'),
     path('paiement/paypal/cancel/', views.paypal_cancel, name='paypal_cancel'),
+    path('paiement/manuel/<int:order_id>/', views.manual_payment, name='manual_payment'),
     
     # API PayPal
     path('api/paypal/create-order/', views.create_paypal_order, name='create_paypal_order'),
