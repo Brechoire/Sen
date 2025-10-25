@@ -72,9 +72,10 @@ class CustomLoginView(LoginView):
 
     def form_valid(self, form):
         user = form.get_user()
-        # Transférer le panier de session vers l'utilisateur
-        self.transfer_cart_to_user(user)
-        messages.success(self.request, f"Bonjour {user.full_name} !")
+        if user:
+            # Transférer le panier de session vers l'utilisateur
+            self.transfer_cart_to_user(user)
+            messages.success(self.request, f"Bonjour {user.full_name} !")
         return super().form_valid(form)
     
     def transfer_cart_to_user(self, user):

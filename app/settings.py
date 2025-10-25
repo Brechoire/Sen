@@ -235,6 +235,12 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Configuration du modèle utilisateur personnalisé
 AUTH_USER_MODEL = 'accounts.User'
 
+# Backend d'authentification personnalisé
+AUTHENTICATION_BACKENDS = [
+    'accounts.backends.EmailBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 # Configuration PayPal
 # Configuration PayPal
 PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID', 'test_client_id')

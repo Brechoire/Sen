@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 from .models import User
 
 User = get_user_model()
@@ -103,12 +104,39 @@ class CustomAuthenticationForm(AuthenticationForm):
         super().__init__(*args, **kwargs)
         self.fields['username'].widget.attrs.update({
             'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
-            'placeholder': 'Nom d\'utilisateur ou email'
+            'placeholder': 'Email ou nom d\'utilisateur'
         })
         self.fields['password'].widget.attrs.update({
             'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
             'placeholder': 'Mot de passe'
         })
+    
+    def clean(self):
+        username = self.cleaned_data.get('username')
+        password = self.cleaned_data.get('password')
+        
+        if username and password:
+            # Essayer de trouver l'utilisateur par email ou username
+            try:
+                user = User.objects.get(
+                    Q(username=username) | Q(email=username)
+                )
+                if not user.check_password(password):
+                    raise forms.ValidationError("Email/nom d'utilisateur ou mot de passe incorrect.")
+                # Stocker l'utilisateur pour que get_user() puisse le retourner
+                self.user_cache = user
+            except User.DoesNotExist:
+                raise forms.ValidationError("Email/nom d'utilisateur ou mot de passe incorrect.")
+        
+        return self.cleaned_data
+    
+    def get_user(self):
+        """Retourne l'utilisateur authentifié"""
+        user = getattr(self, 'user_cache', None)
+        if user:
+            # Spécifier le backend utilisé pour éviter l'erreur ValueError
+            user.backend = 'accounts.backends.EmailBackend'
+        return user
 
 class UserProfileForm(forms.ModelForm):
     """Formulaire de profil utilisateur"""
