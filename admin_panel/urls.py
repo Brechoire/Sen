@@ -49,4 +49,17 @@ urlpatterns = [
     # Actions sur les avis
     path('avis/<int:review_id>/approuver/', views.approve_review, name='approve_review'),
     path('avis/<int:review_id>/rejeter/', views.reject_review, name='reject_review'),
+    
+    # Factures
+    path('factures/', views.invoice_list, name='invoice_list'),
+    path('facture/<int:invoice_id>/', views.invoice_detail, name='invoice_detail'),
+    path('facture/creer/<int:order_id>/', views.create_invoice, name='create_invoice'),
+    path('facture/<int:invoice_id>/statut/', views.update_invoice_status, name='update_invoice_status'),
+    
+    # Gestion avancée des commandes
+    path('commande/<int:order_id>/', views.order_detail, name='order_detail'),
+    path('commande/<int:order_id>/statut/', views.update_order_status, name='update_order_status'),
+    path('commande/<int:order_id>/suivi/', views.update_tracking_info, name='update_tracking_info'),
+    path('commande/<int:order_id>/paiement/', views.update_payment_status, name='update_payment_status'),
+    path('commande/<int:order_id>/annuler/', views.cancel_order, name='cancel_order'),
 ]

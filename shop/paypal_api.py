@@ -7,6 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from .models import Order, Payment
+from .services import CartService
 import logging
 
 logger = logging.getLogger(__name__)
@@ -170,6 +171,9 @@ def capture_paypal_order(request):
             
             payment.status = 'completed'
             payment.save()
+            
+            # Vider le panier de l'utilisateur après paiement réussi
+            CartService.clear_cart(order.user)
             
             logger.info(f"Paiement PayPal capturé avec succès pour la commande {order.id}")
         

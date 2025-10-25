@@ -10,13 +10,16 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.db import transaction
 from decimal import Decimal
+import logging
 
-from .models import Book, Category, BookImage, Review, Cart, CartItem, Order, OrderItem, Payment, ShopSettings, Refund, PromoCode, UserLoyaltyStatus
+from .models import Book, Category, BookImage, Review, Cart, CartItem, Order, OrderItem, Payment, ShopSettings, Refund, PromoCode, UserLoyaltyStatus, Invoice, OrderStatusHistory
 from .forms import BookForm, CategoryForm, BookImageForm, ReviewForm, BookSearchForm, CheckoutForm, PaymentMethodForm, RefundRequestForm, PromoCodeForm
 from .services import PromoCodeService, LoyaltyService, DiscountService, CartService
 from .paypal_api import create_paypal_order, capture_paypal_order
 from django.conf import settings
 from author.models import Author
+
+logger = logging.getLogger(__name__)
 
 
 class BookListView(ListView):
@@ -741,6 +744,9 @@ def paypal_payment(request, order_id):
 @login_required
 def paypal_success(request):
     """Vue appelée après un paiement PayPal réussi"""
+    # S'assurer que le panier est vidé après un paiement réussi
+    CartService.clear_cart(request.user)
+    
     messages.success(request, 'Paiement effectué avec succès ! Votre commande est en cours de traitement.')
     return redirect('shop:order_list')
 
@@ -766,6 +772,9 @@ def manual_payment(request, order_id):
     payment.payment_method = 'bank_transfer'
     payment.status = 'pending'
     payment.save()
+    
+    # Vider le panier après création de la commande pour paiement manuel
+    CartService.clear_cart(request.user)
     
     # Ici, vous pourriez envoyer un email avec les coordonnées bancaires
     # ou afficher une page avec les informations de paiement
@@ -954,9 +963,17 @@ def loyalty_status(request):
     loyalty_status = LoyaltyService.get_or_create_loyalty_status(request.user)
     loyalty_program = loyalty_status.get_available_loyalty_discount()
     
+    # Obtenir les statistiques réelles basées sur les commandes confirmées
+    real_stats = loyalty_status.get_real_statistics()
+    
+    # Récupérer les commandes confirmées récentes
+    recent_orders = Order.objects.filter(user=request.user, status='confirmed').order_by('-created_at')[:5]
+    
     context = {
         'loyalty_status': loyalty_status,
         'loyalty_program': loyalty_program,
+        'real_stats': real_stats,
+        'recent_orders': recent_orders,
     }
     
     return render(request, 'shop/loyalty_status.html', context)
@@ -996,3 +1013,152 @@ def redirect_to_admin_create_book(request):
 def redirect_to_admin_books(request, slug=None):
     """Redirige vers la liste des livres dans l'administration"""
     return HttpResponseRedirect(reverse('admin_panel:books'))
+
+
+# ===== GESTION DES FACTURES =====
+
+@login_required
+def create_invoice(request, order_id):
+    """Créer une facture pour une commande"""
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    
+    # Vérifier si une facture existe déjà
+    if hasattr(order, 'invoice'):
+        messages.info(request, 'Une facture existe déjà pour cette commande.')
+        return redirect('shop:order_detail', order_id=order.id)
+    
+    # Créer la facture
+    invoice = Invoice.objects.create(
+        order=order,
+        billing_name=f"{order.shipping_first_name} {order.shipping_last_name}",
+        billing_address=order.shipping_address,
+        billing_city=order.shipping_city,
+        billing_postal_code=order.shipping_postal_code,
+        billing_country=order.shipping_country,
+        subtotal=order.subtotal,
+        shipping_cost=order.shipping_cost,
+        total_amount=order.total_amount,
+        status='sent',  # Marquer comme envoyée dès la création
+    )
+    
+    messages.success(request, f'Facture {invoice.invoice_number} créée avec succès.')
+    return redirect('shop:invoice_detail', invoice_id=invoice.id)
+
+
+@login_required
+def invoice_detail(request, invoice_id):
+    """Afficher le détail d'une facture"""
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    
+    # Vérifier que l'utilisateur peut voir cette facture
+    if not request.user.is_staff and invoice.order.user != request.user:
+        messages.error(request, 'Vous n\'avez pas accès à cette facture.')
+        return redirect('shop:order_list')
+    
+    context = {
+        'invoice': invoice,
+        'order': invoice.order,
+        'order_items': invoice.order.items.all(),
+        'shop_settings': ShopSettings.get_settings(),
+    }
+    
+    return render(request, 'shop/invoice_detail.html', context)
+
+
+@login_required
+def invoice_pdf(request, invoice_id):
+    """Générer le PDF d'une facture"""
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    
+    # Vérifier que l'utilisateur peut voir cette facture
+    if not request.user.is_staff and invoice.order.user != request.user:
+        messages.error(request, 'Vous n\'avez pas accès à cette facture.')
+        return redirect('shop:order_list')
+    
+    context = {
+        'invoice': invoice,
+        'order': invoice.order,
+        'order_items': invoice.order.items.all(),
+        'shop_settings': ShopSettings.get_settings(),
+    }
+    
+    # Pour l'instant, on retourne la version HTML
+    # Plus tard, on pourra ajouter la génération PDF avec weasyprint
+    return render(request, 'shop/invoice_pdf.html', context)
+
+
+@login_required
+def invoice_list(request):
+    """Liste des factures de l'utilisateur"""
+    if request.user.is_staff:
+        # Admin : voir toutes les factures
+        invoices = Invoice.objects.all().order_by('-invoice_date')
+    else:
+        # Utilisateur : voir ses factures
+        invoices = Invoice.objects.filter(order__user=request.user).order_by('-invoice_date')
+    
+    paginator = Paginator(invoices, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'invoices': page_obj,
+    }
+    
+    return render(request, 'shop/invoice_list.html', context)
+
+
+@login_required
+def cancel_order(request, order_id):
+    """Annuler une commande côté client"""
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    
+    # Vérifier que la commande peut être annulée par le client
+    if order.status not in ['pending', 'processing']:
+        messages.error(request, f'Impossible d\'annuler cette commande. Statut actuel: {order.get_status_display()}')
+        return redirect('shop:order_detail', order_id=order.id)
+    
+    # Vérifier que le paiement n'est pas déjà confirmé
+    if order.payment_status == 'paid':
+        messages.error(request, 'Impossible d\'annuler cette commande car le paiement a déjà été confirmé.')
+        return redirect('shop:order_detail', order_id=order.id)
+    
+    if request.method == 'POST':
+        reason = request.POST.get('reason', 'Annulation demandée par le client')
+        admin_notes = request.POST.get('admin_notes', '')
+        
+        try:
+            # Annuler la commande
+            old_status, new_status = order.update_status(
+                new_status='cancelled',
+                admin_notes=f"{reason}. {admin_notes}" if admin_notes else reason,
+                changed_by=request.user
+            )
+            
+            # Marquer le paiement comme échoué si c'était en attente
+            if order.payment_status == 'pending':
+                order.payment_status = 'failed'
+                order.save()
+                OrderStatusHistory.objects.create(
+                    order=order,
+                    old_status='payment_pending',
+                    new_status='payment_failed',
+                    changed_by=request.user,
+                    notes=f"Paiement marqué comme échoué suite à l'annulation par le client"
+                )
+            
+            messages.success(request, f'Votre commande {order.order_number} a été annulée avec succès.', extra_tags='order_cancelled')
+            
+        except Exception as e:
+            messages.error(request, f'Erreur lors de l\'annulation de la commande: {str(e)}', extra_tags='order_error')
+            logger.error(f'Erreur annulation commande {order.order_number} par client {request.user.username}: {e}')
+        
+        return redirect('shop:order_detail', order_id=order.id)
+    
+    # Afficher le formulaire de confirmation
+    context = {
+        'order': order,
+        'order_items': order.items.all(),
+    }
+    return render(request, 'shop/cancel_order.html', context)

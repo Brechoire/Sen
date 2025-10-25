@@ -60,6 +60,165 @@
                     </div>
                 </div>
 
+                <!-- Suivi de la commande -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Suivi de votre commande</h2>
+                    
+                    <!-- Barre de progression -->
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-gray-700">Progression</span>
+                            <span class="text-sm text-gray-500">
+                                {% if order.status == 'pending' %}0%
+                                {% elif order.status == 'processing' %}25%
+                                {% elif order.status == 'shipped' %}75%
+                                {% elif order.status == 'delivered' %}100%
+                                {% else %}0%{% endif %}
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-primary h-2 rounded-full transition-all duration-300" 
+                                 style="width: {% if order.status == 'pending' %}0%{% elif order.status == 'processing' %}25%{% elif order.status == 'shipped' %}75%{% elif order.status == 'delivered' %}100%{% else %}0%{% endif %}"></div>
+                        </div>
+                    </div>
+
+                    <!-- Étapes du suivi -->
+                    <div class="space-y-4">
+                        <!-- Commande passée -->
+                        <div class="flex items-center space-x-3">
+                            <div class="flex-shrink-0">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center
+                                    {% if order.status in 'pending,processing,shipped,delivered' %}bg-green-500 text-white{% else %}bg-gray-300 text-gray-600{% endif %}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-900">Commande passée</p>
+                                <p class="text-xs text-gray-500">{{ order.created_at|date:"d/m/Y à H:i" }}</p>
+                            </div>
+                        </div>
+
+                        <!-- En cours de traitement -->
+                        <div class="flex items-center space-x-3">
+                            <div class="flex-shrink-0">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center
+                                    {% if order.status in 'processing,shipped,delivered' %}bg-green-500 text-white{% elif order.status == 'pending' %}bg-yellow-500 text-white{% else %}bg-gray-300 text-gray-600{% endif %}">
+                                    {% if order.status in 'processing,shipped,delivered' %}
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                    {% elif order.status == 'pending' %}
+                                        <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                        </svg>
+                                    {% else %}
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-900">En cours de traitement</p>
+                                {% if order.processing_date %}
+                                    <p class="text-xs text-gray-500">Depuis le {{ order.processing_date|date:"d/m/Y à H:i" }}</p>
+                                {% else %}
+                                    <p class="text-xs text-gray-500">En attente</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Expédiée -->
+                        <div class="flex items-center space-x-3">
+                            <div class="flex-shrink-0">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center
+                                    {% if order.status in 'shipped,delivered' %}bg-green-500 text-white{% elif order.status == 'processing' %}bg-yellow-500 text-white{% else %}bg-gray-300 text-gray-600{% endif %}">
+                                    {% if order.status in 'shipped,delivered' %}
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                    {% elif order.status == 'processing' %}
+                                        <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                        </svg>
+                                    {% else %}
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                        </svg>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-900">Expédiée</p>
+                                {% if order.shipped_date %}
+                                    <p class="text-xs text-gray-500">Le {{ order.shipped_date|date:"d/m/Y à H:i" }}</p>
+                                {% else %}
+                                    <p class="text-xs text-gray-500">En attente</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Livrée -->
+                        <div class="flex items-center space-x-3">
+                            <div class="flex-shrink-0">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center
+                                    {% if order.status == 'delivered' %}bg-green-500 text-white{% elif order.status == 'shipped' %}bg-yellow-500 text-white{% else %}bg-gray-300 text-gray-600{% endif %}">
+                                    {% if order.status == 'delivered' %}
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                    {% elif order.status == 'shipped' %}
+                                        <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                        </svg>
+                                    {% else %}
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                        </svg>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-900">Livrée</p>
+                                {% if order.delivered_date %}
+                                    <p class="text-xs text-gray-500">Le {{ order.delivered_date|date:"d/m/Y à H:i" }}</p>
+                                {% else %}
+                                    <p class="text-xs text-gray-500">En attente</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Informations de suivi -->
+                    {% if order.tracking_number or order.carrier or order.estimated_delivery %}
+                        <div class="mt-6 pt-6 border-t border-gray-200">
+                            <h3 class="text-sm font-medium text-gray-900 mb-3">Informations de suivi</h3>
+                            <div class="space-y-2">
+                                {% if order.tracking_number %}
+                                    <div class="flex justify-between">
+                                        <span class="text-sm text-gray-600">Numéro de suivi:</span>
+                                        <span class="text-sm font-medium text-gray-900">{{ order.tracking_number }}</span>
+                                    </div>
+                                {% endif %}
+                                {% if order.carrier %}
+                                    <div class="flex justify-between">
+                                        <span class="text-sm text-gray-600">Transporteur:</span>
+                                        <span class="text-sm font-medium text-gray-900">{{ order.carrier }}</span>
+                                    </div>
+                                {% endif %}
+                                {% if order.estimated_delivery %}
+                                    <div class="flex justify-between">
+                                        <span class="text-sm text-gray-600">Livraison estimée:</span>
+                                        <span class="text-sm font-medium text-gray-900">{{ order.estimated_delivery|date:"d/m/Y" }}</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+
                 <!-- Informations de livraison -->
                 <div class="bg-white rounded-lg shadow p-6">
                     <h2 class="text-xl font-semibold text-gray-900 mb-4">Adresse de livraison</h2>
@@ -123,13 +282,9 @@
                             <span class="text-gray-600">Frais de port</span>
                             <span class="text-gray-900">{{ order.shipping_cost|floatformat:2 }} €</span>
                         </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-gray-600">TVA</span>
-                            <span class="text-gray-900">{{ order.tax_amount|floatformat:2 }} €</span>
-                        </div>
                         <div class="border-t pt-2">
                             <div class="flex justify-between text-lg font-semibold">
-                                <span class="text-gray-900">Total</span>
+                                <span class="text-gray-900">Total TTC</span>
                                 <span class="text-gray-900">{{ order.total_amount|floatformat:2 }} €</span>
                             </div>
                         </div>
@@ -137,16 +292,33 @@
 
                     <!-- Actions -->
                     <div class="mt-6 space-y-3">
-                        {% if order.can_be_cancelled %}
-                            <button class="w-full bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors">
+                        {% if order.status in 'pending,processing' and order.payment_status != 'paid' %}
+                            <a href="{% url 'shop:cancel_order' order.id %}" 
+                               class="block w-full bg-red-600 text-white px-4 py-2 rounded-lg font-medium text-center hover:bg-red-700 transition-colors">
+                                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
                                 Annuler la commande
-                            </button>
+                            </a>
                         {% endif %}
                         
                         {% if order.payment_status == 'paid' and order.status != 'cancelled' %}
                             <a href="{% url 'shop:request_refund' order.id %}" class="block w-full bg-orange-600 text-white px-4 py-2 rounded-lg font-medium text-center hover:bg-orange-700 transition-colors">
                                 Demander un remboursement
                             </a>
+                        {% endif %}
+                        
+                        <!-- Facture -->
+                        {% if order.status == 'confirmed' %}
+                            {% if order.invoice %}
+                                <a href="{% url 'shop:invoice_detail' order.invoice.id %}" class="block w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-medium text-center hover:bg-blue-700 transition-colors">
+                                    Voir la facture
+                                </a>
+                            {% else %}
+                                <a href="{% url 'shop:create_invoice' order.id %}" class="block w-full bg-green-600 text-white px-4 py-2 rounded-lg font-medium text-center hover:bg-green-700 transition-colors">
+                                    Créer une facture
+                                </a>
+                            {% endif %}
                         {% endif %}
                         
                         <a href="{% url 'shop:order_list' %}" class="block w-full bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium text-center hover:bg-gray-300 transition-colors">

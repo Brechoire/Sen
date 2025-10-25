@@ -14,7 +14,7 @@
                     <p class="text-gray-600 mt-2">Découvrez vos avantages et récompenses</p>
                 </div>
                 <div class="text-right">
-                    <div class="text-4xl font-bold text-primary">{{ loyalty_status.loyalty_points }}</div>
+                    <div class="text-4xl font-bold text-primary">{{ real_stats.loyalty_points }}</div>
                     <div class="text-sm text-gray-500">Points de fidélité</div>
                 </div>
             </div>
@@ -26,21 +26,21 @@
                 <h2 class="text-xl font-semibold text-gray-900 mb-4">Mes statistiques</h2>
                 <div class="space-y-4">
                     <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                        <span class="text-gray-600">Nombre d'achats</span>
-                        <span class="font-semibold text-gray-900">{{ loyalty_status.total_purchases }}</span>
+                        <span class="text-gray-600">Nombre d'achats confirmés</span>
+                        <span class="font-semibold text-gray-900">{{ real_stats.total_purchases }}</span>
                     </div>
                     <div class="flex justify-between items-center py-2 border-b border-gray-100">
                         <span class="text-gray-600">Montant total dépensé</span>
-                        <span class="font-semibold text-gray-900">{{ loyalty_status.total_spent }}€</span>
+                        <span class="font-semibold text-gray-900">{{ real_stats.total_spent|floatformat:2 }}€</span>
                     </div>
                     <div class="flex justify-between items-center py-2 border-b border-gray-100">
                         <span class="text-gray-600">Points de fidélité</span>
-                        <span class="font-semibold text-primary">{{ loyalty_status.loyalty_points }}</span>
+                        <span class="font-semibold text-primary">{{ real_stats.loyalty_points }}</span>
                     </div>
-                    {% if loyalty_status.last_purchase_date %}
+                    {% if real_stats.last_purchase_date %}
                     <div class="flex justify-between items-center py-2">
-                        <span class="text-gray-600">Dernier achat</span>
-                        <span class="font-semibold text-gray-900">{{ loyalty_status.last_purchase_date|date:"d/m/Y" }}</span>
+                        <span class="text-gray-600">Dernier achat confirmé</span>
+                        <span class="font-semibold text-gray-900">{{ real_stats.last_purchase_date|date:"d/m/Y" }}</span>
                     </div>
                     {% endif %}
                 </div>
@@ -104,7 +104,7 @@
         <div class="bg-white rounded-lg shadow-sm p-6 mt-6">
             <h2 class="text-xl font-semibold text-gray-900 mb-4">Votre niveau de fidélité</h2>
             <div class="flex items-center space-x-4">
-                {% if loyalty_status.total_purchases >= 10 %}
+                {% if real_stats.total_purchases >= 10 %}
                     <div class="flex items-center">
                         <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
                             <svg class="w-6 h-6 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
@@ -113,10 +113,10 @@
                         </div>
                         <div class="ml-3">
                             <div class="text-lg font-semibold text-gray-900">Client fidèle</div>
-                            <div class="text-sm text-gray-500">10+ achats</div>
+                            <div class="text-sm text-gray-500">10+ achats confirmés</div>
                         </div>
                     </div>
-                {% elif loyalty_status.total_purchases >= 5 %}
+                {% elif real_stats.total_purchases >= 5 %}
                     <div class="flex items-center">
                         <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                             <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
@@ -125,10 +125,10 @@
                         </div>
                         <div class="ml-3">
                             <div class="text-lg font-semibold text-gray-900">Client régulier</div>
-                            <div class="text-sm text-gray-500">5+ achats</div>
+                            <div class="text-sm text-gray-500">5+ achats confirmés</div>
                         </div>
                     </div>
-                {% elif loyalty_status.total_purchases >= 1 %}
+                {% elif real_stats.total_purchases >= 1 %}
                     <div class="flex items-center">
                         <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
                             <svg class="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
@@ -137,7 +137,7 @@
                         </div>
                         <div class="ml-3">
                             <div class="text-lg font-semibold text-gray-900">Nouveau client</div>
-                            <div class="text-sm text-gray-500">1+ achat</div>
+                            <div class="text-sm text-gray-500">1+ achat confirmé</div>
                         </div>
                     </div>
                 {% else %}
@@ -155,6 +155,60 @@
                 {% endif %}
             </div>
         </div>
+
+        <!-- Commandes confirmées récentes -->
+        {% if recent_orders %}
+        <div class="bg-white rounded-lg shadow-sm p-6 mt-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">Commandes confirmées récentes</h2>
+                <a href="{% url 'shop:order_list' %}" class="text-primary hover:text-secondary font-medium">
+                    Voir toutes les commandes →
+                </a>
+            </div>
+            
+            <div class="space-y-4">
+                {% for order in recent_orders %}
+                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-4">
+                                <div>
+                                    <h3 class="font-medium text-gray-900">{{ order.order_number }}</h3>
+                                    <p class="text-sm text-gray-500">{{ order.created_at|date:"d F Y à H:i" }}</p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                                        Confirmée
+                                    </span>
+                                    <span class="px-2 py-1 text-xs font-medium rounded-full
+                                        {% if order.payment_status == 'paid' %}bg-green-100 text-green-800
+                                        {% elif order.payment_status == 'pending' %}bg-yellow-100 text-yellow-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {% if order.payment_status == 'paid' %}Payée
+                                        {% elif order.payment_status == 'pending' %}En attente
+                                        {% else %}{{ order.payment_status|title }}{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="mt-2 flex items-center justify-between">
+                                <p class="text-sm text-gray-600">
+                                    {{ order.items.count }} article{{ order.items.count|pluralize }}
+                                </p>
+                                <p class="font-medium text-gray-900">{{ order.total_amount|floatformat:2 }} €</p>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <a href="{% url 'shop:order_detail' order.id %}" 
+                               class="text-primary hover:text-secondary font-medium text-sm">
+                                Voir détails
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
 
         <!-- Actions -->
         <div class="mt-6 flex justify-center">

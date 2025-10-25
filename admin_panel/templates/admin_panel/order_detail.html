@@ -1,0 +1,312 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load static %}
+
+{% block title %}Commande {{ order.order_number }} - Administration{% endblock %}
+
+{% block content %}
+<div class="p-6">
+    <!-- En-tête -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-dark">Commande {{ order.order_number }}</h1>
+                <p class="mt-2 text-gray-600">Passée le {{ order.created_at|date:"d F Y à H:i" }}</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'admin_panel:orders' %}" 
+                   class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                    Retour à la liste
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Détails de la commande -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Informations du client -->
+            <div class="bg-white rounded-lg shadow-sm border">
+                <div class="p-6 border-b">
+                    <h2 class="text-xl font-semibold text-dark">Informations du client</h2>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-700 mb-2">Client</h3>
+                            <p class="text-gray-900">{{ order.user.full_name }}</p>
+                            <p class="text-sm text-gray-500">{{ order.user.email }}</p>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-700 mb-2">Statuts</h3>
+                            <div class="flex space-x-2">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {% if order.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                    {% elif order.status == 'processing' %}bg-blue-100 text-blue-800
+                                    {% elif order.status == 'shipped' %}bg-purple-100 text-purple-800
+                                    {% elif order.status == 'delivered' %}bg-green-100 text-green-800
+                                    {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
+                                    {% elif order.status == 'refunded' %}bg-gray-100 text-gray-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ order.get_status_display }}
+                                </span>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {% if order.payment_status == 'paid' %}bg-green-100 text-green-800
+                                    {% elif order.payment_status == 'pending' %}bg-yellow-100 text-yellow-800
+                                    {% elif order.payment_status == 'failed' %}bg-red-100 text-red-800
+                                    {% elif order.payment_status == 'refunded' %}bg-gray-100 text-gray-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ order.get_payment_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Adresse de livraison -->
+            <div class="bg-white rounded-lg shadow-sm border">
+                <div class="p-6 border-b">
+                    <h2 class="text-xl font-semibold text-dark">Adresse de livraison</h2>
+                </div>
+                <div class="p-6">
+                    <div class="text-gray-700">
+                        <p class="font-medium">{{ order.full_name }}</p>
+                        <p>{{ order.shipping_address }}</p>
+                        <p>{{ order.shipping_postal_code }} {{ order.shipping_city }}</p>
+                        <p>{{ order.shipping_country }}</p>
+                        {% if order.shipping_phone %}
+                            <p class="mt-2">Téléphone: {{ order.shipping_phone }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Articles commandés -->
+            <div class="bg-white rounded-lg shadow-sm border">
+                <div class="p-6 border-b">
+                    <h2 class="text-xl font-semibold text-dark">Articles commandés</h2>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        {% for item in order_items %}
+                            <div class="flex items-center space-x-4 py-4 border-b border-gray-200 last:border-b-0">
+                                {% if item.book.cover_image %}
+                                    <img src="{{ item.book.cover_image.url }}" alt="{{ item.book.title }}" class="w-16 h-20 object-cover rounded">
+                                {% else %}
+                                    <div class="w-16 h-20 bg-gray-200 rounded flex items-center justify-center">
+                                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </div>
+                                {% endif %}
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-lg font-medium text-gray-900">{{ item.book.title }}</h3>
+                                    <p class="text-sm text-gray-500">{{ item.book.author.display_name }}</p>
+                                    <p class="text-sm text-gray-700">Quantité: {{ item.quantity }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm text-gray-500">{{ item.unit_price|floatformat:2 }} € × {{ item.quantity }}</p>
+                                    <p class="text-lg font-semibold text-gray-900">{{ item.total_price|floatformat:2 }} €</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historique des statuts -->
+            {% if status_history %}
+                <div class="bg-white rounded-lg shadow-sm border">
+                    <div class="p-6 border-b">
+                        <h2 class="text-xl font-semibold text-dark">Historique des changements</h2>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            {% for history in status_history %}
+                                <div class="flex items-start space-x-3">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between">
+                                            <p class="text-sm font-medium text-gray-900">
+                                                {% if history.old_status == history.new_status %}
+                                                    {{ history.notes }}
+                                                {% else %}
+                                                    Statut changé: {{ history.old_status }} → {{ history.new_status }}
+                                                {% endif %}
+                                            </p>
+                                            <p class="text-xs text-gray-500">{{ history.changed_at|date:"d/m/Y H:i" }}</p>
+                                        </div>
+                                        {% if history.changed_by %}
+                                            <p class="text-xs text-gray-500">Par {{ history.changed_by.full_name }}</p>
+                                        {% endif %}
+                                        {% if history.notes and history.old_status != history.new_status %}
+                                            <p class="text-sm text-gray-600 mt-1">{{ history.notes }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Panneau de gestion -->
+        <div class="lg:col-span-1 space-y-6">
+            <!-- Résumé -->
+            <div class="bg-white rounded-lg shadow-sm border">
+                <div class="p-6 border-b">
+                    <h2 class="text-xl font-semibold text-dark">Résumé</h2>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Sous-total</span>
+                            <span class="text-gray-900">{{ order.subtotal|floatformat:2 }} €</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Frais de port</span>
+                            <span class="text-gray-900">
+                                {% if order.shipping_cost == 0 %}
+                                    Gratuit
+                                {% else %}
+                                    {{ order.shipping_cost|floatformat:2 }} €
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="border-t pt-2">
+                            <div class="flex justify-between text-lg font-semibold">
+                                <span class="text-gray-900">Total TTC</span>
+                                <span class="text-gray-900">{{ order.total_amount|floatformat:2 }} €</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gestion du statut -->
+            <div class="bg-white rounded-lg shadow-sm border">
+                <div class="p-6 border-b">
+                    <h2 class="text-xl font-semibold text-dark">Gestion du statut</h2>
+                </div>
+                <div class="p-6">
+                    <form method="post" action="{% url 'admin_panel:update_order_status' order.id %}">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Statut actuel</label>
+                            <select name="status" id="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                {% for value, label in status_choices %}
+                                    <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label for="admin_notes" class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                            <textarea name="admin_notes" id="admin_notes" rows="3" 
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                      placeholder="Notes sur le changement de statut..."></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-primary text-white px-4 py-2 rounded-lg font-medium hover:bg-secondary transition-colors">
+                            Mettre à jour le statut
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Gestion du paiement -->
+            <div class="bg-white rounded-lg shadow-sm border">
+                <div class="p-6 border-b">
+                    <h2 class="text-xl font-semibold text-dark">Statut du paiement</h2>
+                </div>
+                <div class="p-6">
+                    <form method="post" action="{% url 'admin_panel:update_payment_status' order.id %}">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="payment_status" class="block text-sm font-medium text-gray-700 mb-2">Statut de paiement</label>
+                            <select name="payment_status" id="payment_status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                {% for value, label in payment_status_choices %}
+                                    <option value="{{ value }}" {% if order.payment_status == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label for="payment_notes" class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                            <textarea name="admin_notes" id="payment_notes" rows="2" 
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                      placeholder="Notes sur le paiement..."></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                            Mettre à jour le paiement
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Informations de suivi -->
+            <div class="bg-white rounded-lg shadow-sm border">
+                <div class="p-6 border-b">
+                    <h2 class="text-xl font-semibold text-dark">Suivi de livraison</h2>
+                </div>
+                <div class="p-6">
+                    <form method="post" action="{% url 'admin_panel:update_tracking_info' order.id %}">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="tracking_number" class="block text-sm font-medium text-gray-700 mb-2">Numéro de suivi</label>
+                            <input type="text" name="tracking_number" id="tracking_number" value="{{ order.tracking_number }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                   placeholder="Ex: 1Z999AA1234567890">
+                        </div>
+                        <div class="mb-4">
+                            <label for="carrier" class="block text-sm font-medium text-gray-700 mb-2">Transporteur</label>
+                            <input type="text" name="carrier" id="carrier" value="{{ order.carrier }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                   placeholder="Ex: UPS, FedEx, La Poste...">
+                        </div>
+                        <div class="mb-4">
+                            <label for="estimated_delivery" class="block text-sm font-medium text-gray-700 mb-2">Date de livraison estimée</label>
+                            <input type="date" name="estimated_delivery" id="estimated_delivery" 
+                                   value="{% if order.estimated_delivery %}{{ order.estimated_delivery|date:'Y-m-d' }}{% endif %}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                        </div>
+                        <button type="submit" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors">
+                            Mettre à jour le suivi
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="bg-white rounded-lg shadow-sm border">
+                <div class="p-6 border-b">
+                    <h2 class="text-xl font-semibold text-dark">Actions</h2>
+                </div>
+                <div class="p-6 space-y-3">
+                    {% if order.status == 'confirmed' %}
+                        <a href="{% url 'admin_panel:create_invoice' order.id %}" 
+                           class="block w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-medium text-center hover:bg-blue-700 transition-colors">
+                            Créer une facture
+                        </a>
+                    {% endif %}
+                    
+                    {% if order.status in 'pending,processing' %}
+                        <a href="{% url 'admin_panel:cancel_order' order.id %}" 
+                           class="block w-full bg-red-600 text-white px-4 py-2 rounded-lg font-medium text-center hover:bg-red-700 transition-colors">
+                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Annuler la commande
+                        </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'shop:order_detail' order.id %}" 
+                       class="block w-full bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium text-center hover:bg-gray-300 transition-colors">
+                        Voir côté client
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -172,8 +172,29 @@
         </div>
     </div>
 
+    <!-- Statistiques des commandes confirmées -->
+    {% if order_stats %}
+    <div class="bg-white rounded-lg shadow-sm border mb-6">
+        <div class="p-6 border-b">
+            <h3 class="text-lg font-semibold text-dark">Statistiques des commandes confirmées</h3>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-green-600">{{ order_stats.confirmed_orders }}</div>
+                    <div class="text-sm text-gray-500">Commandes confirmées</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-blue-600">{{ order_stats.total_revenue|floatformat:2 }} €</div>
+                    <div class="text-sm text-gray-500">Chiffre d'affaires</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Contenu récent -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Articles récents -->
         <div class="bg-white rounded-lg shadow-sm border">
             <div class="p-6 border-b">
@@ -232,6 +253,42 @@
                     </div>
                 {% else %}
                     <p class="text-gray-500 text-sm">Aucun livre récent</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Commandes confirmées récentes -->
+        <div class="bg-white rounded-lg shadow-sm border">
+            <div class="p-6 border-b">
+                <h3 class="text-lg font-semibold text-dark">Commandes confirmées récentes</h3>
+            </div>
+            <div class="p-6">
+                {% if recent_orders %}
+                    <div class="space-y-4">
+                        {% for order in recent_orders %}
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <h4 class="text-sm font-medium text-dark">{{ order.order_number }}</h4>
+                                <p class="text-xs text-gray-500">{{ order.user.full_name }} • {{ order.created_at|date:"d/m/Y" }}</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-1 text-xs rounded-full
+                                    {% if order.status == 'confirmed' %}bg-green-100 text-green-800
+                                    {% elif order.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                    {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {% if order.status == 'confirmed' %}Confirmée
+                                    {% elif order.status == 'pending' %}En attente
+                                    {% elif order.status == 'cancelled' %}Annulée
+                                    {% else %}{{ order.status|title }}{% endif %}
+                                </span>
+                                <span class="text-xs font-medium text-gray-900">{{ order.total_amount|floatformat:2 }} €</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-gray-500 text-sm">Aucune commande confirmée récente</p>
                 {% endif %}
             </div>
         </div>

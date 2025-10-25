@@ -7,7 +7,7 @@ from django.views.generic import CreateView
 from django.contrib.auth.views import LoginView, LogoutView
 from .forms import CustomUserCreationForm, CustomAuthenticationForm, UserProfileForm
 from .models import User
-from shop.models import Cart
+from shop.models import Cart, Order
 
 
 class SignUpView(CreateView):
@@ -142,8 +142,21 @@ def profile_view(request):
 def dashboard_view(request):
     """Tableau de bord utilisateur"""
     user = request.user
+    
+    # Récupérer seulement les commandes confirmées de l'utilisateur
+    orders = Order.objects.filter(user=user, status='confirmed').order_by('-created_at')[:10]  # 10 dernières commandes confirmées
+    
+    # Statistiques
+    total_orders = Order.objects.filter(user=user).count()
+    confirmed_orders = Order.objects.filter(user=user, status='confirmed').count()
+    pending_orders = Order.objects.filter(user=user, status='pending').count()
+    
     context = {
         'user': user,
         'has_complete_profile': user.has_complete_profile(),
+        'orders': orders,
+        'total_orders': total_orders,
+        'confirmed_orders': confirmed_orders,
+        'pending_orders': pending_orders,
     }
     return render(request, 'accounts/dashboard.html', context)

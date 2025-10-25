@@ -11,7 +11,7 @@ import os
 
 from news.models import Article
 from author.models import Author
-from shop.models import Book, Category, Cart, Review, ShopSettings, Refund, LoyaltyProgram, PromoCode, UserLoyaltyStatus, PromoCodeUse
+from shop.models import Book, Category, Cart, Review, ShopSettings, Refund, LoyaltyProgram, PromoCode, UserLoyaltyStatus, PromoCodeUse, Order, Invoice, OrderStatusHistory
 from shop.forms import ShopSettingsForm, BookForm
 from accounts.models import User
 
@@ -27,7 +27,7 @@ def admin_dashboard(request):
         'total_books': Book.objects.count(),
         'total_categories': Category.objects.count(),
         'total_users': User.objects.count(),
-        'total_orders': Cart.objects.filter(items__isnull=False).distinct().count(),
+        'total_orders': Order.objects.filter(status='confirmed').count(),
         'total_reviews': Review.objects.count(),
     }
     
@@ -43,19 +43,28 @@ def admin_dashboard(request):
     # Auteurs récents
     recent_authors = Author.objects.order_by('-created_at')[:5]
     
-    # Commandes récentes (paniers avec des articles)
-    recent_orders = Cart.objects.filter(items__isnull=False).distinct().order_by('-created_at')[:5]
+    # Commandes récentes (seulement les confirmées)
+    recent_orders = Order.objects.filter(status='confirmed').select_related('user').order_by('-created_at')[:5]
     
-    # Statistiques des ventes (approximation basée sur les paniers)
-    total_sales = sum(cart.final_price for cart in Cart.objects.filter(items__isnull=False).distinct())
+    # Statistiques des ventes (vraies commandes confirmées)
+    confirmed_orders = Order.objects.filter(status='confirmed')
+    total_sales = sum(order.total_amount for order in confirmed_orders)
     
-    # Livres les plus vendus (approximation)
+    # Livres les plus vendus (basé sur les vraies commandes)
     popular_books = Book.objects.annotate(
-        total_ordered=Count('cartitem')
+        total_ordered=Count('orderitem')
     ).order_by('-total_ordered')[:5]
+    
+    # Statistiques détaillées des commandes (seulement confirmées)
+    order_stats = {
+        'total_orders': Order.objects.filter(status='confirmed').count(),
+        'confirmed_orders': Order.objects.filter(status='confirmed').count(),
+        'total_revenue': total_sales,
+    }
     
     context = {
         'stats': stats,
+        'order_stats': order_stats,
         'pending_refunds': pending_refunds,
         'recent_articles': recent_articles,
         'recent_books': recent_books,
@@ -182,21 +191,27 @@ def manage_books(request):
 
 @staff_member_required
 def manage_orders(request):
-    """Gestion des commandes (paniers)"""
+    """Gestion des commandes"""
     search = request.GET.get('search', '')
-    status = request.GET.get('status', 'all')
+    status = request.GET.get('status', '')
+    payment_status = request.GET.get('payment_status', '')
     
-    orders = Cart.objects.filter(items__isnull=False).distinct().order_by('-created_at')
+    orders = Order.objects.all().order_by('-created_at')
     
     if search:
         orders = orders.filter(
+            Q(order_number__icontains=search) |
             Q(user__username__icontains=search) |
             Q(user__email__icontains=search) |
-            Q(items__book__title__icontains=search)
-        ).distinct()
+            Q(shipping_first_name__icontains=search) |
+            Q(shipping_last_name__icontains=search)
+        )
     
-    # Pour simplifier, on considère qu'un panier avec des articles est une commande
-    # Dans un vrai système, il faudrait un modèle Order séparé
+    if status:
+        orders = orders.filter(status=status)
+    
+    if payment_status:
+        orders = orders.filter(payment_status=payment_status)
     
     paginator = Paginator(orders, 20)
     page_number = request.GET.get('page')
@@ -206,6 +221,9 @@ def manage_orders(request):
         'page_obj': page_obj,
         'search': search,
         'status': status,
+        'payment_status': payment_status,
+        'status_choices': Order._meta.get_field('status').choices,
+        'payment_status_choices': Order._meta.get_field('payment_status').choices,
     }
     
     return render(request, 'admin_panel/orders.html', context)
@@ -1030,3 +1048,265 @@ def paypal_config(request):
         'paypal_mode': settings.PAYPAL_MODE,
     }
     return render(request, 'admin_panel/paypal_config.html', context)
+
+
+# ===== GESTION DES FACTURES =====
+
+@staff_member_required
+def invoice_list(request):
+    """Liste des factures pour l'administration"""
+    search = request.GET.get('search', '')
+    status = request.GET.get('status', '')
+    
+    invoices = Invoice.objects.all().order_by('-invoice_date')
+    
+    if search:
+        invoices = invoices.filter(
+            Q(invoice_number__icontains=search) |
+            Q(order__order_number__icontains=search) |
+            Q(billing_name__icontains=search)
+        )
+    
+    if status:
+        invoices = invoices.filter(status=status)
+    
+    paginator = Paginator(invoices, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'search': search,
+        'status': status,
+        'status_choices': Invoice._meta.get_field('status').choices,
+    }
+    
+    return render(request, 'admin_panel/invoice_list.html', context)
+
+
+@staff_member_required
+def invoice_detail(request, invoice_id):
+    """Détail d'une facture pour l'administration"""
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    
+    context = {
+        'invoice': invoice,
+        'order': invoice.order,
+        'order_items': invoice.order.orderitem_set.all(),
+        'shop_settings': ShopSettings.get_settings(),
+    }
+    
+    return render(request, 'admin_panel/invoice_detail.html', context)
+
+
+@staff_member_required
+def create_invoice(request, order_id):
+    """Créer une facture pour une commande (admin)"""
+    order = get_object_or_404(Order, id=order_id)
+    
+    # Vérifier si une facture existe déjà
+    if hasattr(order, 'invoice'):
+        messages.info(request, 'Une facture existe déjà pour cette commande.')
+        return redirect('admin_panel:invoice_detail', invoice_id=order.invoice.id)
+    
+    # Créer la facture
+    invoice = Invoice.objects.create(
+        order=order,
+        billing_name=f"{order.shipping_first_name} {order.shipping_last_name}",
+        billing_address=order.shipping_address,
+        billing_city=order.shipping_city,
+        billing_postal_code=order.shipping_postal_code,
+        billing_country=order.shipping_country,
+        subtotal=order.subtotal,
+        shipping_cost=order.shipping_cost,
+        total_amount=order.total_amount,
+        status='sent',  # Marquer comme envoyée dès la création
+    )
+    
+    messages.success(request, f'Facture {invoice.invoice_number} créée avec succès.')
+    return redirect('admin_panel:invoice_detail', invoice_id=invoice.id)
+
+
+# ===== GESTION AVANCÉE DES COMMANDES =====
+
+@staff_member_required
+def order_detail(request, order_id):
+    """Détail d'une commande pour l'administration"""
+    order = get_object_or_404(Order, id=order_id)
+    
+    context = {
+        'order': order,
+        'order_items': order.items.all(),
+        'status_history': order.status_history.all()[:10],  # 10 derniers changements
+        'status_choices': Order._meta.get_field('status').choices,
+        'payment_status_choices': Order._meta.get_field('payment_status').choices,
+    }
+    
+    return render(request, 'admin_panel/order_detail.html', context)
+
+
+@staff_member_required
+def update_order_status(request, order_id):
+    """Mettre à jour le statut d'une commande"""
+    order = get_object_or_404(Order, id=order_id)
+    
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        admin_notes = request.POST.get('admin_notes', '')
+        
+        if new_status in [choice[0] for choice in Order._meta.get_field('status').choices]:
+            old_status, new_status = order.update_status(
+                new_status=new_status,
+                admin_notes=admin_notes,
+                changed_by=request.user
+            )
+            messages.success(request, f'Statut de la commande {order.order_number} mis à jour: {old_status} → {new_status}')
+        else:
+            messages.error(request, 'Statut invalide.')
+    
+    return redirect('admin_panel:order_detail', order_id=order.id)
+
+
+@staff_member_required
+def update_tracking_info(request, order_id):
+    """Mettre à jour les informations de suivi d'une commande"""
+    order = get_object_or_404(Order, id=order_id)
+    
+    if request.method == 'POST':
+        tracking_number = request.POST.get('tracking_number', '').strip()
+        carrier = request.POST.get('carrier', '').strip()
+        estimated_delivery = request.POST.get('estimated_delivery', '')
+        
+        order.tracking_number = tracking_number
+        order.carrier = carrier
+        
+        if estimated_delivery:
+            from datetime import datetime
+            try:
+                order.estimated_delivery = datetime.strptime(estimated_delivery, '%Y-%m-%d').date()
+            except ValueError:
+                messages.error(request, 'Format de date invalide.')
+                return redirect('admin_panel:order_detail', order_id=order.id)
+        
+        order.save()
+        
+        # Ajouter une note dans l'historique
+        if tracking_number or carrier or estimated_delivery:
+            admin_notes = f"Informations de suivi mises à jour"
+            if tracking_number:
+                admin_notes += f" - Numéro: {tracking_number}"
+            if carrier:
+                admin_notes += f" - Transporteur: {carrier}"
+            if estimated_delivery:
+                admin_notes += f" - Livraison estimée: {estimated_delivery}"
+            
+            OrderStatusHistory.objects.create(
+                order=order,
+                old_status=order.status,
+                new_status=order.status,
+                changed_by=request.user,
+                notes=admin_notes
+            )
+        
+        messages.success(request, 'Informations de suivi mises à jour avec succès.')
+    
+    return redirect('admin_panel:order_detail', order_id=order.id)
+
+
+@staff_member_required
+def update_payment_status(request, order_id):
+    """Mettre à jour le statut de paiement d'une commande"""
+    order = get_object_or_404(Order, id=order_id)
+    
+    if request.method == 'POST':
+        new_payment_status = request.POST.get('payment_status')
+        admin_notes = request.POST.get('admin_notes', '')
+        
+        if new_payment_status in [choice[0] for choice in Order._meta.get_field('payment_status').choices]:
+            old_status = order.payment_status
+            order.payment_status = new_payment_status
+            order.save()
+            
+            # Si le paiement est confirmé et la commande est en attente, passer en cours de traitement
+            if new_payment_status == 'paid' and order.status == 'pending':
+                order.update_status('processing', admin_notes="Paiement confirmé - Passage en cours de traitement", changed_by=request.user)
+            
+            # Enregistrer dans l'historique
+            OrderStatusHistory.objects.create(
+                order=order,
+                old_status=f"payment_{old_status}",
+                new_status=f"payment_{new_payment_status}",
+                changed_by=request.user,
+                notes=admin_notes or f"Statut de paiement changé: {old_status} → {new_payment_status}"
+            )
+            
+            messages.success(request, f'Statut de paiement de la commande {order.order_number} mis à jour: {old_status} → {new_payment_status}')
+        else:
+            messages.error(request, 'Statut de paiement invalide.')
+    
+    return redirect('admin_panel:order_detail', order_id=order.id)
+
+
+@staff_member_required
+def cancel_order(request, order_id):
+    """Annuler une commande depuis l'administration"""
+    order = get_object_or_404(Order, id=order_id)
+    
+    # Vérifier que la commande peut être annulée
+    if order.status not in ['pending', 'processing']:
+        messages.error(request, f'Impossible d\'annuler la commande {order.order_number}. Statut actuel: {order.get_status_display()}')
+        return redirect('admin_panel:order_detail', order_id=order.id)
+    
+    if request.method == 'POST':
+        admin_notes = request.POST.get('admin_notes', '')
+        reason = request.POST.get('reason', 'Annulation manuelle par l\'administrateur')
+        
+        try:
+            # Annuler la commande
+            old_status, new_status = order.update_status(
+                new_status='cancelled',
+                admin_notes=f"{reason}. {admin_notes}" if admin_notes else reason,
+                changed_by=request.user
+            )
+            
+            # Marquer le paiement comme échoué si c'était en attente
+            if order.payment_status == 'pending':
+                order.payment_status = 'failed'
+                order.save()
+                OrderStatusHistory.objects.create(
+                    order=order,
+                    old_status='payment_pending',
+                    new_status='payment_failed',
+                    changed_by=request.user,
+                    notes=f"Paiement marqué comme échoué suite à l'annulation"
+                )
+            
+            messages.success(request, f'Commande {order.order_number} annulée avec succès: {old_status} → {new_status}', extra_tags='order_cancelled')
+            
+        except Exception as e:
+            messages.error(request, f'Erreur lors de l\'annulation de la commande: {str(e)}', extra_tags='order_error')
+        
+        return redirect('admin_panel:order_detail', order_id=order.id)
+    
+    # Afficher le formulaire de confirmation
+    context = {
+        'order': order,
+        'order_items': order.items.all(),
+    }
+    return render(request, 'admin_panel/cancel_order.html', context)
+
+
+@staff_member_required
+def update_invoice_status(request, invoice_id):
+    """Mettre à jour le statut d'une facture"""
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    new_status = request.POST.get('status')
+    
+    if new_status in [choice[0] for choice in Invoice._meta.get_field('status').choices]:
+        invoice.status = new_status
+        invoice.save()
+        messages.success(request, f'Statut de la facture {invoice.invoice_number} mis à jour.')
+    else:
+        messages.error(request, 'Statut invalide.')
+    
+    return redirect('admin_panel:invoice_detail', invoice_id=invoice.id)

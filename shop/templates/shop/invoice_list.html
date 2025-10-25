@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mes factures - Éditions Sen{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- En-tête -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Mes factures</h1>
+            <p class="mt-2 text-gray-600">Consultez l'historique de vos factures</p>
+        </div>
+
+        {% if invoices %}
+            <div class="space-y-6">
+                {% for invoice in invoices %}
+                    <div class="bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <h2 class="text-lg font-semibold text-gray-900">Facture {{ invoice.invoice_number }}</h2>
+                                    <p class="text-sm text-gray-500">Émise le {{ invoice.invoice_date|date:"d F Y à H:i" }}</p>
+                                    <p class="text-sm text-gray-500">Commande {{ invoice.order.order_number }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-lg font-semibold text-gray-900">{{ invoice.total_amount|floatformat:2 }} €</p>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                        {% if invoice.status == 'draft' %}bg-gray-100 text-gray-800
+                                        {% elif invoice.status == 'sent' %}bg-blue-100 text-blue-800
+                                        {% elif invoice.status == 'paid' %}bg-green-100 text-green-800
+                                        {% elif invoice.status == 'overdue' %}bg-red-100 text-red-800
+                                        {% elif invoice.status == 'cancelled' %}bg-red-100 text-red-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {% if invoice.status == 'draft' %}Brouillon
+                                        {% elif invoice.status == 'sent' %}Envoyée
+                                        {% elif invoice.status == 'paid' %}Payée
+                                        {% elif invoice.status == 'overdue' %}En retard
+                                        {% elif invoice.status == 'cancelled' %}Annulée
+                                        {% else %}{{ invoice.status|title }}{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Informations de facturation -->
+                            <div class="mb-4">
+                                <div class="text-sm text-gray-500">
+                                    <p><strong>Facturé à :</strong> {{ invoice.billing_name }}</p>
+                                    <p>{{ invoice.billing_address }}, {{ invoice.billing_postal_code }} {{ invoice.billing_city }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex items-center justify-between">
+                                <div class="flex space-x-3">
+                                    <a href="{% url 'shop:invoice_detail' invoice.id %}" 
+                                       class="text-primary hover:text-secondary font-medium">
+                                        Voir la facture
+                                    </a>
+                                    <a href="{% url 'shop:invoice_pdf' invoice.id %}" 
+                                       class="text-blue-600 hover:text-blue-800 font-medium">
+                                        Télécharger PDF
+                                    </a>
+                                    <a href="{% url 'shop:order_detail' invoice.order.id %}" 
+                                       class="text-gray-600 hover:text-gray-800 font-medium">
+                                        Voir la commande
+                                    </a>
+                                </div>
+                                
+                                {% if invoice.is_overdue %}
+                                    <span class="text-red-600 text-sm font-medium">
+                                        Échéance dépassée
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+                <div class="mt-8 flex justify-center">
+                    <nav class="flex items-center space-x-2">
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}" 
+                               class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                Précédent
+                            </a>
+                        {% endif %}
+                        
+                        <span class="px-3 py-2 text-sm font-medium text-gray-700 bg-primary text-white border border-primary rounded-md">
+                            {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+                        </span>
+                        
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}" 
+                               class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                Suivant
+                            </a>
+                        {% endif %}
+                    </nav>
+                </div>
+            {% endif %}
+        {% else %}
+            <!-- État vide -->
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">Aucune facture</h3>
+                <p class="mt-1 text-sm text-gray-500">Vous n'avez pas encore de factures.</p>
+                <div class="mt-6">
+                    <a href="{% url 'shop:order_list' %}" 
+                       class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-secondary">
+                        Voir mes commandes
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

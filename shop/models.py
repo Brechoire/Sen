@@ -1,6 +1,7 @@
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
+from django.db.models import Sum
 from ckeditor.fields import RichTextField
 from author.models import Author
 
@@ -295,10 +296,23 @@ class Order(models.Model):
     tax_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0, verbose_name="Montant des taxes")
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant total")
     
+    # Suivi de livraison
+    tracking_number = models.CharField(max_length=100, blank=True, verbose_name="Numéro de suivi")
+    carrier = models.CharField(max_length=100, blank=True, verbose_name="Transporteur")
+    estimated_delivery = models.DateField(null=True, blank=True, verbose_name="Date de livraison estimée")
+    actual_delivery = models.DateField(null=True, blank=True, verbose_name="Date de livraison effective")
+    
+    # Dates de changement de statut
+    processing_date = models.DateTimeField(null=True, blank=True, verbose_name="Date de traitement")
+    shipped_date = models.DateTimeField(null=True, blank=True, verbose_name="Date d'expédition")
+    delivered_date = models.DateTimeField(null=True, blank=True, verbose_name="Date de livraison")
+    cancelled_date = models.DateTimeField(null=True, blank=True, verbose_name="Date d'annulation")
+    
     # Métadonnées
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Date de modification")
     notes = models.TextField(blank=True, verbose_name="Notes")
+    admin_notes = models.TextField(blank=True, verbose_name="Notes administrateur")
     
     class Meta:
         verbose_name = "Commande"
@@ -332,6 +346,92 @@ class Order(models.Model):
     def can_be_cancelled(self):
         """Vérifie si la commande peut être annulée"""
         return self.status in ['pending', 'processing']
+    
+    def update_status(self, new_status, admin_notes=None, changed_by=None):
+        """Met à jour le statut de la commande et enregistre la date"""
+        from django.utils import timezone
+        
+        old_status = self.status
+        self.status = new_status
+        
+        # Enregistrer la date de changement de statut
+        now = timezone.now()
+        if new_status == 'processing' and not self.processing_date:
+            self.processing_date = now
+        elif new_status == 'shipped' and not self.shipped_date:
+            self.shipped_date = now
+        elif new_status == 'delivered' and not self.delivered_date:
+            self.delivered_date = now
+            self.actual_delivery = now.date()
+        elif new_status == 'cancelled' and not self.cancelled_date:
+            self.cancelled_date = now
+        
+        # Ajouter des notes administrateur si fournies
+        if admin_notes:
+            if self.admin_notes:
+                self.admin_notes += f"\n[{now.strftime('%d/%m/%Y %H:%M')}] {admin_notes}"
+            else:
+                self.admin_notes = f"[{now.strftime('%d/%m/%Y %H:%M')}] {admin_notes}"
+        
+        self.save()
+        
+        # Enregistrer dans l'historique
+        OrderStatusHistory.objects.create(
+            order=self,
+            old_status=old_status,
+            new_status=new_status,
+            changed_by=changed_by,
+            notes=admin_notes or ""
+        )
+        
+        return old_status, new_status
+    
+    def get_status_display_with_date(self):
+        """Retourne le statut avec la date de changement"""
+        status_display = self.get_status_display()
+        
+        if self.status == 'processing' and self.processing_date:
+            return f"{status_display} (depuis le {self.processing_date.strftime('%d/%m/%Y')})"
+        elif self.status == 'shipped' and self.shipped_date:
+            return f"{status_display} (depuis le {self.shipped_date.strftime('%d/%m/%Y')})"
+        elif self.status == 'delivered' and self.delivered_date:
+            return f"{status_display} (le {self.delivered_date.strftime('%d/%m/%Y')})"
+        elif self.status == 'cancelled' and self.cancelled_date:
+            return f"{status_display} (le {self.cancelled_date.strftime('%d/%m/%Y')})"
+        
+        return status_display
+    
+    def get_tracking_info(self):
+        """Retourne les informations de suivi"""
+        info = {}
+        if self.tracking_number:
+            info['tracking_number'] = self.tracking_number
+        if self.carrier:
+            info['carrier'] = self.carrier
+        if self.estimated_delivery:
+            info['estimated_delivery'] = self.estimated_delivery
+        if self.actual_delivery:
+            info['actual_delivery'] = self.actual_delivery
+        return info
+
+
+class OrderStatusHistory(models.Model):
+    """Modèle pour l'historique des changements de statut des commandes"""
+    
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='status_history', verbose_name="Commande")
+    old_status = models.CharField(max_length=20, verbose_name="Ancien statut")
+    new_status = models.CharField(max_length=20, verbose_name="Nouveau statut")
+    changed_by = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Modifié par")
+    changed_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de changement")
+    notes = models.TextField(blank=True, verbose_name="Notes")
+    
+    class Meta:
+        verbose_name = "Historique de statut"
+        verbose_name_plural = "Historique des statuts"
+        ordering = ['-changed_at']
+    
+    def __str__(self):
+        return f"{self.order.order_number}: {self.old_status} → {self.new_status}"
 
 
 class OrderItem(models.Model):
@@ -801,16 +901,160 @@ class UserLoyaltyStatus(models.Model):
     
     def get_available_loyalty_discount(self):
         """Retourne la réduction de fidélité disponible"""
+        # Calculer les statistiques réelles à partir des commandes confirmées
+        confirmed_orders = Order.objects.filter(user=self.user, status='confirmed')
+        real_purchases = confirmed_orders.count()
+        real_spent = confirmed_orders.aggregate(total=models.Sum('total_amount'))['total'] or Decimal('0.00')
+        
         # Trouver le programme de fidélité applicable
         loyalty_program = LoyaltyProgram.objects.filter(
             is_active=True,
-            min_purchases__lte=self.total_purchases,
-            min_amount__lte=self.total_spent
+            min_purchases__lte=real_purchases,
+            min_amount__lte=real_spent
         ).order_by('-min_purchases', '-min_amount').first()
         
         if loyalty_program:
             return loyalty_program
         return None
+    
+    def get_real_statistics(self):
+        """Retourne les statistiques réelles basées sur les commandes confirmées"""
+        confirmed_orders = Order.objects.filter(user=self.user, status='confirmed')
+        
+        stats = {
+            'total_purchases': confirmed_orders.count(),
+            'total_spent': confirmed_orders.aggregate(total=models.Sum('total_amount'))['total'] or Decimal('0.00'),
+            'last_purchase_date': confirmed_orders.order_by('-created_at').first().created_at if confirmed_orders.exists() else None,
+            'loyalty_points': 0
+        }
+        
+        # Calculer les points de fidélité (1 point par euro dépensé)
+        stats['loyalty_points'] = int(stats['total_spent'])
+        
+        return stats
+
+
+class Invoice(models.Model):
+    """Modèle pour les factures"""
+    
+    order = models.OneToOneField(
+        Order,
+        on_delete=models.CASCADE,
+        related_name='invoice',
+        verbose_name="Commande"
+    )
+    invoice_number = models.CharField(
+        max_length=50,
+        unique=True,
+        verbose_name="Numéro de facture"
+    )
+    invoice_date = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Date de facturation"
+    )
+    due_date = models.DateField(
+        verbose_name="Date d'échéance"
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('draft', 'Brouillon'),
+            ('sent', 'Envoyée'),
+            ('paid', 'Payée'),
+            ('overdue', 'En retard'),
+            ('cancelled', 'Annulée'),
+        ],
+        default='sent',  # Par défaut, les factures sont envoyées
+        verbose_name="Statut"
+    )
+    
+    # Informations de facturation
+    billing_name = models.CharField(
+        max_length=200,
+        verbose_name="Nom de facturation"
+    )
+    billing_address = models.TextField(
+        verbose_name="Adresse de facturation"
+    )
+    billing_city = models.CharField(
+        max_length=100,
+        verbose_name="Ville"
+    )
+    billing_postal_code = models.CharField(
+        max_length=20,
+        verbose_name="Code postal"
+    )
+    billing_country = models.CharField(
+        max_length=100,
+        verbose_name="Pays"
+    )
+    
+    # Totaux
+    subtotal = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Sous-total"
+    )
+    shipping_cost = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.00,
+        verbose_name="Frais de port"
+    )
+    total_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Montant total"
+    )
+    
+    # Métadonnées
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Date de modification")
+    
+    class Meta:
+        verbose_name = "Facture"
+        verbose_name_plural = "Factures"
+        ordering = ['-invoice_date']
+    
+    def __str__(self):
+        return f"Facture {self.invoice_number}"
+    
+    def save(self, *args, **kwargs):
+        if not self.invoice_number:
+            # Générer un numéro de facture unique
+            year = timezone.now().year
+            last_invoice = Invoice.objects.filter(
+                invoice_number__startswith=f"FAC{year}"
+            ).order_by('-invoice_number').first()
+            
+            if last_invoice:
+                last_number = int(last_invoice.invoice_number.split('-')[-1])
+                new_number = last_number + 1
+            else:
+                new_number = 1
+            
+            self.invoice_number = f"FAC{year}-{new_number:04d}"
+        
+        if not self.due_date:
+            # Date d'échéance par défaut : 30 jours
+            self.due_date = timezone.now().date() + timezone.timedelta(days=30)
+        
+        super().save(*args, **kwargs)
+    
+    @property
+    def is_overdue(self):
+        """Vérifie si la facture est en retard"""
+        return self.status != 'paid' and self.due_date < timezone.now().date()
+    
+    def mark_as_sent(self):
+        """Marque la facture comme envoyée"""
+        self.status = 'sent'
+        self.save()
+    
+    def mark_as_paid(self):
+        """Marque la facture comme payée"""
+        self.status = 'paid'
+        self.save()
 
 
 class ShopSettings(models.Model):

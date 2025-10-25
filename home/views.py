@@ -35,10 +35,10 @@ def contact(request):
         if form.is_valid():
             try:
                 form.send_email()
-                messages.success(request, 'Votre message a été envoyé avec succès ! Nous vous répondrons dans les plus brefs délais.')
+                messages.success(request, 'Votre message a été envoyé avec succès ! Nous vous répondrons dans les plus brefs délais.', extra_tags='contact_success')
                 return redirect('home:contact')
             except Exception as e:
-                messages.error(request, 'Une erreur est survenue lors de l\'envoi du message. Veuillez réessayer ou nous contacter directement.')
+                messages.error(request, 'Une erreur est survenue lors de l\'envoi du message. Veuillez réessayer ou nous contacter directement.', extra_tags='contact_error')
     else:
         form = ContactForm()
     

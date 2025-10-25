@@ -202,3 +202,23 @@ class CartService:
             session_cart.session_key = None
             session_cart.save()
             return True
+    
+    @staticmethod
+    def clear_cart(user):
+        """Vide le panier d'un utilisateur après une commande réussie"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        try:
+            user_cart = Cart.objects.get(user=user)
+            if user_cart.items.exists():
+                user_cart.items.all().delete()
+                user_cart.save()
+                logger.info(f"Panier vidé pour l'utilisateur {user.id}")
+                return True
+        except Cart.DoesNotExist:
+            logger.warning(f"Aucun panier trouvé pour l'utilisateur {user.id}")
+        except Exception as e:
+            logger.error(f"Erreur lors du vidage du panier pour l'utilisateur {user.id}: {e}")
+        
+        return False

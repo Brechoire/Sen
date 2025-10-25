@@ -59,4 +59,10 @@ urlpatterns = [
     # Test
     path('test-cart-transfer/', views.test_cart_transfer, name='test_cart_transfer'),
     path('force-cart-transfer/', views.force_cart_transfer, name='force_cart_transfer'),
+    
+    # Factures
+    path('factures/', views.invoice_list, name='invoice_list'),
+    path('facture/creer/<int:order_id>/', views.create_invoice, name='create_invoice'),
+    path('facture/<int:invoice_id>/', views.invoice_detail, name='invoice_detail'),
+    path('facture/<int:invoice_id>/pdf/', views.invoice_pdf, name='invoice_pdf'),
 ]

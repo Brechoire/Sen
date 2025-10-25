@@ -32,13 +32,9 @@
                             {% endif %}
                         </span>
                     </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">TVA (5.5%)</span>
-                        <span class="font-medium">{{ order.tax_amount|floatformat:2 }} €</span>
-                    </div>
                     <hr class="my-4">
                     <div class="flex justify-between text-lg font-semibold">
-                        <span>Total</span>
+                        <span class="text-gray-900">Total TTC</span>
                         <span class="text-primary">{{ order.total_amount|floatformat:2 }} €</span>
                     </div>
                 </div>
@@ -47,7 +43,7 @@
                 <div class="mt-6">
                     <h3 class="text-lg font-medium text-gray-900 mb-3">Articles commandés</h3>
                     <div class="space-y-3">
-                        {% for item in order.orderitem_set.all %}
+                        {% for item in order.items.all %}
                         <div class="flex items-center space-x-3">
                             <div class="flex-shrink-0">
                                 {% if item.book.cover_image %}

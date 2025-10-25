@@ -1,7 +1,7 @@
-{% extends 'admin_panel/base_admin.html' %}
+{% extends 'admin_panel/base.html' %}
 {% load static %}
 
-{% block title %}Gestion des commandes - Administration{% endblock %}
+{% block title %}Gestion des factures - Administration{% endblock %}
 
 {% block content %}
 <div class="p-6">
@@ -9,8 +9,8 @@
     <div class="mb-8">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-3xl font-bold text-dark">Gestion des commandes</h1>
-                <p class="mt-2 text-gray-600">Suivez et gérez toutes les commandes</p>
+                <h1 class="text-3xl font-bold text-dark">Gestion des factures</h1>
+                <p class="mt-2 text-gray-600">Consultez et gérez toutes les factures</p>
             </div>
         </div>
     </div>
@@ -21,7 +21,7 @@
             <form method="get" class="flex flex-wrap gap-4">
                 <div class="flex-1 min-w-64">
                     <input type="text" name="search" value="{{ search }}" 
-                           placeholder="Rechercher par numéro, client, email..."
+                           placeholder="Rechercher par numéro de facture, commande ou client..."
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
                 </div>
                 <div class="min-w-48">
@@ -32,19 +32,11 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="min-w-48">
-                    <select name="payment_status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-                        <option value="">Tous les paiements</option>
-                        {% for value, label in payment_status_choices %}
-                            <option value="{{ value }}" {% if payment_status == value %}selected{% endif %}>{{ label }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
                 <button type="submit" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-secondary transition-colors">
                     Filtrer
                 </button>
-                {% if search or status or payment_status %}
-                    <a href="{% url 'admin_panel:orders' %}" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors">
+                {% if search or status %}
+                    <a href="{% url 'admin_panel:invoice_list' %}" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors">
                         Effacer
                     </a>
                 {% endif %}
@@ -52,13 +44,16 @@
         </div>
     </div>
 
-    <!-- Liste des commandes -->
+    <!-- Liste des factures -->
     {% if page_obj %}
         <div class="bg-white rounded-lg shadow-sm border">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Facture
+                            </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Commande
                             </th>
@@ -72,9 +67,6 @@
                                 Statut
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Paiement
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Date
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -83,63 +75,50 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        {% for order in page_obj %}
+                        {% for invoice in page_obj %}
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ order.order_number }}</div>
-                                    <div class="text-sm text-gray-500">{{ order.items.count }} article{{ order.items.count|pluralize }}</div>
+                                    <div class="text-sm font-medium text-gray-900">{{ invoice.invoice_number }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ order.full_name }}</div>
-                                    <div class="text-sm text-gray-500">{{ order.user.email }}</div>
+                                    <div class="text-sm text-gray-900">{{ invoice.order.order_number }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ order.total_amount|floatformat:2 }} €</div>
+                                    <div class="text-sm text-gray-900">{{ invoice.billing_name }}</div>
+                                    <div class="text-sm text-gray-500">{{ invoice.billing_city }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                        {% if order.status == 'pending' %}bg-yellow-100 text-yellow-800
-                                        {% elif order.status == 'processing' %}bg-blue-100 text-blue-800
-                                        {% elif order.status == 'shipped' %}bg-purple-100 text-purple-800
-                                        {% elif order.status == 'delivered' %}bg-green-100 text-green-800
-                                        {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
-                                        {% elif order.status == 'refunded' %}bg-gray-100 text-gray-800
-                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
-                                        {{ order.get_status_display }}
-                                    </span>
+                                    <div class="text-sm font-medium text-gray-900">{{ invoice.total_amount|floatformat:2 }} €</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                        {% if order.payment_status == 'paid' %}bg-green-100 text-green-800
-                                        {% elif order.payment_status == 'pending' %}bg-yellow-100 text-yellow-800
-                                        {% elif order.payment_status == 'failed' %}bg-red-100 text-red-800
-                                        {% elif order.payment_status == 'refunded' %}bg-gray-100 text-gray-800
+                                        {% if invoice.status == 'draft' %}bg-gray-100 text-gray-800
+                                        {% elif invoice.status == 'sent' %}bg-blue-100 text-blue-800
+                                        {% elif invoice.status == 'paid' %}bg-green-100 text-green-800
+                                        {% elif invoice.status == 'overdue' %}bg-red-100 text-red-800
+                                        {% elif invoice.status == 'cancelled' %}bg-red-100 text-red-800
                                         {% else %}bg-gray-100 text-gray-800{% endif %}">
-                                        {{ order.get_payment_status_display }}
+                                        {% if invoice.status == 'draft' %}Brouillon
+                                        {% elif invoice.status == 'sent' %}Envoyée
+                                        {% elif invoice.status == 'paid' %}Payée
+                                        {% elif invoice.status == 'overdue' %}En retard
+                                        {% elif invoice.status == 'cancelled' %}Annulée
+                                        {% else %}{{ invoice.status|title }}{% endif %}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ order.created_at|date:"d/m/Y H:i" }}
+                                    {{ invoice.invoice_date|date:"d/m/Y" }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <div class="flex space-x-2">
-                                        <a href="{% url 'admin_panel:order_detail' order.id %}" 
+                                        <a href="{% url 'admin_panel:invoice_detail' invoice.id %}" 
                                            class="text-primary hover:text-secondary">
-                                            Gérer
+                                            Voir
                                         </a>
-                                        {% if order.status in 'pending,processing' %}
-                                        <a href="{% url 'admin_panel:cancel_order' order.id %}" 
-                                           class="text-red-600 hover:text-red-800"
-                                           onclick="return confirm('Êtes-vous sûr de vouloir annuler cette commande ?')">
-                                            Annuler
+                                        <a href="{% url 'shop:invoice_pdf' invoice.id %}" 
+                                           class="text-blue-600 hover:text-blue-800">
+                                            PDF
                                         </a>
-                                        {% endif %}
-                                        {% if order.status == 'confirmed' %}
-                                            <a href="{% url 'admin_panel:create_invoice' order.id %}" 
-                                               class="text-blue-600 hover:text-blue-800">
-                                                Facture
-                                            </a>
-                                        {% endif %}
                                     </div>
                                 </td>
                             </tr>
@@ -154,7 +133,7 @@
             <div class="mt-6 flex justify-center">
                 <nav class="flex items-center space-x-2">
                     {% if page_obj.has_previous %}
-                        <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if payment_status %}&payment_status={{ payment_status }}{% endif %}" 
+                        <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}" 
                            class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
                             Précédent
                         </a>
@@ -165,7 +144,7 @@
                     </span>
                     
                     {% if page_obj.has_next %}
-                        <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if payment_status %}&payment_status={{ payment_status }}{% endif %}" 
+                        <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}" 
                            class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
                             Suivant
                         </a>
@@ -177,17 +156,18 @@
         <!-- État vide -->
         <div class="text-center py-12">
             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <h3 class="mt-2 text-sm font-medium text-gray-900">Aucune commande</h3>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">Aucune facture</h3>
             <p class="mt-1 text-sm text-gray-500">
-                {% if search or status or payment_status %}
-                    Aucune commande ne correspond à vos critères de recherche.
+                {% if search or status %}
+                    Aucune facture ne correspond à vos critères de recherche.
                 {% else %}
-                    Aucune commande n'a encore été passée.
+                    Aucune facture n'a encore été créée.
                 {% endif %}
             </p>
         </div>
     {% endif %}
 </div>
 {% endblock %}
+

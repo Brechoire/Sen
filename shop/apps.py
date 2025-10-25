@@ -6,5 +6,5 @@ class ShopConfig(AppConfig):
     name = "shop"
     
     def ready(self):
-        # Les signaux PayPal ne sont plus nécessaires avec l'approche JavaScript
-        pass
+        # Importer les signaux pour l'annulation automatique des commandes expirées
+        import shop.signals
