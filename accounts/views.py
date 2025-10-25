@@ -113,12 +113,18 @@ class CustomLoginView(LoginView):
 class CustomLogoutView(LogoutView):
     """Vue de déconnexion personnalisée"""
     next_page = reverse_lazy('home:index')
+    template_name = 'accounts/logged_out.html'  # Template personnalisé
     http_method_names = ['get', 'post']  # Accepter GET et POST
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
             messages.info(request, "Vous avez été déconnecté avec succès.")
         return super().dispatch(request, *args, **kwargs)
+    
+    def get(self, request, *args, **kwargs):
+        """Redirection directe pour les requêtes GET"""
+        logout(request)
+        return redirect(self.next_page)
 
 
 @login_required
