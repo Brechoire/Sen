@@ -113,6 +113,7 @@ class CustomLoginView(LoginView):
 class CustomLogoutView(LogoutView):
     """Vue de déconnexion personnalisée"""
     next_page = reverse_lazy('home:index')
+    http_method_names = ['get', 'post']  # Accepter GET et POST
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
