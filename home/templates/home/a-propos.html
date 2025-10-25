@@ -27,6 +27,11 @@
     <!-- Notre histoire -->
     <div class="container mx-auto px-4 py-12">
         <div class="max-w-4xl mx-auto">
+            <!-- Logo Éditions Sen -->
+            <div class="text-center mb-12">
+                <img src="{% static 'img/logoSen.webp' %}" alt="Logo Éditions Sen" class="mx-auto h-40 w-auto mb-6">
+            </div>
+            
             <div class="bg-white rounded-lg shadow-md overflow-hidden mb-12">
                 <div class="p-8">
                     <h2 class="text-3xl font-serif font-bold text-dark mb-6">Notre histoire</h2>
@@ -55,22 +60,39 @@
     <!-- Le parcours de Joséphine -->
     <div class="bg-white py-12">
         <div class="container mx-auto px-4">
-            <div class="max-w-4xl mx-auto">
+            <div class="max-w-6xl mx-auto">
                 <div class="bg-gray-50 rounded-lg p-8">
-                    <h2 class="text-3xl font-serif font-bold text-dark mb-6">Le parcours de Joséphine</h2>
-                    <div class="prose prose-lg max-w-none">
-                        <p class="text-lg text-gray-700 mb-6">
-                            Depuis toujours, Joséphine Rabot vit au rythme des mots. Très tôt, elle découvre dans la lecture un refuge, un voyage, un miroir. Les livres l'accompagnent, la façonnent, et nourrissent un amour inaltérable pour les histoires, les idées, les voix singulières. L'écriture, quant à elle, devient son langage secret, celui qu'elle explore en silence, sur les marges de ses cahiers puis dans les pages de ses propres textes.
-                        </p>
-                        <p class="text-lg text-gray-700 mb-6">
-                            Au fil des années, ce lien intime avec la littérature s'est transformé en vocation : celle d'éditrice. Joséphine Rabot rêve alors d'un lieu où les auteurs pourraient trouver une écoute attentive, un accompagnement sincère et rigoureux, et surtout, un espace où leur rêve de publier devient possible.
-                        </p>
-                        <p class="text-lg text-gray-700 mb-6">
-                            Ce rêve, elle le concrétise aujourd'hui avec la création des Éditions Sen — une maison née de la passion, de la persévérance, et de l'envie profonde de faire exister des livres portés par des voix authentiques. Pour elle, chaque manuscrit est une promesse, chaque auteur une rencontre.
-                        </p>
-                        <p class="text-lg text-gray-700 mb-6 font-medium text-primary">
-                            Éditrice de cœur et de conviction, Joséphine Rabot met son regard sensible et exigeant au service de celles et ceux qui, comme elle, croient que les mots peuvent changer une vie — à commencer par la leur.
-                        </p>
+                    <h2 class="text-3xl font-serif font-bold text-dark mb-8 text-center">Le parcours de Joséphine</h2>
+                    
+                    <!-- Layout avec photo et texte -->
+                    <div class="flex flex-col lg:flex-row items-center gap-8">
+                        <!-- Photo de Joséphine -->
+                        <div class="flex-shrink-0 lg:w-1/3">
+                            <div class="relative">
+                                <img src="{% static 'img/edition_sen.jpg' %}" 
+                                     alt="Joséphine Rabot, fondatrice des Éditions Sen" 
+                                     class="w-full max-w-sm mx-auto rounded-lg shadow-lg object-cover">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-lg"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Texte -->
+                        <div class="flex-1 lg:w-2/3">
+                            <div class="prose prose-lg max-w-none">
+                                <p class="text-lg text-gray-700 mb-6">
+                                    Depuis toujours, Joséphine Rabot vit au rythme des mots. Très tôt, elle découvre dans la lecture un refuge, un voyage, un miroir. Les livres l'accompagnent, la façonnent, et nourrissent un amour inaltérable pour les histoires, les idées, les voix singulières. L'écriture, quant à elle, devient son langage secret, celui qu'elle explore en silence, sur les marges de ses cahiers puis dans les pages de ses propres textes.
+                                </p>
+                                <p class="text-lg text-gray-700 mb-6">
+                                    Au fil des années, ce lien intime avec la littérature s'est transformé en vocation : celle d'éditrice. Joséphine Rabot rêve alors d'un lieu où les auteurs pourraient trouver une écoute attentive, un accompagnement sincère et rigoureux, et surtout, un espace où leur rêve de publier devient possible.
+                                </p>
+                                <p class="text-lg text-gray-700 mb-6">
+                                    Ce rêve, elle le concrétise aujourd'hui avec la création des Éditions Sen — une maison née de la passion, de la persévérance, et de l'envie profonde de faire exister des livres portés par des voix authentiques. Pour elle, chaque manuscrit est une promesse, chaque auteur une rencontre.
+                                </p>
+                                <p class="text-lg text-gray-700 mb-6 font-medium text-primary">
+                                    Éditrice de cœur et de conviction, Joséphine Rabot met son regard sensible et exigeant au service de celles et ceux qui, comme elle, croient que les mots peuvent changer une vie — à commencer par la leur.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

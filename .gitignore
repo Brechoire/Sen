@@ -140,7 +140,6 @@ MEDIA_ROOT/
 
 # Static files (collected)
 staticfiles/
-static/
 
 # Environment variables
 .env
