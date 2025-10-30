@@ -4,6 +4,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from news.views import get_latest_articles
 from author.models import Author
+from shop.models import Book
 from .forms import ContactForm
 
 
@@ -16,9 +17,20 @@ def home(request):
         is_featured=True, is_active=True
     )[:3]
 
+    # Récupérer les livres récents (nombre configurable via query string)
+    try:
+        count = int(request.GET.get('count', 4))
+    except (TypeError, ValueError):
+        count = 4
+    # bornes de sécurité
+    count = max(1, min(count, 12))
+    new_books = Book.objects.filter(is_available=True).order_by('-created_at')[:count]
+
     context = {
         'latest_articles': latest_articles,
         'featured_authors': featured_authors,
+        'new_books': new_books,
+        'new_books_count': count,
     }
     return render(request, 'home/index.html', context)
 
