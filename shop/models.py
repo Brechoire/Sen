@@ -7,6 +7,22 @@ from author.models import Author
 from app.utils import get_upload_path
 
 
+# Fonctions helper pour upload_to (nécessaires pour les migrations)
+def book_cover_upload_path(instance, filename):
+    """Chemin d'upload pour les images de couverture"""
+    return get_upload_path(instance, filename, 'books/covers/')
+
+
+def book_back_upload_path(instance, filename):
+    """Chemin d'upload pour les images de quatrième de couverture"""
+    return get_upload_path(instance, filename, 'books/backs/')
+
+
+def book_gallery_upload_path(instance, filename):
+    """Chemin d'upload pour les images de galerie"""
+    return get_upload_path(instance, filename, 'books/gallery/')
+
+
 class Category(models.Model):
     """Modèle pour les catégories de livres"""
     name = models.CharField(max_length=100, verbose_name="Nom")
@@ -59,11 +75,11 @@ class Book(models.Model):
     
     # Images
     cover_image = models.ImageField(
-        upload_to=lambda instance, filename: get_upload_path(instance, filename, 'books/covers/'),
+        upload_to=book_cover_upload_path,
         verbose_name="Image de couverture"
     )
     back_cover_image = models.ImageField(
-        upload_to=lambda instance, filename: get_upload_path(instance, filename, 'books/backs/'),
+        upload_to=book_back_upload_path,
         blank=True, null=True,
         verbose_name="Image de quatrième de couverture"
     )
@@ -139,7 +155,7 @@ class BookImage(models.Model):
     """Modèle pour les images supplémentaires des livres"""
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='images', verbose_name="Livre")
     image = models.ImageField(
-        upload_to=lambda instance, filename: get_upload_path(instance, filename, 'books/gallery/'),
+        upload_to=book_gallery_upload_path,
         verbose_name="Image"
     )
     alt_text = models.CharField(max_length=200, blank=True, verbose_name="Texte alternatif")
@@ -262,6 +278,7 @@ class Order(models.Model):
     
     STATUS_CHOICES = [
         ('pending', 'En attente'),
+        ('confirmed', 'Confirmée'),
         ('processing', 'En cours de traitement'),
         ('shipped', 'Expédiée'),
         ('delivered', 'Livrée'),
@@ -324,6 +341,12 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Date de modification")
     notes = models.TextField(blank=True, verbose_name="Notes")
     admin_notes = models.TextField(blank=True, verbose_name="Notes administrateur")
+    
+    # Suivi de consultation par l'administrateur
+    admin_viewed_at = models.DateTimeField(
+        null=True, blank=True,
+        verbose_name="Date de consultation par l'admin"
+    )
     
     class Meta:
         verbose_name = "Commande"
@@ -424,6 +447,23 @@ class Order(models.Model):
         if self.actual_delivery:
             info['actual_delivery'] = self.actual_delivery
         return info
+    
+    def mark_as_viewed_by_admin(self):
+        """
+        Marque la commande comme consultée par l'administrateur.
+        
+        Met à jour le champ admin_viewed_at avec la date/heure actuelle
+        si la commande n'a pas encore été consultée.
+        """
+        from django.utils import timezone
+        if self.admin_viewed_at is None:
+            self.admin_viewed_at = timezone.now()
+            self.save(update_fields=['admin_viewed_at'])
+    
+    @property
+    def is_viewed_by_admin(self):
+        """Vérifie si la commande a été consultée par l'administrateur"""
+        return self.admin_viewed_at is not None
 
 
 class OrderStatusHistory(models.Model):

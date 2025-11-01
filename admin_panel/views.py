@@ -16,6 +16,7 @@ from author.models import Author
 from shop.models import Book, Category, Cart, Review, ShopSettings, Refund, LoyaltyProgram, PromoCode, UserLoyaltyStatus, PromoCodeUse, Order, Invoice, OrderStatusHistory
 from shop.forms import ShopSettingsForm, BookForm
 from accounts.models import User
+from .utils import get_unread_confirmed_orders_count
 
 
 @staff_member_required
@@ -64,6 +65,9 @@ def admin_dashboard(request):
         'total_revenue': total_sales,
     }
     
+    # Nombre de commandes confirmées non consultées
+    unread_orders_count = get_unread_confirmed_orders_count()
+    
     context = {
         'stats': stats,
         'order_stats': order_stats,
@@ -74,6 +78,7 @@ def admin_dashboard(request):
         'recent_orders': recent_orders,
         'total_sales': total_sales,
         'popular_books': popular_books,
+        'unread_orders_count': unread_orders_count,
     }
     
     return render(request, 'admin_panel/dashboard.html', context)
@@ -238,6 +243,11 @@ def manage_orders(request):
     paginator = Paginator(orders, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    
+    # Marquer toutes les commandes de la page comme consultées
+    for order in page_obj:
+        if order.status == 'confirmed' and order.admin_viewed_at is None:
+            order.mark_as_viewed_by_admin()
     
     context = {
         'page_obj': page_obj,
@@ -1155,6 +1165,10 @@ def create_invoice(request, order_id):
 def order_detail(request, order_id):
     """Détail d'une commande pour l'administration"""
     order = get_object_or_404(Order, id=order_id)
+    
+    # Marquer la commande comme consultée si elle est confirmée
+    if order.status == 'confirmed' and order.admin_viewed_at is None:
+        order.mark_as_viewed_by_admin()
     
     context = {
         'order': order,

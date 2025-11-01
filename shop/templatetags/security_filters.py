@@ -2,6 +2,7 @@
 Template tags de sécurité pour nettoyer le contenu HTML
 """
 from django import template
+from django.utils.safestring import mark_safe
 from app.utils.security import clean_html
 
 register = template.Library()
@@ -38,5 +39,5 @@ def clean_html_safe_filter(value):
         return ''
     
     cleaned = clean_html(str(value))
-    return template.mark_safe(cleaned)
+    return mark_safe(cleaned)
 
