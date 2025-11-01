@@ -163,10 +163,11 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Pour la production, ajoutez aussi :
+# STATICFILES_DIRS doit toujours contenir les répertoires sources des fichiers statiques
+# pour que collectstatic puisse les trouver et les copier vers STATIC_ROOT
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
-] if DEBUG else []
+]
 
 # Media files
 MEDIA_URL = os.environ.get('MEDIA_URL', '/media/')
