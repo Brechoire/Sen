@@ -1,6 +1,74 @@
 from django import forms
 from django.core.mail import send_mail
 from django.conf import settings
+from django.core.validators import URLValidator
+from .models import SocialMediaSettings
+
+
+class SocialMediaSettingsForm(forms.ModelForm):
+    """Formulaire pour la gestion des réseaux sociaux"""
+    
+    class Meta:
+        model = SocialMediaSettings
+        fields = ['facebook_url', 'tiktok_url', 'linkedin_url', 'instagram_url']
+        widgets = {
+            'facebook_url': forms.URLInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'https://www.facebook.com/votre-page'
+            }),
+            'tiktok_url': forms.URLInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'https://www.tiktok.com/@votre-compte'
+            }),
+            'linkedin_url': forms.URLInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'https://www.linkedin.com/company/votre-entreprise'
+            }),
+            'instagram_url': forms.URLInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'https://www.instagram.com/votre-compte'
+            }),
+        }
+        labels = {
+            'facebook_url': 'URL Facebook',
+            'tiktok_url': 'URL TikTok',
+            'linkedin_url': 'URL LinkedIn',
+            'instagram_url': 'URL Instagram',
+        }
+        help_texts = {
+            'facebook_url': 'Laissez vide pour ne pas afficher l\'icône Facebook',
+            'tiktok_url': 'Laissez vide pour ne pas afficher l\'icône TikTok',
+            'linkedin_url': 'Laissez vide pour ne pas afficher l\'icône LinkedIn',
+            'instagram_url': 'Laissez vide pour ne pas afficher l\'icône Instagram',
+        }
+    
+    def clean_facebook_url(self):
+        url = self.cleaned_data.get('facebook_url')
+        if url:
+            validator = URLValidator()
+            validator(url)
+        return url
+    
+    def clean_tiktok_url(self):
+        url = self.cleaned_data.get('tiktok_url')
+        if url:
+            validator = URLValidator()
+            validator(url)
+        return url
+    
+    def clean_linkedin_url(self):
+        url = self.cleaned_data.get('linkedin_url')
+        if url:
+            validator = URLValidator()
+            validator(url)
+        return url
+    
+    def clean_instagram_url(self):
+        url = self.cleaned_data.get('instagram_url')
+        if url:
+            validator = URLValidator()
+            validator(url)
+        return url
 
 
 class ContactForm(forms.Form):

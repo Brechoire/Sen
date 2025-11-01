@@ -15,6 +15,7 @@ urlpatterns = [
     path('avis/', views.manage_reviews, name='reviews'),
     path('utilisateurs/', views.manage_users, name='users'),
     path('boutique/parametres/', views.manage_shop_settings, name='shop_settings'),
+    path('reseaux-sociaux/', views.manage_social_media, name='social_media'),
     path('boutique/remboursements/', views.manage_refunds, name='refunds'),
     path('boutique/remboursements/<int:refund_id>/traiter/', views.process_refund, name='process_refund'),
     path('boutique/fidelite/', views.manage_loyalty_programs, name='loyalty_programs'),

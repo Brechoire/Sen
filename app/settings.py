@@ -81,6 +81,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "admin_panel.context_processors.admin_notifications",
+                "home.context_processors.social_media_settings",
             ],
         },
     },

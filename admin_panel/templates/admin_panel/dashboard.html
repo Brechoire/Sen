@@ -141,6 +141,35 @@
                     </div>
                 </a>
                 
+                <a href="{% url 'admin_panel:social_media' %}" class="flex items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+                    <div class="p-2 rounded-full bg-purple-100 text-purple-600 mr-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900">Réseaux sociaux</h4>
+                        <p class="text-xs text-gray-500">Facebook, TikTok, etc.</p>
+                    </div>
+                </a>
+                
+                <a href="{% url 'admin_panel:orders' %}" class="flex items-center p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors relative">
+                    <div class="p-2 rounded-full bg-orange-100 text-orange-600 mr-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900">Gérer les commandes</h4>
+                        <p class="text-xs text-gray-500">Suivi, statuts</p>
+                    </div>
+                    {% if unread_orders_count > 0 %}
+                    <span class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-1">
+                        {{ unread_orders_count }}
+                    </span>
+                    {% endif %}
+                </a>
+                
                 <a href="{% url 'admin_panel:books' %}" class="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
                     <div class="p-2 rounded-full bg-green-100 text-green-600 mr-3">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -162,18 +191,6 @@
                     <div>
                         <h4 class="text-sm font-medium text-gray-900">Gérer les articles</h4>
                         <p class="text-xs text-gray-500">Blog, actualités</p>
-                    </div>
-                </a>
-                
-                <a href="{% url 'admin_panel:orders' %}" class="flex items-center p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors">
-                    <div class="p-2 rounded-full bg-orange-100 text-orange-600 mr-3">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-medium text-gray-900">Gérer les commandes</h4>
-                        <p class="text-xs text-gray-500">Suivi, statuts</p>
                     </div>
                 </a>
             </div>

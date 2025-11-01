@@ -15,6 +15,8 @@ from news.models import Article
 from author.models import Author
 from shop.models import Book, Category, Cart, Review, ShopSettings, Refund, LoyaltyProgram, PromoCode, UserLoyaltyStatus, PromoCodeUse, Order, Invoice, OrderStatusHistory
 from shop.forms import ShopSettingsForm, BookForm
+from home.models import SocialMediaSettings
+from home.forms import SocialMediaSettingsForm
 from accounts.models import User
 from .utils import get_unread_confirmed_orders_count
 
@@ -316,6 +318,33 @@ def manage_shop_settings(request):
     }
     
     return render(request, 'admin_panel/shop_settings.html', context)
+
+
+@staff_member_required
+def manage_social_media(request):
+    """Gestion des réseaux sociaux"""
+    
+    # Récupérer ou créer les paramètres
+    settings = SocialMediaSettings.get_settings()
+    
+    if request.method == 'POST':
+        form = SocialMediaSettingsForm(request.POST, instance=settings)
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request,
+                'Paramètres des réseaux sociaux mis à jour avec succès.'
+            )
+            return redirect('admin_panel:social_media')
+    else:
+        form = SocialMediaSettingsForm(instance=settings)
+    
+    context = {
+        'form': form,
+        'settings': settings,
+    }
+    
+    return render(request, 'admin_panel/social_media.html', context)
 
 
 @staff_member_required
