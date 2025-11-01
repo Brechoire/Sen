@@ -26,7 +26,7 @@
 
     <!-- Notre histoire -->
     <div class="container mx-auto px-4 py-12">
-        <div class="max-w-4xl mx-auto">
+        <div class="max-w-6xl mx-auto">
             <!-- Logo Éditions Sen -->
             <div class="text-center mb-12">
                 <img src="{% static 'img/logoSenF.webp' %}" alt="Logo Éditions Sen" class="mx-auto h-40 w-auto mb-6">
@@ -34,23 +34,40 @@
             
             <div class="bg-white rounded-lg shadow-md overflow-hidden mb-12">
                 <div class="p-8">
-                    <h2 class="text-3xl font-serif font-bold text-dark mb-6">Notre histoire</h2>
-                    <div class="prose prose-lg max-w-none">
-                        <p class="text-lg text-gray-700 mb-6">
-                            <strong>Joséphine Rabot, Fondatrice</strong>
-                        </p>
-                        <p class="text-lg text-gray-700 mb-6">
-                            Éditions Sen est bien plus qu'une maison d'édition. C'est une histoire née d'un rêve — celui d'une éditrice passionnée, portée depuis l'enfance par l'amour des mots, des livres et des mondes qu'ils ouvrent. Ce rêve, longtemps mûri dans le silence des bibliothèques et les marges de carnets griffonnés, est aujourd'hui devenu réalité : une maison d'édition indépendante dédiée à celles et ceux qui osent croire en leur voix.
-                        </p>
-                        <p class="text-lg text-gray-700 mb-6">
-                            Chez les Éditions Sen, nous croyons que chaque auteur a en lui une étincelle unique. Notre mission est simple : transformer les manuscrits portés par le cœur en livres qui trouvent leur public, et accompagner les auteurs avec respect, bienveillance et exigence.
-                        </p>
-                        <p class="text-lg text-gray-700 mb-6">
-                            Nous savons ce que représente l'écriture d'un livre — une aventure intérieure, un rêve souvent longtemps gardé secret. C'est pourquoi nous plaçons l'humain au centre de notre démarche éditoriale. Publier un ouvrage, ce n'est pas seulement produire un objet littéraire ; c'est donner naissance à une vision, à une voix, à un rêve qui se partage.
-                        </p>
-                        <p class="text-lg text-gray-700 mb-6 font-medium text-primary">
-                            Éditions Sen, c'est le point de rencontre entre un rêve d'éditrice et les rêves d'auteurs en devenir. Ensemble, faisons de l'imaginaire une réalité.
-                        </p>
+                    <h2 class="text-3xl font-serif font-bold text-dark mb-8 text-center">Notre histoire</h2>
+                    
+                    <!-- Layout avec texte et photo -->
+                    <div class="flex flex-col lg:flex-row items-center gap-8">
+                        <!-- Texte -->
+                        <div class="flex-1 lg:w-2/3">
+                            <div class="prose prose-lg max-w-none">
+                                <p class="text-lg text-gray-700 mb-6">
+                                    <strong>Joséphine Rabot, Fondatrice</strong>
+                                </p>
+                                <p class="text-lg text-gray-700 mb-6">
+                                    Éditions Sen est bien plus qu'une maison d'édition. C'est une histoire née d'un rêve — celui d'une éditrice passionnée, portée depuis l'enfance par l'amour des mots, des livres et des mondes qu'ils ouvrent. Ce rêve, longtemps mûri dans le silence des bibliothèques et les marges de carnets griffonnés, est aujourd'hui devenu réalité : une maison d'édition indépendante dédiée à celles et ceux qui osent croire en leur voix.
+                                </p>
+                                <p class="text-lg text-gray-700 mb-6">
+                                    Chez les Éditions Sen, nous croyons que chaque auteur a en lui une étincelle unique. Notre mission est simple : transformer les manuscrits portés par le cœur en livres qui trouvent leur public, et accompagner les auteurs avec respect, bienveillance et exigence.
+                                </p>
+                                <p class="text-lg text-gray-700 mb-6">
+                                    Nous savons ce que représente l'écriture d'un livre — une aventure intérieure, un rêve souvent longtemps gardé secret. C'est pourquoi nous plaçons l'humain au centre de notre démarche éditoriale. Publier un ouvrage, ce n'est pas seulement produire un objet littéraire ; c'est donner naissance à une vision, à une voix, à un rêve qui se partage.
+                                </p>
+                                <p class="text-lg text-gray-700 mb-6 font-medium text-primary">
+                                    Éditions Sen, c'est le point de rencontre entre un rêve d'éditrice et les rêves d'auteurs en devenir. Ensemble, faisons de l'imaginaire une réalité.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- Photo de Joséphine -->
+                        <div class="flex-shrink-0 lg:w-1/3">
+                            <div class="relative">
+                                <img src="{% static 'img/josephine.jpg' %}" 
+                                     alt="Joséphine Rabot, fondatrice des Éditions Sen" 
+                                     class="w-full max-w-sm mx-auto rounded-lg shadow-lg object-cover">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-lg"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
