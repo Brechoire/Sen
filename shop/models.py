@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.db.models import Sum
 from ckeditor.fields import RichTextField
 from author.models import Author
+from app.utils import get_upload_path
 
 
 class Category(models.Model):
@@ -57,8 +58,15 @@ class Book(models.Model):
     format = models.CharField(max_length=20, choices=format_choices, default='broche', verbose_name="Format")
     
     # Images
-    cover_image = models.ImageField(upload_to='books/covers/', verbose_name="Image de couverture")
-    back_cover_image = models.ImageField(upload_to='books/backs/', blank=True, null=True, verbose_name="Image de quatrième de couverture")
+    cover_image = models.ImageField(
+        upload_to=lambda instance, filename: get_upload_path(instance, filename, 'books/covers/'),
+        verbose_name="Image de couverture"
+    )
+    back_cover_image = models.ImageField(
+        upload_to=lambda instance, filename: get_upload_path(instance, filename, 'books/backs/'),
+        blank=True, null=True,
+        verbose_name="Image de quatrième de couverture"
+    )
     
     # Prix et disponibilité
     price = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Prix")
@@ -130,7 +138,10 @@ class Book(models.Model):
 class BookImage(models.Model):
     """Modèle pour les images supplémentaires des livres"""
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='images', verbose_name="Livre")
-    image = models.ImageField(upload_to='books/gallery/', verbose_name="Image")
+    image = models.ImageField(
+        upload_to=lambda instance, filename: get_upload_path(instance, filename, 'books/gallery/'),
+        verbose_name="Image"
+    )
     alt_text = models.CharField(max_length=200, blank=True, verbose_name="Texte alternatif")
     is_main = models.BooleanField(default=False, verbose_name="Image principale")
     order = models.PositiveIntegerField(default=0, verbose_name="Ordre d'affichage")

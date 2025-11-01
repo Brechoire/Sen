@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.urls import reverse
 from ckeditor.fields import RichTextField
+from app.utils import get_upload_path
 
 class Article(models.Model):
     """Modèle pour les articles d'actualités littéraires"""
@@ -16,7 +17,11 @@ class Article(models.Model):
     slug = models.SlugField(max_length=200, unique=True, verbose_name="Slug")
     content = RichTextField(verbose_name="Contenu")
     excerpt = models.TextField(max_length=500, blank=True, verbose_name="Extrait")
-    image = models.ImageField(upload_to='articles/', blank=True, null=True, verbose_name="Image")
+    image = models.ImageField(
+        upload_to=lambda instance, filename: get_upload_path(instance, filename, 'articles/'),
+        blank=True, null=True,
+        verbose_name="Image"
+    )
     author = models.CharField(max_length=100, verbose_name="Auteur")
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft', verbose_name="Statut")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")

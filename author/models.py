@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.urls import reverse
 from ckeditor.fields import RichTextField
+from app.utils import get_upload_path
 
 class Author(models.Model):
     """Modèle pour les auteurs des Éditions Sen"""
@@ -18,7 +19,11 @@ class Author(models.Model):
     short_bio = models.TextField(max_length=500, blank=True, verbose_name="Biographie courte")
     
     # Photo et informations visuelles
-    photo = models.ImageField(upload_to='authors/', blank=True, null=True, verbose_name="Photo")
+    photo = models.ImageField(
+        upload_to=lambda instance, filename: get_upload_path(instance, filename, 'authors/'),
+        blank=True, null=True,
+        verbose_name="Photo"
+    )
     
     # Informations de contact (optionnelles)
     email = models.EmailField(blank=True, verbose_name="Email")
