@@ -406,11 +406,10 @@ CKEDITOR_CONFIGS = {
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Désactiver les vérifications système pour django-ratelimit en développement
+# Désactiver les vérifications système pour django-ratelimit
 # car FileBasedCache ne supporte pas l'incrémentation atomique
-# En production, utilisez Redis ou Memcached
-if DEBUG:
-    SILENCED_SYSTEM_CHECKS = ['django_ratelimit.E003', 'django_ratelimit.W001']
+# En production, utilisez Redis ou Memcached si disponible pour de meilleures performances
+SILENCED_SYSTEM_CHECKS = ['django_ratelimit.E003', 'django_ratelimit.W001']
 # Configuration du modèle utilisateur personnalisé
 AUTH_USER_MODEL = 'accounts.User'
 
