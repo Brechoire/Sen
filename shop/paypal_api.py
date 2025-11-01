@@ -1,14 +1,21 @@
-import requests
+# Standard library imports
 import base64
 import json
+import logging
+
+# Third-party imports
+import requests
+
+# Django imports
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
+
+# Project imports
 from .models import Order, Payment
 from .services import CartService
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -45,20 +52,45 @@ def get_paypal_access_token():
         return None
 
 
-@csrf_exempt
+@login_required
 @require_http_methods(["POST"])
 def create_paypal_order(request):
-    """Crée une commande PayPal"""
+    """
+    Crée une commande PayPal.
+    
+    Requiert une authentification utilisateur et protection CSRF standard.
+    Cette fonction est appelée depuis le client JavaScript avec un token CSRF.
+    """
     try:
         data = json.loads(request.body)
         order_id = data.get('order_id')
         amount = data.get('amount')
         
         if not order_id or not amount:
-            return JsonResponse({'error': 'order_id et amount requis'}, status=400)
+            return JsonResponse(
+                {'error': 'order_id et amount requis'}, status=400
+            )
         
-        # Récupérer la commande
-        order = Order.objects.get(id=order_id, user=request.user)
+        # Validation du montant
+        try:
+            amount = float(amount)
+            if amount <= 0:
+                return JsonResponse(
+                    {'error': 'Le montant doit être positif'}, status=400
+                )
+        except (ValueError, TypeError):
+            return JsonResponse(
+                {'error': 'Montant invalide'}, status=400
+            )
+        
+        # Récupérer la commande et vérifier qu'elle appartient à l'utilisateur
+        try:
+            order = Order.objects.get(id=order_id, user=request.user)
+        except Order.DoesNotExist:
+            return JsonResponse(
+                {'error': 'Commande non trouvée ou non autorisée'}, 
+                status=404
+            )
         
         # Récupérer le token d'accès
         access_token = get_paypal_access_token()
@@ -129,13 +161,29 @@ def create_paypal_order(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def capture_paypal_order(request):
-    """Capture un paiement PayPal"""
+    """
+    Capture un paiement PayPal.
+    
+    Cette fonction est appelée par PayPal via webhook ou depuis le client
+    après approbation du paiement. CSRF est désactivé car PayPal n'envoie pas
+    de token CSRF, mais on valide quand même l'intégrité des données.
+    
+    TODO: Ajouter validation de signature PayPal pour production.
+    """
     try:
         data = json.loads(request.body)
         order_id = data.get('paypal_order_id')
         
         if not order_id:
-            return JsonResponse({'error': 'paypal_order_id requis'}, status=400)
+            return JsonResponse(
+                {'error': 'paypal_order_id requis'}, status=400
+            )
+        
+        # Validation basique de l'ID PayPal (format attendu)
+        if not isinstance(order_id, str) or len(order_id) < 10:
+            return JsonResponse(
+                {'error': 'Format paypal_order_id invalide'}, status=400
+            )
         
         # Récupérer le token d'accès
         access_token = get_paypal_access_token()
@@ -175,7 +223,20 @@ def capture_paypal_order(request):
             # Vider le panier de l'utilisateur après paiement réussi
             CartService.clear_cart(order.user)
             
-            logger.info(f"Paiement PayPal capturé avec succès pour la commande {order.id}")
+            # Logger le paiement PayPal réussi
+            security_logger = logging.getLogger('security')
+            security_logger.info(
+                f"Paiement PayPal capturé: order_id={order.id}, "
+                f"order_number={order.order_number}, "
+                f"paypal_order_id={order_id}, "
+                f"user_id={order.user.id}, "
+                f"user_email={order.user.email}, "
+                f"amount={order.total_amount}"
+            )
+            
+            logger.info(
+                f"Paiement PayPal capturé avec succès pour la commande {order.id}"
+            )
         
         return JsonResponse(capture_data)
         

@@ -5,16 +5,45 @@ from django.contrib import messages
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
 from django.contrib.auth.views import LoginView, LogoutView
+from django_ratelimit.decorators import ratelimit
+from django_ratelimit.exceptions import Ratelimited
 from .forms import CustomUserCreationForm, CustomAuthenticationForm, UserProfileForm
 from .models import User
 from shop.models import Cart, Order
 
 
 class SignUpView(CreateView):
-    """Vue d'inscription"""
+    """
+    Vue d'inscription avec protection rate limiting.
+    
+    Crée un nouvel utilisateur et le connecte automatiquement.
+    Transfère le panier de session vers l'utilisateur après inscription.
+    """
     form_class = CustomUserCreationForm
     template_name = 'accounts/signup.html'
     success_url = reverse_lazy('accounts:profile')
+
+    def dispatch(self, request, *args, **kwargs):
+        """Gère le rate limiting pour les inscriptions"""
+        try:
+            from django_ratelimit.decorators import ratelimit
+            from django_ratelimit.exceptions import Ratelimited
+            
+            # Limiter à 3 inscriptions par heure par IP
+            @ratelimit(key='ip', rate='3/1h', method='POST')
+            def _check_rate(request):
+                return None
+                
+            _check_rate(request)
+        except Ratelimited:
+            messages.error(
+                request,
+                'Trop de tentatives d\'inscription. '
+                'Veuillez patienter 1 heure.'
+            )
+            return self.render_to_response(self.get_context_data())
+        
+        return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -27,7 +56,11 @@ class SignUpView(CreateView):
             login(self.request, user)
             # Transférer le panier de session vers l'utilisateur
             self.transfer_cart_to_user(user)
-            messages.success(self.request, f"Bienvenue {user.full_name} ! Votre compte a été créé avec succès.")
+            messages.success(
+                self.request,
+                f"Bienvenue {user.full_name} ! "
+                f"Votre compte a été créé avec succès."
+            )
         return response
     
     def transfer_cart_to_user(self, user):
@@ -63,19 +96,51 @@ class SignUpView(CreateView):
 
 
 class CustomLoginView(LoginView):
-    """Vue de connexion personnalisée"""
+    """
+    Vue de connexion personnalisée avec protection rate limiting.
+    """
     form_class = CustomAuthenticationForm
     template_name = 'accounts/login.html'
 
     def get_success_url(self):
         return reverse_lazy('accounts:profile')
 
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Gère le rate limiting pour les tentatives de connexion.
+        
+        Limite à 5 tentatives par 15 minutes par IP pour prévenir
+        les attaques brute-force.
+        """
+        try:
+            from django_ratelimit.decorators import ratelimit
+            from django_ratelimit.exceptions import Ratelimited
+            
+            # Limiter à 5 tentatives par 15 minutes par IP
+            @ratelimit(key='ip', rate='5/15m', method='POST')
+            def _check_rate(request):
+                return None
+                
+            _check_rate(request)
+        except Ratelimited:
+            messages.error(
+                request,
+                'Trop de tentatives de connexion. '
+                'Veuillez patienter 15 minutes.'
+            )
+            return self.render_to_response(self.get_context_data())
+        
+        return super().dispatch(request, *args, **kwargs)
+
     def form_valid(self, form):
         user = form.get_user()
         if user:
             # Transférer le panier de session vers l'utilisateur
             self.transfer_cart_to_user(user)
-            messages.success(self.request, f"Bonjour {user.full_name} !")
+            messages.success(
+                self.request,
+                f"Bonjour {user.full_name} !"
+            )
         return super().form_valid(form)
     
     def transfer_cart_to_user(self, user):
@@ -152,12 +217,18 @@ def dashboard_view(request):
     user = request.user
     
     # Récupérer seulement les commandes confirmées de l'utilisateur
-    orders = Order.objects.filter(user=user, status='confirmed').order_by('-created_at')[:10]  # 10 dernières commandes confirmées
+    orders = Order.objects.filter(
+        user=user, status='confirmed'
+    ).order_by('-created_at')[:10]
     
     # Statistiques
     total_orders = Order.objects.filter(user=user).count()
-    confirmed_orders = Order.objects.filter(user=user, status='confirmed').count()
-    pending_orders = Order.objects.filter(user=user, status='pending').count()
+    confirmed_orders = Order.objects.filter(
+        user=user, status='confirmed'
+    ).count()
+    pending_orders = Order.objects.filter(
+        user=user, status='pending'
+    ).count()
     
     context = {
         'user': user,

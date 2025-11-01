@@ -25,7 +25,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-7q8m2mjez4%w0!1vlky_1ikq1fzfs*!szbmlmu=hc0j4nfjds7')
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    raise ValueError(
+        "SECRET_KEY environment variable is required. "
+        "Set it in your .env file or environment."
+    )
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
@@ -44,6 +49,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "ckeditor",
     "ckeditor_uploader",
+    "django_ratelimit",
     "accounts",
     "home",
     "news",
@@ -82,16 +88,26 @@ TEMPLATES = [
 # Configuration pour la gestion des erreurs personnalisées
 if not DEBUG:
     # En production, désactiver l'affichage des erreurs détaillées
-    ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+    allowed_hosts_str = os.environ.get(
+        'ALLOWED_HOSTS', 'localhost,127.0.0.1'
+    )
+    ALLOWED_HOSTS = [
+        host.strip() for host in allowed_hosts_str.split(',')
+    ]
     
-    # Configuration de logging simplifiée pour la production
+    # Configuration de logging pour la production
     # Utilise les logs système au lieu de fichiers locaux
     LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,
         'formatters': {
             'verbose': {
-                'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+                'format': '{levelname} {asctime} {module} {process:d} '
+                          '{thread:d} {message}',
+                'style': '{',
+            },
+            'security': {
+                'format': '{levelname} {asctime} {module} {message}',
                 'style': '{',
             },
         },
@@ -101,11 +117,21 @@ if not DEBUG:
                 'class': 'logging.StreamHandler',
                 'formatter': 'verbose'
             },
+            'security_console': {
+                'level': 'INFO',
+                'class': 'logging.StreamHandler',
+                'formatter': 'security'
+            },
         },
         'loggers': {
             'django': {
                 'handlers': ['console'],
                 'level': 'ERROR',
+                'propagate': False,
+            },
+            'security': {
+                'handlers': ['security_console'],
+                'level': 'INFO',
                 'propagate': False,
             },
         },
@@ -124,22 +150,78 @@ DATABASES = {
     }
 }
 
+# Cache configuration pour django-ratelimit
+# En développement: utilise le cache fichier
+# En production: utilisez Redis ou Memcached pour de meilleures performances
+# et support complet de l'incrémentation atomique
+if DEBUG:
+    # Cache fichier pour le développement (avec avertissement)
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+            'LOCATION': BASE_DIR / 'cache',
+            'TIMEOUT': 300,
+            'OPTIONS': {
+                'MAX_ENTRIES': 1000
+            }
+        }
+    }
+    
+    # Créer le répertoire de cache s'il n'existe pas
+    if not (BASE_DIR / 'cache').exists():
+        (BASE_DIR / 'cache').mkdir(parents=True, exist_ok=True)
+else:
+    # En production, utilisez Redis ou Memcached
+    # Exemple Redis:
+    # CACHES = {
+    #     'default': {
+    #         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+    #         'LOCATION': os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/1'),
+    #     }
+    # }
+    # Pour l'instant, utilisons le cache fichier aussi en production
+    # TODO: Migrer vers Redis en production
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+            'LOCATION': BASE_DIR / 'cache',
+            'TIMEOUT': 300,
+            'OPTIONS': {
+                'MAX_ENTRIES': 1000
+            }
+        }
+    }
+    
+    if not (BASE_DIR / 'cache').exists():
+        (BASE_DIR / 'cache').mkdir(parents=True, exist_ok=True)
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "UserAttributeSimilarityValidator"
+        ),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "MinimumLengthValidator"
+        ),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "CommonPasswordValidator"
+        ),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "NumericPasswordValidator"
+        ),
     },
 ]
 
@@ -163,8 +245,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# STATICFILES_DIRS doit toujours contenir les répertoires sources des fichiers statiques
-# pour que collectstatic puisse les trouver et les copier vers STATIC_ROOT
+# STATICFILES_DIRS doit toujours contenir les répertoires sources
+# des fichiers statiques pour que collectstatic puisse les trouver
+# et les copier vers STATIC_ROOT
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
@@ -173,10 +256,37 @@ STATICFILES_DIRS = [
 MEDIA_URL = os.environ.get('MEDIA_URL', '/media/')
 MEDIA_ROOT = BASE_DIR / os.environ.get('MEDIA_ROOT', 'media')
 
-# Configuration de sécurité pour HTTPS (si vous avez un certificat SSL)
+# Configuration de sécurité pour HTTPS
+# Headers de sécurité pour protéger contre XSS, clickjacking, etc.
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_HSTS_SECONDS = 31536000  # 1 an
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
 if not DEBUG:
-    SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False').lower() in ('true', '1', 'yes')
-    SECURE_PROXY_SSL_HEADER = tuple(os.environ.get('SECURE_PROXY_SSL_HEADER', 'HTTP_X_FORWARDED_PROTO,https').split(','))
+    # En production, forcer HTTPS et sécuriser les cookies
+    SECURE_SSL_REDIRECT = os.environ.get(
+        'SECURE_SSL_REDIRECT', 'False'
+    ).lower() in ('true', '1', 'yes')
+    
+    SECURE_PROXY_SSL_HEADER = tuple(
+        os.environ.get(
+            'SECURE_PROXY_SSL_HEADER',
+            'HTTP_X_FORWARDED_PROTO,https'
+        ).split(',')
+    )
+    
+    # Cookies sécurisés en production
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_HTTPONLY = True
+    
+    # SameSite pour les cookies
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    CSRF_COOKIE_SAMESITE = 'Lax'
 
 # CKEditor Configuration
 CKEDITOR_UPLOAD_PATH = os.environ.get('CKEDITOR_UPLOAD_PATH', 'uploads/')
@@ -190,7 +300,11 @@ CKEDITOR_CONFIGS = {
         'toolbar_Custom': [
             ['Styles', 'Format'],
             ['Bold', 'Italic', 'Underline'],
-            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+            [
+                'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-',
+                'JustifyLeft', 'JustifyCenter', 'JustifyRight',
+                'JustifyBlock'
+            ],
             ['Link', 'Unlink'],
             ['RemoveFormat', 'Source'],
             ['Image', 'Table', 'HorizontalRule'],
@@ -199,7 +313,7 @@ CKEDITOR_CONFIGS = {
             ['Blockquote'],
         ],
         'extraPlugins': ','.join([
-            'uploadimage', # the upload image feature
+            'uploadimage',  # the upload image feature
             'div',
             'autolink',
             'autoembed',
@@ -212,19 +326,76 @@ CKEDITOR_CONFIGS = {
             'dialogui',
             'elementspath'
         ]),
-        'removePlugins': 'exportpdf',  # Désactiver le plugin PDF qui cause l'erreur
+        # Désactiver le plugin PDF qui cause l'erreur
+        'removePlugins': 'exportpdf',
         'language': 'fr',
         'uiColor': '#f0f0f0',
         'format_tags': 'p;h1;h2;h3;h4;h5;h6;pre;address;div',
         'stylesSet': [
-            {'name': 'Titre 1', 'element': 'h1', 'styles': {'font-size': '2.5em', 'font-weight': 'bold', 'color': '#2A5C4A'}},
-            {'name': 'Titre 2', 'element': 'h2', 'styles': {'font-size': '2em', 'font-weight': 'bold', 'color': '#2A5C4A'}},
-            {'name': 'Titre 3', 'element': 'h3', 'styles': {'font-size': '1.5em', 'font-weight': 'bold', 'color': '#2A5C4A'}},
-            {'name': 'Titre 4', 'element': 'h4', 'styles': {'font-size': '1.25em', 'font-weight': 'bold', 'color': '#2A5C4A'}},
-            {'name': 'Titre 5', 'element': 'h5', 'styles': {'font-size': '1.1em', 'font-weight': 'bold', 'color': '#2A5C4A'}},
-            {'name': 'Titre 6', 'element': 'h6', 'styles': {'font-size': '1em', 'font-weight': 'bold', 'color': '#2A5C4A'}},
+            {
+                'name': 'Titre 1',
+                'element': 'h1',
+                'styles': {
+                    'font-size': '2.5em',
+                    'font-weight': 'bold',
+                    'color': '#2A5C4A'
+                }
+            },
+            {
+                'name': 'Titre 2',
+                'element': 'h2',
+                'styles': {
+                    'font-size': '2em',
+                    'font-weight': 'bold',
+                    'color': '#2A5C4A'
+                }
+            },
+            {
+                'name': 'Titre 3',
+                'element': 'h3',
+                'styles': {
+                    'font-size': '1.5em',
+                    'font-weight': 'bold',
+                    'color': '#2A5C4A'
+                }
+            },
+            {
+                'name': 'Titre 4',
+                'element': 'h4',
+                'styles': {
+                    'font-size': '1.25em',
+                    'font-weight': 'bold',
+                    'color': '#2A5C4A'
+                }
+            },
+            {
+                'name': 'Titre 5',
+                'element': 'h5',
+                'styles': {
+                    'font-size': '1.1em',
+                    'font-weight': 'bold',
+                    'color': '#2A5C4A'
+                }
+            },
+            {
+                'name': 'Titre 6',
+                'element': 'h6',
+                'styles': {
+                    'font-size': '1em',
+                    'font-weight': 'bold',
+                    'color': '#2A5C4A'
+                }
+            },
             {'name': 'Paragraphe', 'element': 'p'},
-            {'name': 'Citation', 'element': 'blockquote', 'styles': {'border-left': '4px solid #2A5C4A', 'padding-left': '20px', 'font-style': 'italic'}},
+            {
+                'name': 'Citation',
+                'element': 'blockquote',
+                'styles': {
+                    'border-left': '4px solid #2A5C4A',
+                    'padding-left': '20px',
+                    'font-style': 'italic'
+                }
+            },
         ],
     }
 }
@@ -233,6 +404,12 @@ CKEDITOR_CONFIGS = {
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Désactiver les vérifications système pour django-ratelimit en développement
+# car FileBasedCache ne supporte pas l'incrémentation atomique
+# En production, utilisez Redis ou Memcached
+if DEBUG:
+    SILENCED_SYSTEM_CHECKS = ['django_ratelimit.E003', 'django_ratelimit.W001']
 # Configuration du modèle utilisateur personnalisé
 AUTH_USER_MODEL = 'accounts.User'
 
@@ -243,9 +420,10 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # Configuration PayPal
-# Configuration PayPal
 PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID', 'test_client_id')
-PAYPAL_CLIENT_SECRET = os.environ.get('PAYPAL_CLIENT_SECRET', 'test_client_secret')
+PAYPAL_CLIENT_SECRET = os.environ.get(
+    'PAYPAL_CLIENT_SECRET', 'test_client_secret'
+)
 PAYPAL_MODE = os.environ.get('PAYPAL_MODE', 'sandbox')
 
 # Mode debug pour PayPal
@@ -254,11 +432,17 @@ PAYPAL_DEBUG = os.environ.get('PAYPAL_DEBUG', 'True').lower() == 'true'
 # Configuration Email
 EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
-EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
+EMAIL_USE_TLS = os.environ.get(
+    'EMAIL_USE_TLS', 'True'
+).lower() in ('true', '1', 'yes')
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@editionssen.fr')
-CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', 'contact@editionssen.fr')
+DEFAULT_FROM_EMAIL = os.environ.get(
+    'DEFAULT_FROM_EMAIL', 'noreply@editionssen.fr'
+)
+CONTACT_EMAIL = os.environ.get(
+    'CONTACT_EMAIL', 'contact@editionssen.fr'
+)
 
 # Configuration de la boutique
 SHOP_NAME = os.environ.get('SHOP_NAME', 'Éditions Sen')
@@ -266,6 +450,10 @@ SHOP_EMAIL = os.environ.get('SHOP_EMAIL', 'contact@editions-sen.com')
 SHOP_PHONE = os.environ.get('SHOP_PHONE', '')
 
 # Configuration des paramètres de livraison par défaut
-FREE_SHIPPING_THRESHOLD = float(os.environ.get('FREE_SHIPPING_THRESHOLD', 60.00))
-STANDARD_SHIPPING_COST = float(os.environ.get('STANDARD_SHIPPING_COST', 5.90))
+FREE_SHIPPING_THRESHOLD = float(
+    os.environ.get('FREE_SHIPPING_THRESHOLD', 60.00)
+)
+STANDARD_SHIPPING_COST = float(
+    os.environ.get('STANDARD_SHIPPING_COST', 5.90)
+)
 TAX_RATE = float(os.environ.get('TAX_RATE', 5.5))

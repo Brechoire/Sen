@@ -1,22 +1,44 @@
+# Standard library imports
+import logging
+from decimal import Decimal
+
+# Django imports
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import (
+    LoginRequiredMixin, UserPassesTestMixin
+)
+from django.views.generic import (
+    ListView, DetailView, CreateView, UpdateView, DeleteView
+)
 from django.urls import reverse_lazy, reverse
 from django.db.models import Q, Avg, Count
-from django.core.paginator import Paginator
-from django.http import JsonResponse
 from django.db import transaction
-from decimal import Decimal
-import logging
-
-from .models import Book, Category, BookImage, Review, Cart, CartItem, Order, OrderItem, Payment, ShopSettings, Refund, PromoCode, UserLoyaltyStatus, Invoice, OrderStatusHistory
-from .forms import BookForm, CategoryForm, BookImageForm, ReviewForm, BookSearchForm, CheckoutForm, PaymentMethodForm, RefundRequestForm, PromoCodeForm
-from .services import PromoCodeService, LoyaltyService, DiscountService, CartService
-from .paypal_api import create_paypal_order, capture_paypal_order
+from django.core.paginator import Paginator
 from django.conf import settings
+from django_ratelimit.decorators import ratelimit
+
+# Local application imports
+from app.utils.validation import (
+    validate_search_query, validate_slug, validate_id, validate_price
+)
+
+# Project imports
+from .models import (
+    Book, Category, BookImage, Review, Cart, CartItem, Order, OrderItem,
+    Payment, ShopSettings, Refund, PromoCode, UserLoyaltyStatus, Invoice,
+    OrderStatusHistory
+)
+from .forms import (
+    BookForm, CategoryForm, BookImageForm, ReviewForm, BookSearchForm,
+    CheckoutForm, PaymentMethodForm, RefundRequestForm, PromoCodeForm
+)
+from .services import (
+    PromoCodeService, LoyaltyService, DiscountService, CartService
+)
+from .paypal_api import create_paypal_order, capture_paypal_order
 from author.models import Author
 
 logger = logging.getLogger(__name__)
@@ -32,14 +54,27 @@ class BookListView(ListView):
     def get_queryset(self):
         queryset = Book.objects.filter(is_available=True).select_related('author', 'category')
         
-        # Filtres
-        search_query = self.request.GET.get('query')
-        category_slug = self.request.GET.get('category')
-        author_id = self.request.GET.get('author')
-        price_min = self.request.GET.get('price_min')
-        price_max = self.request.GET.get('price_max')
+        # Filtres avec validation
+        search_query = validate_search_query(self.request.GET.get('query'))
+        category_slug = validate_slug(self.request.GET.get('category'))
+        author_id = validate_id(self.request.GET.get('author'))
+        price_min = validate_price(self.request.GET.get('price_min'))
+        price_max = validate_price(self.request.GET.get('price_max'))
+        
+        # Format: validation basique (liste blanche)
         format_filter = self.request.GET.get('format')
+        allowed_formats = ['paperback', 'hardcover', 'ebook', 'audiobook']
+        if format_filter not in allowed_formats:
+            format_filter = None
+        
+        # Tri: validation (liste blanche)
         sort_by = self.request.GET.get('sort_by', '-created_at')
+        allowed_sort = [
+            '-created_at', 'created_at', '-title', 'title',
+            '-price', 'price', '-rating', 'rating'
+        ]
+        if sort_by not in allowed_sort:
+            sort_by = '-created_at'
         
         # Recherche textuelle
         if search_query:
@@ -61,9 +96,9 @@ class BookListView(ListView):
             queryset = queryset.filter(author_id=author_id)
         
         # Filtre par prix
-        if price_min:
+        if price_min is not None:
             queryset = queryset.filter(price__gte=price_min)
-        if price_max:
+        if price_max is not None:
             queryset = queryset.filter(price__lte=price_max)
         
         # Filtre par format
@@ -71,8 +106,7 @@ class BookListView(ListView):
             queryset = queryset.filter(format=format_filter)
         
         # Tri
-        if sort_by:
-            queryset = queryset.order_by(sort_by)
+        queryset = queryset.order_by(sort_by)
         
         return queryset
     
@@ -148,25 +182,41 @@ class CategoryDetailView(DetailView):
         return context
 
 
-# Vues d'administration (nécessitent une connexion)
-class BookCreateView(LoginRequiredMixin, CreateView):
-    """Vue pour créer un nouveau livre"""
+# Vues d'administration (nécessitent une connexion et permissions staff)
+class BookCreateView(UserPassesTestMixin, LoginRequiredMixin, CreateView):
+    """
+    Vue pour créer un nouveau livre.
+    
+    Requiert que l'utilisateur soit staff (is_staff=True).
+    """
     model = Book
     form_class = BookForm
     template_name = 'shop/book_form.html'
     success_url = reverse_lazy('admin_panel:books')
+    
+    def test_func(self):
+        """Vérifie que l'utilisateur est staff"""
+        return self.request.user.is_staff
     
     def form_valid(self, form):
         messages.success(self.request, 'Le livre a été créé avec succès.')
         return super().form_valid(form)
 
 
-class BookUpdateView(LoginRequiredMixin, UpdateView):
-    """Vue pour modifier un livre existant"""
+class BookUpdateView(UserPassesTestMixin, LoginRequiredMixin, UpdateView):
+    """
+    Vue pour modifier un livre existant.
+    
+    Requiert que l'utilisateur soit staff (is_staff=True).
+    """
     model = Book
     form_class = BookForm
     template_name = 'shop/book_form.html'
     slug_field = 'slug'
+    
+    def test_func(self):
+        """Vérifie que l'utilisateur est staff"""
+        return self.request.user.is_staff
     
     def get_success_url(self):
         return reverse('admin_panel:books')
@@ -176,49 +226,81 @@ class BookUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class BookDeleteView(LoginRequiredMixin, DeleteView):
-    """Vue pour supprimer un livre"""
+class BookDeleteView(UserPassesTestMixin, LoginRequiredMixin, DeleteView):
+    """
+    Vue pour supprimer un livre.
+    
+    Requiert que l'utilisateur soit staff (is_staff=True).
+    """
     model = Book
     template_name = 'shop/book_confirm_delete.html'
     slug_field = 'slug'
     success_url = reverse_lazy('shop:book_list')
+    
+    def test_func(self):
+        """Vérifie que l'utilisateur est staff"""
+        return self.request.user.is_staff
     
     def delete(self, request, *args, **kwargs):
         messages.success(request, 'Le livre a été supprimé avec succès.')
         return super().delete(request, *args, **kwargs)
 
 
-class CategoryCreateView(LoginRequiredMixin, CreateView):
-    """Vue pour créer une nouvelle catégorie"""
+class CategoryCreateView(UserPassesTestMixin, LoginRequiredMixin, CreateView):
+    """
+    Vue pour créer une nouvelle catégorie.
+    
+    Requiert que l'utilisateur soit staff (is_staff=True).
+    """
     model = Category
     form_class = CategoryForm
     template_name = 'shop/category_form.html'
     success_url = reverse_lazy('shop:book_list')
+    
+    def test_func(self):
+        """Vérifie que l'utilisateur est staff"""
+        return self.request.user.is_staff
     
     def form_valid(self, form):
         messages.success(self.request, 'La catégorie a été créée avec succès.')
         return super().form_valid(form)
 
 
-class CategoryUpdateView(LoginRequiredMixin, UpdateView):
-    """Vue pour modifier une catégorie existante"""
+class CategoryUpdateView(UserPassesTestMixin, LoginRequiredMixin, UpdateView):
+    """
+    Vue pour modifier une catégorie existante.
+    
+    Requiert que l'utilisateur soit staff (is_staff=True).
+    """
     model = Category
     form_class = CategoryForm
     template_name = 'shop/category_form.html'
     slug_field = 'slug'
     success_url = reverse_lazy('shop:book_list')
     
+    def test_func(self):
+        """Vérifie que l'utilisateur est staff"""
+        return self.request.user.is_staff
+    
     def form_valid(self, form):
         messages.success(self.request, 'La catégorie a été modifiée avec succès.')
         return super().form_valid(form)
 
 
-class CategoryDeleteView(LoginRequiredMixin, DeleteView):
-    """Vue pour supprimer une catégorie"""
+class CategoryDeleteView(UserPassesTestMixin, LoginRequiredMixin, DeleteView):
+    """
+    Vue pour supprimer une catégorie.
+    
+    Requiert que l'utilisateur soit staff (is_staff=True).
+    """
     model = Category
     template_name = 'shop/category_confirm_delete.html'
     slug_field = 'slug'
     success_url = reverse_lazy('shop:book_list')
+    
+    def test_func(self):
+        """Vérifie que l'utilisateur est staff"""
+        return self.request.user.is_staff
     
     def delete(self, request, *args, **kwargs):
         messages.success(request, 'La catégorie a été supprimée avec succès.')
@@ -243,7 +325,19 @@ def add_review(request, slug):
                 review.book = book
                 review.user = request.user
                 review.save()
-                messages.success(request, 'Votre avis a été ajouté et sera publié après validation.')
+                
+                # Logger l'ajout d'avis
+                security_logger = logging.getLogger('security')
+                security_logger.info(
+                    f"Avis ajouté: review_id={review.id}, "
+                    f"book_id={book.id}, book_title={book.title}, "
+                    f"user_id={request.user.id}, rating={review.rating}"
+                )
+                
+                messages.success(
+                    request,
+                    'Votre avis a été ajouté et sera publié après validation.'
+                )
             return redirect('shop:book_detail', slug=book.slug)
     else:
         form = ReviewForm()
@@ -277,8 +371,9 @@ def get_books_ajax(request):
 
 def book_search_suggestions(request):
     """Vue pour les suggestions de recherche"""
-    query = request.GET.get('q', '')
-    if len(query) < 2:
+    query = validate_search_query(request.GET.get('q', ''), max_length=100)
+    
+    if not query or len(query) < 2:
         return JsonResponse([], safe=False)
     
     books = Book.objects.filter(
@@ -310,7 +405,18 @@ def shop_home(request):
 
 # Vues pour le panier
 def get_or_create_cart(request):
-    """Récupère ou crée un panier pour l'utilisateur ou la session"""
+    """
+    Récupère ou crée un panier pour l'utilisateur ou la session.
+    
+    Si l'utilisateur est authentifié, récupère/crée un panier lié à
+    l'utilisateur. Sinon, utilise la clé de session pour gérer le panier.
+    
+    Args:
+        request: La requête HTTP
+        
+    Returns:
+        Cart: Le panier de l'utilisateur ou de la session
+    """
     if request.user.is_authenticated:
         cart, created = Cart.objects.get_or_create(user=request.user, defaults={'session_key': None})
     else:
@@ -323,7 +429,19 @@ def get_or_create_cart(request):
 
 
 def add_to_cart(request, book_id):
-    """Ajoute un livre au panier"""
+    """
+    Ajoute un livre au panier via AJAX.
+    
+    Vérifie la disponibilité et le stock avant d'ajouter l'article.
+    Retourne une réponse JSON avec le statut de l'opération.
+    
+    Args:
+        request: La requête HTTP (POST uniquement)
+        book_id: L'ID du livre à ajouter
+        
+    Returns:
+        JsonResponse: Réponse JSON avec le statut et les infos du panier
+    """
     if request.method == 'POST':
         try:
             book = get_object_or_404(Book, id=book_id, is_available=True)
@@ -367,7 +485,16 @@ def add_to_cart(request, book_id):
 
 
 def remove_from_cart(request, book_id):
-    """Supprime un livre du panier"""
+    """
+    Supprime un livre du panier via AJAX.
+    
+    Args:
+        request: La requête HTTP (POST uniquement)
+        book_id: L'ID du livre à supprimer
+        
+    Returns:
+        JsonResponse: Réponse JSON avec le statut et les infos du panier
+    """
     if request.method == 'POST':
         book = get_object_or_404(Book, id=book_id)
         cart = get_or_create_cart(request)
@@ -389,7 +516,18 @@ def remove_from_cart(request, book_id):
 
 
 def update_cart_item(request, book_id):
-    """Met à jour la quantité d'un article dans le panier"""
+    """
+    Met à jour la quantité d'un article dans le panier via AJAX.
+    
+    Vérifie la disponibilité et le stock avant la mise à jour.
+    
+    Args:
+        request: La requête HTTP (POST uniquement)
+        book_id: L'ID du livre à mettre à jour
+        
+    Returns:
+        JsonResponse: Réponse JSON avec le statut et les infos du panier
+    """
     if request.method == 'POST':
         book = get_object_or_404(Book, id=book_id)
         quantity = int(request.POST.get('quantity', 1))
@@ -614,8 +752,13 @@ def force_cart_transfer(request):
 
 # Vues pour le processus de commande et paiement
 @login_required
+@ratelimit(key='user', rate='10/1h', method='POST')
 def checkout(request):
-    """Vue pour le processus de commande"""
+    """
+    Vue pour le processus de commande avec rate limiting.
+    
+    Limite à 10 commandes par heure par utilisateur pour prévenir les abus.
+    """
     cart = get_or_create_cart(request)
     cart_items = cart.items.select_related('book').all()
     
@@ -645,6 +788,16 @@ def checkout(request):
                     order.total_amount = order.subtotal + order.shipping_cost + order.tax_amount
                     
                     order.save()
+                    
+                    # Logger la création de la commande
+                    security_logger = logging.getLogger('security')
+                    security_logger.info(
+                        f"Commande créée: order_id={order.id}, "
+                        f"order_number={order.order_number}, "
+                        f"user_id={request.user.id}, "
+                        f"user_email={request.user.email}, "
+                        f"total_amount={order.total_amount}"
+                    )
                     
                     # Mettre à jour les informations de livraison de l'utilisateur
                     user = request.user
@@ -682,7 +835,16 @@ def checkout(request):
                         return redirect('shop:checkout')
                         
             except Exception as e:
-                messages.error(request, f'Erreur lors de la création de la commande: {str(e)}')
+                # Logger l'erreur de création de commande
+                security_logger = logging.getLogger('security')
+                security_logger.error(
+                    f"Erreur création commande: user_id={request.user.id}, "
+                    f"user_email={request.user.email}, error={str(e)}"
+                )
+                messages.error(
+                    request,
+                    f'Erreur lors de la création de la commande: {str(e)}'
+                )
                 return redirect('shop:checkout')
     else:
         # Pré-remplir le formulaire avec les données de l'utilisateur
@@ -789,8 +951,21 @@ def manual_payment(request, order_id):
 
 @login_required
 def order_detail(request, order_id):
-    """Vue pour afficher les détails d'une commande"""
-    order = get_object_or_404(Order, id=order_id, user=request.user)
+    """
+    Vue pour afficher les détails d'une commande.
+    
+    Vérifie que l'utilisateur peut voir cette commande
+    (soit c'est sa commande, soit il est staff).
+    """
+    order = get_object_or_404(Order, id=order_id)
+    
+    # Vérifier que l'utilisateur peut voir cette commande
+    if order.user != request.user and not request.user.is_staff:
+        messages.error(
+            request,
+            'Vous n\'avez pas accès à cette commande.'
+        )
+        return redirect('shop:order_list')
     
     context = {
         'order': order,

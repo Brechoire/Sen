@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load security_filters %}
 
 {% block title %}{{ author.display_name }} - Éditions Sen{% endblock %}
 
@@ -102,7 +103,7 @@
                     <div class="mb-8">
                         <h2 class="text-2xl font-serif font-bold text-dark mb-4">Biographie</h2>
                         <div class="prose prose-lg max-w-none">
-                            {{ author.biography|safe }}
+                            {{ author.biography|clean_html_safe }}
                         </div>
                     </div>
                     {% else %}

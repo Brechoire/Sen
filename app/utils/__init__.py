@@ -41,7 +41,8 @@ def clean_filename(filename):
     # Remplacer les accents
     cleaned_name = ''.join(accent_map.get(char, char) for char in name)
     
-    # Remplacer les caractères spéciaux par des tirets (garder seulement alphanumériques, tirets et underscores)
+    # Remplacer les caractères spéciaux par des tirets
+    # (garder seulement alphanumériques, tirets et underscores)
     cleaned_name = re.sub(r'[^\w\-_\.]', '-', cleaned_name)
     
     # Supprimer les tirets multiples consécutifs

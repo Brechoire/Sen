@@ -154,7 +154,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const orderId = {{ order.id|safe }};
+    const orderId = {{ order.id }};
     const totalAmount = parseFloat('{{ order.total_amount|floatformat:2 }}');
     const paypalClientId = '{{ paypal_client_id|escapejs }}';
     const isDebugMode = {% if settings.PAYPAL_DEBUG %}true{% else %}false{% endif %};

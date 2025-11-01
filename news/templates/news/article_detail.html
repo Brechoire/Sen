@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load security_filters %}
 
 {% block title %}{{ article.title }}{% endblock %}
 
@@ -63,7 +64,7 @@
 
                     <!-- Content -->
                     <div class="prose prose-lg max-w-none">
-                        {{ article.content|safe }}
+                        {{ article.content|clean_html_safe }}
                     </div>
 
                     <!-- Article Actions -->

@@ -9,6 +9,8 @@ from django.http import JsonResponse
 from django.conf import settings
 import os
 
+from app.utils.validation import validate_search_query, validate_id
+
 from news.models import Article
 from author.models import Author
 from shop.models import Book, Category, Cart, Review, ShopSettings, Refund, LoyaltyProgram, PromoCode, UserLoyaltyStatus, PromoCodeUse, Order, Invoice, OrderStatusHistory
@@ -80,8 +82,13 @@ def admin_dashboard(request):
 @staff_member_required
 def manage_articles(request):
     """Gestion des articles"""
-    search = request.GET.get('search', '')
+    search = validate_search_query(request.GET.get('search', ''))
     status = request.GET.get('status', 'all')
+    
+    # Validation du statut (liste blanche)
+    allowed_status = ['all', 'published', 'draft']
+    if status not in allowed_status:
+        status = 'all'
     
     articles = Article.objects.order_by('-created_at')
     
@@ -113,8 +120,13 @@ def manage_articles(request):
 @staff_member_required
 def manage_authors(request):
     """Gestion des auteurs"""
-    search = request.GET.get('search', '')
+    search = validate_search_query(request.GET.get('search', ''))
     status = request.GET.get('status', 'all')
+    
+    # Validation du statut
+    allowed_status = ['all', 'active', 'inactive', 'featured']
+    if status not in allowed_status:
+        status = 'all'
     
     authors = Author.objects.order_by('last_name', 'first_name')
     
@@ -148,9 +160,14 @@ def manage_authors(request):
 @staff_member_required
 def manage_books(request):
     """Gestion des livres"""
-    search = request.GET.get('search', '')
+    search = validate_search_query(request.GET.get('search', ''))
     category = request.GET.get('category', 'all')
     status = request.GET.get('status', 'all')
+    
+    # Validation des statuts
+    allowed_status = ['all', 'available', 'unavailable', 'on_sale']
+    if status not in allowed_status:
+        status = 'all'
     
     books = Book.objects.select_related('author', 'category').order_by('-created_at')
     
@@ -163,7 +180,12 @@ def manage_books(request):
         )
     
     if category != 'all':
-        books = books.filter(category__slug=category)
+        # Valider le slug de catégorie
+        from app.utils.validation import validate_slug
+        if validate_slug(category):
+            books = books.filter(category__slug=category)
+        else:
+            category = 'all'
     
     if status == 'available':
         books = books.filter(is_available=True)
@@ -192,7 +214,7 @@ def manage_books(request):
 @staff_member_required
 def manage_orders(request):
     """Gestion des commandes"""
-    search = request.GET.get('search', '')
+    search = validate_search_query(request.GET.get('search', ''))
     status = request.GET.get('status', '')
     payment_status = request.GET.get('payment_status', '')
     
@@ -1160,7 +1182,21 @@ def update_order_status(request, order_id):
                 admin_notes=admin_notes,
                 changed_by=request.user
             )
-            messages.success(request, f'Statut de la commande {order.order_number} mis à jour: {old_status} → {new_status}')
+            
+            # Logger le changement de statut de commande
+            security_logger.info(
+                f"Statut commande modifié: order_id={order.id}, "
+                f"order_number={order.order_number}, "
+                f"old_status={old_status}, new_status={new_status}, "
+                f"admin_user_id={request.user.id}, "
+                f"admin_email={request.user.email}"
+            )
+            
+            messages.success(
+                request,
+                f'Statut de la commande {order.order_number} mis à jour: '
+                f'{old_status} → {new_status}'
+            )
         else:
             messages.error(request, 'Statut invalide.')
     
@@ -1226,6 +1262,15 @@ def update_payment_status(request, order_id):
             old_status = order.payment_status
             order.payment_status = new_payment_status
             order.save()
+            
+            # Logger le changement de statut de paiement
+            security_logger.info(
+                f"Statut paiement modifié: order_id={order.id}, "
+                f"order_number={order.order_number}, "
+                f"old_status={old_status}, new_status={new_payment_status}, "
+                f"admin_user_id={request.user.id}, "
+                f"admin_email={request.user.email}"
+            )
             
             # Si le paiement est confirmé et la commande est en attente, passer en cours de traitement
             if new_payment_status == 'paid' and order.status == 'pending':
