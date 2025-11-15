@@ -4,6 +4,12 @@ from django.urls import reverse
 from ckeditor.fields import RichTextField
 from app.utils import get_upload_path
 
+
+def article_image_upload_path(instance, filename):
+    """Chemin d'upload pour les images d'articles"""
+    return get_upload_path(instance, filename, 'articles/')
+
+
 class Article(models.Model):
     """Modèle pour les articles d'actualités littéraires"""
     
@@ -18,7 +24,7 @@ class Article(models.Model):
     content = RichTextField(verbose_name="Contenu")
     excerpt = models.TextField(max_length=500, blank=True, verbose_name="Extrait")
     image = models.ImageField(
-        upload_to=lambda instance, filename: get_upload_path(instance, filename, 'articles/'),
+        upload_to=article_image_upload_path,
         blank=True, null=True,
         verbose_name="Image"
     )

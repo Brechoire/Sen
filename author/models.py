@@ -4,6 +4,17 @@ from django.urls import reverse
 from ckeditor.fields import RichTextField
 from app.utils import get_upload_path
 
+
+def author_photo_upload_path(instance, filename):
+    """Chemin d'upload pour les photos d'auteurs"""
+    return get_upload_path(instance, filename, 'authors/')
+
+
+def empty_dict():
+    """Retourne un dictionnaire vide pour les valeurs par défaut JSONField"""
+    return {}
+
+
 class Author(models.Model):
     """Modèle pour les auteurs des Éditions Sen"""
     
@@ -20,7 +31,7 @@ class Author(models.Model):
     
     # Photo et informations visuelles
     photo = models.ImageField(
-        upload_to=lambda instance, filename: get_upload_path(instance, filename, 'authors/'),
+        upload_to=author_photo_upload_path,
         blank=True, null=True,
         verbose_name="Photo"
     )
@@ -28,7 +39,7 @@ class Author(models.Model):
     # Informations de contact (optionnelles)
     email = models.EmailField(blank=True, verbose_name="Email")
     website = models.URLField(blank=True, verbose_name="Site web")
-    social_media = models.JSONField(default=dict, blank=True, verbose_name="Réseaux sociaux")
+    social_media = models.JSONField(default=empty_dict, blank=True, verbose_name="Réseaux sociaux")
     
     # Informations éditoriales
     is_featured = models.BooleanField(default=False, verbose_name="Auteur mis en avant")

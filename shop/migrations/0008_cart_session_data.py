@@ -3,6 +3,11 @@
 from django.db import migrations, models
 
 
+def empty_dict():
+    """Retourne un dictionnaire vide pour les valeurs par défaut JSONField"""
+    return {}
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -14,7 +19,7 @@ class Migration(migrations.Migration):
             model_name="cart",
             name="session_data",
             field=models.JSONField(
-                blank=True, default=dict, verbose_name="Données de session"
+                blank=True, default=empty_dict, verbose_name="Données de session"
             ),
         ),
     ]

@@ -23,6 +23,11 @@ def book_gallery_upload_path(instance, filename):
     return get_upload_path(instance, filename, 'books/gallery/')
 
 
+def empty_dict():
+    """Retourne un dictionnaire vide pour les valeurs par défaut JSONField"""
+    return {}
+
+
 class Category(models.Model):
     """Modèle pour les catégories de livres"""
     name = models.CharField(max_length=100, verbose_name="Nom")
@@ -195,7 +200,7 @@ class Cart(models.Model):
     """Modèle pour le panier d'achat"""
     user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='carts', null=True, blank=True, verbose_name="Utilisateur")
     session_key = models.CharField(max_length=40, blank=True, null=True, verbose_name="Clé de session")
-    session_data = models.JSONField(default=dict, blank=True, verbose_name="Données de session")
+    session_data = models.JSONField(default=empty_dict, blank=True, verbose_name="Données de session")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Date de modification")
     

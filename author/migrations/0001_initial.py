@@ -4,6 +4,11 @@ import ckeditor.fields
 from django.db import migrations, models
 
 
+def empty_dict():
+    """Retourne un dictionnaire vide pour les valeurs par défaut JSONField"""
+    return {}
+
+
 class Migration(migrations.Migration):
 
     initial = True
@@ -73,7 +78,7 @@ class Migration(migrations.Migration):
                 (
                     "social_media",
                     models.JSONField(
-                        blank=True, default=dict, verbose_name="Réseaux sociaux"
+                        blank=True, default=empty_dict, verbose_name="Réseaux sociaux"
                     ),
                 ),
                 (
