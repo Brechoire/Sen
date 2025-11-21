@@ -56,8 +56,8 @@ class Book(models.Model):
     slug = models.SlugField(unique=True, verbose_name="Slug")
     subtitle = models.CharField(max_length=300, blank=True, verbose_name="Sous-titre")
     
-    # Relation avec l'auteur
-    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='books', verbose_name="Auteur")
+    # Relation avec les auteurs
+    authors = models.ManyToManyField(Author, related_name='books', verbose_name="Auteurs")
     
     # Description et contenu
     description = RichTextField(verbose_name="Description")
@@ -116,11 +116,25 @@ class Book(models.Model):
         indexes = [
             models.Index(fields=['is_available', 'is_featured']),
             models.Index(fields=['category', 'is_available']),
-            models.Index(fields=['author', 'is_available']),
         ]
     
     def __str__(self):
-        return f"{self.title} - {self.author.display_name}"
+        authors_str = self.get_authors_display()
+        return f"{self.title} - {authors_str}"
+    
+    def get_authors_display(self):
+        """Retourne la représentation textuelle des auteurs"""
+        authors = self.authors.all()
+        if not authors.exists():
+            return "Auteur inconnu"
+        if authors.count() == 1:
+            return authors.first().display_name
+        # Plusieurs auteurs : "Auteur1, Auteur2 et Auteur3"
+        author_names = [author.display_name for author in authors]
+        if len(author_names) == 2:
+            return f"{author_names[0]} et {author_names[1]}"
+        else:
+            return ", ".join(author_names[:-1]) + f" et {author_names[-1]}"
     
     def get_absolute_url(self):
         return reverse('shop:book_detail', kwargs={'slug': self.slug})
@@ -149,7 +163,8 @@ class Book(models.Model):
     
     def get_meta_title(self):
         """Retourne le titre SEO ou le titre par défaut"""
-        return self.meta_title or f"{self.title} - {self.author.display_name} | Éditions Sen"
+        authors_str = self.get_authors_display()
+        return self.meta_title or f"{self.title} - {authors_str} | Éditions Sen"
     
     def get_meta_description(self):
         """Retourne la description SEO ou la description courte"""

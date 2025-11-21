@@ -194,11 +194,15 @@ class Command(BaseCommand):
         ]
 
         for book_data in books_data:
+            # Extraire l'auteur du dictionnaire car c'est une relation ManyToMany
+            author = book_data.pop('author')
             book, created = Book.objects.get_or_create(
                 isbn=book_data['isbn'],
                 defaults=book_data
             )
             if created:
+                # Ajouter l'auteur via la relation ManyToMany
+                book.authors.add(author)
                 self.stdout.write(f'Livre créé: {book.title}')
 
         self.stdout.write(

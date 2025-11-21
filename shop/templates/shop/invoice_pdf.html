@@ -169,7 +169,7 @@
             <tr>
                 <td>
                     <strong>{{ item.book.title }}</strong><br>
-                    <small>{{ item.book.author.display_name }}</small>
+                    <small>{{ item.book.get_authors_display }}</small>
                 </td>
                 <td>{{ item.unit_price|floatformat:2 }} €</td>
                 <td>{{ item.quantity }}</td>

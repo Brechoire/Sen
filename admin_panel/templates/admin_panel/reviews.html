@@ -55,7 +55,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm font-medium text-gray-900">{{ review.book.title|truncatechars:30 }}</div>
-                                <div class="text-sm text-gray-500">Par {{ review.book.author.display_name }}</div>
+                                <div class="text-sm text-gray-500">Par {{ review.book.get_authors_display }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">

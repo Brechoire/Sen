@@ -10,7 +10,7 @@ class BookForm(forms.ModelForm):
     class Meta:
         model = Book
         fields = [
-            'title', 'slug', 'subtitle', 'author', 'description', 'short_description', 
+            'title', 'slug', 'subtitle', 'authors', 'description', 'short_description', 
             'excerpt', 'isbn', 'publication_date', 'pages', 'language', 'format',
             'cover_image', 'back_cover_image', 'price', 'discount_price', 
             'stock_quantity', 'is_available', 'is_featured', 'is_bestseller',
@@ -29,8 +29,9 @@ class BookForm(forms.ModelForm):
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
                 'placeholder': 'Sous-titre (optionnel)'
             }),
-            'author': forms.Select(attrs={
-                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
+            'authors': forms.SelectMultiple(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'size': '5'
             }),
             'description': forms.Textarea(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
@@ -109,7 +110,7 @@ class BookForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Filtrer les auteurs actifs
-        self.fields['author'].queryset = Author.objects.filter(is_active=True)
+        self.fields['authors'].queryset = Author.objects.filter(is_active=True)
         self.fields['category'].queryset = Category.objects.filter(is_active=True)
         
         # Rendre certains champs optionnels

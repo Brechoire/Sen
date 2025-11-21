@@ -52,7 +52,7 @@ class BookListView(ListView):
     paginate_by = 12
     
     def get_queryset(self):
-        queryset = Book.objects.filter(is_available=True).select_related('author', 'category')
+        queryset = Book.objects.filter(is_available=True).prefetch_related('authors').select_related('category')
         
         # Filtres avec validation
         search_query = validate_search_query(self.request.GET.get('query'))
@@ -82,10 +82,10 @@ class BookListView(ListView):
                 Q(title__icontains=search_query) |
                 Q(subtitle__icontains=search_query) |
                 Q(short_description__icontains=search_query) |
-                Q(author__first_name__icontains=search_query) |
-                Q(author__last_name__icontains=search_query) |
-                Q(author__pen_name__icontains=search_query)
-            )
+                Q(authors__first_name__icontains=search_query) |
+                Q(authors__last_name__icontains=search_query) |
+                Q(authors__pen_name__icontains=search_query)
+            ).distinct()
         
         # Filtre par catégorie
         if category_slug:
@@ -93,7 +93,7 @@ class BookListView(ListView):
         
         # Filtre par auteur
         if author_id:
-            queryset = queryset.filter(author_id=author_id)
+            queryset = queryset.filter(authors__id=author_id).distinct()
         
         # Filtre par prix
         if price_min is not None:
@@ -127,18 +127,19 @@ class BookDetailView(DetailView):
     slug_field = 'slug'
     
     def get_queryset(self):
-        return Book.objects.filter(is_available=True).select_related('author', 'category').prefetch_related('images', 'reviews')
+        return Book.objects.filter(is_available=True).select_related('category').prefetch_related('authors', 'images', 'reviews')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         book = self.get_object()
         
         # Livres similaires (même catégorie ou même auteur)
+        book_author_ids = book.authors.values_list('id', flat=True)
         similar_books = Book.objects.filter(
             is_available=True
         ).filter(
-            Q(category=book.category) | Q(author=book.author)
-        ).exclude(id=book.id)[:4]
+            Q(category=book.category) | Q(authors__in=book_author_ids)
+        ).exclude(id=book.id).distinct()[:4]
         
         # Avis approuvés
         reviews = book.reviews.filter(is_approved=True).select_related('user')
@@ -172,7 +173,7 @@ class CategoryDetailView(DetailView):
         books = Book.objects.filter(
             category=category,
             is_available=True
-        ).select_related('author').order_by('-created_at')
+        ).prefetch_related('authors').order_by('-created_at')
         
         # Pagination
         paginator = Paginator(books, 12)
@@ -360,7 +361,7 @@ def get_books_ajax(request):
     data = [{
         'id': book.id,
         'title': book.title,
-        'author': book.author.display_name,
+        'author': book.get_authors_display(),
         'price': float(book.display_price),
         'cover_url': book.cover_image.url if book.cover_image else '',
         'url': book.get_absolute_url()
@@ -606,18 +607,21 @@ def cart_summary(request):
     """Retourne un résumé du panier (pour AJAX)"""
     try:
         cart = get_or_create_cart(request)
-        cart_items = cart.items.select_related('book', 'book__author').all()[:3]  # Limiter à 3 articles pour l'aperçu
+        cart_items = cart.items.select_related('book').prefetch_related('book__authors').all()[:3]  # Limiter à 3 articles pour l'aperçu
         
         items_data = []
         for item in cart_items:
-            # Gérer le cas où l'auteur n'a pas de slug
-            author_slug = getattr(item.book.author, 'slug', None) or item.book.author.id
+            # Gérer le cas où il y a plusieurs auteurs - prendre le premier pour le slug
+            first_author = item.book.authors.first()
+            author_slug = getattr(first_author, 'slug', None) if first_author else None
+            if not author_slug and first_author:
+                author_slug = first_author.id
             
             items_data.append({
                 'id': item.book.id,
                 'slug': item.book.slug,
                 'title': item.book.title,
-                'author': item.book.author.display_name,
+                'author': item.book.get_authors_display(),
                 'author_slug': author_slug,
                 'quantity': item.quantity,
                 'unit_price': float(item.unit_price),

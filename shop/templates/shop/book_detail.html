@@ -31,11 +31,11 @@
             <!-- Images -->
             <div class="space-y-4">
                 <!-- Image principale -->
-                <div class="aspect-w-3 aspect-h-4">
+                <div class="aspect-[2/3] bg-gray-100 rounded-lg shadow-lg overflow-hidden">
                     {% if book.cover_image %}
-                        <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="w-full h-96 object-cover rounded-lg shadow-lg">
+                        <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="w-full h-full object-contain">
                     {% else %}
-                        <div class="w-full h-96 bg-gray-200 flex items-center justify-center rounded-lg shadow-lg">
+                        <div class="w-full h-full bg-gray-200 flex items-center justify-center">
                             <svg class="w-24 h-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                             </svg>
@@ -47,8 +47,8 @@
                 {% if book.images.exists %}
                 <div class="grid grid-cols-4 gap-2">
                     {% for image in book.images.all %}
-                    <div class="aspect-w-3 aspect-h-4">
-                        <img src="{{ image.image.url }}" alt="{{ image.alt_text|default:book.title }}" class="w-full h-20 object-cover rounded cursor-pointer hover:opacity-75">
+                    <div class="aspect-[2/3] bg-gray-100 rounded overflow-hidden">
+                        <img src="{{ image.image.url }}" alt="{{ image.alt_text|default:book.title }}" class="w-full h-full object-contain cursor-pointer hover:opacity-75">
                     </div>
                     {% endfor %}
                 </div>
@@ -64,7 +64,12 @@
                         <p class="text-xl text-gray-600 mb-4">{{ book.subtitle }}</p>
                     {% endif %}
                     <p class="text-lg text-gray-700">
-                        Par <a href="{{ book.author.get_absolute_url }}" class="text-primary hover:underline">{{ book.author.display_name }}</a>
+                        Par 
+                        {% for author in book.authors.all %}
+                            <a href="{{ author.get_absolute_url }}" class="text-primary hover:underline">{{ author.display_name }}</a>{% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                            <span class="text-gray-500">Auteur inconnu</span>
+                        {% endfor %}
                     </p>
                 </div>
 
@@ -241,11 +246,11 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {% for book in similar_books %}
                     <div class="text-center">
-                        <div class="aspect-w-3 aspect-h-4 mb-4">
+                        <div class="aspect-[2/3] bg-gray-100 rounded-lg mb-4 overflow-hidden">
                             {% if book.cover_image %}
-                                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="w-full h-48 object-cover rounded-lg">
+                                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="w-full h-full object-contain">
                             {% else %}
-                                <div class="w-full h-48 bg-gray-200 flex items-center justify-center rounded-lg">
+                                <div class="w-full h-full bg-gray-200 flex items-center justify-center">
                                     <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                                     </svg>
@@ -253,7 +258,7 @@
                             {% endif %}
                         </div>
                         <h3 class="font-semibold mb-2 line-clamp-2">{{ book.title }}</h3>
-                        <p class="text-gray-600 text-sm mb-2">{{ book.author.display_name }}</p>
+                        <p class="text-gray-600 text-sm mb-2">{{ book.get_authors_display }}</p>
                         <p class="text-primary font-bold">{{ book.display_price }} €</p>
                         <a href="{{ book.get_absolute_url }}" class="block mt-3 bg-primary text-white py-2 px-4 rounded hover:bg-secondary transition-colors">
                             Voir le livre

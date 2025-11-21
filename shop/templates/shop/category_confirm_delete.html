@@ -74,7 +74,7 @@
                         <p class="mb-2">Cette catégorie contient {{ object.books.count }} livre{{ object.books.count|pluralize }} :</p>
                         <ul class="list-disc list-inside space-y-1">
                             {% for book in object.books.all|slice:":5" %}
-                                <li>{{ book.title }} - {{ book.author.display_name }}</li>
+                                <li>{{ book.title }} - {{ book.get_authors_display }}</li>
                             {% endfor %}
                             {% if object.books.count > 5 %}
                                 <li>... et {{ object.books.count|add:"-5" }} autre{{ object.books.count|add:"-5"|pluralize }}</li>

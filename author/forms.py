@@ -14,47 +14,47 @@ class AuthorForm(forms.ModelForm):
         ]
         widgets = {
             'first_name': forms.TextInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors',
                 'placeholder': 'Prénom de l\'auteur'
             }),
             'last_name': forms.TextInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors',
                 'placeholder': 'Nom de l\'auteur'
             }),
             'pen_name': forms.TextInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors',
                 'placeholder': 'Nom de plume (optionnel)'
             }),
             'birth_date': forms.DateInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors',
                 'type': 'date'
             }),
             'death_date': forms.DateInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors',
                 'type': 'date'
             }),
             'short_bio': forms.Textarea(attrs={
-                'class': 'form-control',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors resize-y',
                 'rows': 3,
                 'placeholder': 'Biographie courte (500 caractères max)'
             }),
             'email': forms.EmailInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors',
                 'placeholder': 'Email de contact'
             }),
             'website': forms.URLInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors',
                 'placeholder': 'Site web personnel'
             }),
             'photo': forms.FileInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-secondary file:cursor-pointer',
                 'accept': 'image/*'
             }),
             'is_featured': forms.CheckboxInput(attrs={
-                'class': 'form-check-input'
+                'class': 'h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded'
             }),
             'is_active': forms.CheckboxInput(attrs={
-                'class': 'form-check-input'
+                'class': 'h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded'
             }),
         }
     
@@ -72,7 +72,7 @@ class AuthorForm(forms.ModelForm):
         
         # Ajouter des classes CSS pour les champs de biographie
         self.fields['biography'].widget.attrs.update({
-            'class': 'form-control'
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors resize-y'
         })
 
 class AuthorSearchForm(forms.Form):

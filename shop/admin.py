@@ -30,22 +30,22 @@ class ReviewInline(admin.TabularInline):
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
     list_display = [
-        'cover_thumbnail', 'title', 'author', 'category', 'price', 
+        'cover_thumbnail', 'title', 'authors_display', 'category', 'price', 
         'display_price', 'stock_quantity', 'is_available', 'is_featured', 
         'is_bestseller', 'created_at'
     ]
     list_filter = [
         'is_available', 'is_featured', 'is_bestseller', 'format', 
-        'category', 'author', 'created_at'
+        'category', 'authors', 'created_at'
     ]
-    search_fields = ['title', 'subtitle', 'isbn', 'author__first_name', 'author__last_name']
+    search_fields = ['title', 'subtitle', 'isbn', 'authors__first_name', 'authors__last_name']
     prepopulated_fields = {'slug': ('title',)}
     readonly_fields = ['created_at', 'updated_at']
     inlines = [BookImageInline, ReviewInline]
     
     fieldsets = (
         ('Informations générales', {
-            'fields': ('title', 'slug', 'subtitle', 'author', 'category')
+            'fields': ('title', 'slug', 'subtitle', 'authors', 'category')
         }),
         ('Description', {
             'fields': ('description', 'short_description', 'excerpt')
@@ -91,14 +91,18 @@ class BookAdmin(admin.ModelAdmin):
         return f"{obj.price:.2f} €"
     display_price.short_description = "Prix"
     
+    def authors_display(self, obj):
+        return obj.get_authors_display()
+    authors_display.short_description = "Auteurs"
+    
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related('author', 'category')
+        return super().get_queryset(request).prefetch_related('authors').select_related('category')
 
 
 @admin.register(BookImage)
 class BookImageAdmin(admin.ModelAdmin):
     list_display = ['book', 'image_thumbnail', 'alt_text', 'is_main', 'order']
-    list_filter = ['is_main', 'book__author']
+    list_filter = ['is_main']
     search_fields = ['book__title', 'alt_text']
     ordering = ['book', 'order', 'id']
     
@@ -115,7 +119,7 @@ class BookImageAdmin(admin.ModelAdmin):
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
     list_display = ['book', 'user', 'rating', 'title', 'is_approved', 'created_at']
-    list_filter = ['is_approved', 'rating', 'created_at', 'book__author']
+    list_filter = ['is_approved', 'rating', 'created_at']
     search_fields = ['book__title', 'user__username', 'title', 'comment']
     readonly_fields = ['created_at']
     ordering = ['-created_at']

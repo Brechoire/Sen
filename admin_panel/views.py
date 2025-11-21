@@ -43,7 +43,7 @@ def admin_dashboard(request):
     recent_articles = Article.objects.order_by('-created_at')[:5]
     
     # Livres récents
-    recent_books = Book.objects.select_related('author', 'category').order_by('-created_at')[:5]
+    recent_books = Book.objects.select_related('category').prefetch_related('authors').order_by('-created_at')[:5]
     
     # Auteurs récents
     recent_authors = Author.objects.order_by('-created_at')[:5]
@@ -176,15 +176,15 @@ def manage_books(request):
     if status not in allowed_status:
         status = 'all'
     
-    books = Book.objects.select_related('author', 'category').order_by('-created_at')
+    books = Book.objects.select_related('category').prefetch_related('authors').order_by('-created_at')
     
     if search:
         books = books.filter(
             Q(title__icontains=search) |
-            Q(author__first_name__icontains=search) |
-            Q(author__last_name__icontains=search) |
-            Q(author__pen_name__icontains=search)
-        )
+            Q(authors__first_name__icontains=search) |
+            Q(authors__last_name__icontains=search) |
+            Q(authors__pen_name__icontains=search)
+        ).distinct()
     
     if category != 'all':
         # Valider le slug de catégorie
@@ -994,16 +994,18 @@ def manage_books(request):
     status = request.GET.get('status', 'all')
     category = request.GET.get('category', 'all')
     
-    books = Book.objects.select_related('author', 'category').annotate(
+    books = Book.objects.select_related('category').prefetch_related('authors').annotate(
         review_count=Count('reviews')
     ).order_by('-created_at')
     
     if search:
         books = books.filter(
             Q(title__icontains=search) |
-            Q(author__name__icontains=search) |
+            Q(authors__first_name__icontains=search) |
+            Q(authors__last_name__icontains=search) |
+            Q(authors__pen_name__icontains=search) |
             Q(isbn__icontains=search)
-        )
+        ).distinct()
     
     if status == 'available':
         books = books.filter(is_available=True)

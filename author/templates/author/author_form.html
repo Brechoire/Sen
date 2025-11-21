@@ -114,7 +114,9 @@
                                     <label for="{{ form.photo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                                         {{ form.photo.label }}
                                     </label>
-                                    {{ form.photo }}
+                                    <div class="relative">
+                                        {{ form.photo }}
+                                    </div>
                                     {% if form.photo.errors %}
                                         <div class="text-red-500 text-sm mt-1">
                                             {% for error in form.photo.errors %}{{ error }}{% endfor %}
@@ -125,8 +127,8 @@
                                 {% if form.instance.photo %}
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Photo actuelle</label>
-                                    <div>
-                                        <img src="{{ form.instance.photo.url }}" alt="Photo actuelle" class="w-48 h-48 object-cover rounded-lg border border-gray-200">
+                                    <div class="relative">
+                                        <img src="{{ form.instance.photo.url }}" alt="Photo actuelle" class="w-48 h-48 object-cover rounded-lg border border-gray-200 shadow-sm">
                                     </div>
                                 </div>
                                 {% endif %}
