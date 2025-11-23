@@ -60,7 +60,7 @@ class Migration(migrations.Migration):
                 (
                     "shop_email",
                     models.EmailField(
-                        default="editions-sen@gmail.com",
+                        default="editions.sen@gmail.com",
                         max_length=254,
                         verbose_name="Email de la boutique",
                     ),
