@@ -286,8 +286,12 @@
                 <div class="space-y-6">
                     <div class="flex items-center">
                         <label class="flex items-center">
-                            {{ form.is_preorder }}
-                            <span class="ml-2 text-sm font-medium text-gray-700">{{ form.is_preorder.label }}</span>
+                            {% if 'is_preorder' in form.fields %}
+                                {{ form.is_preorder }}
+                            {% else %}
+                                <input type="checkbox" name="is_preorder" id="id_is_preorder" {% if object.is_preorder %}checked{% endif %} class="form-checkbox h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+                            {% endif %}
+                            <span class="ml-2 text-sm font-medium text-gray-700">En précommande</span>
                         </label>
                     </div>
                     
@@ -301,19 +305,33 @@
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label for="{{ form.preorder_available_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.preorder_available_date.label }} <span class="text-red-500">*</span>
+                                <label for="id_preorder_available_date" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Date de disponibilité prévue <span class="text-red-500">*</span>
                                 </label>
-                                {{ form.preorder_available_date }}
+                                {% if 'preorder_available_date' in form.fields %}
+                                    {{ form.preorder_available_date }}
+                                {% else %}
+                                    <input type="date" name="preorder_available_date" id="id_preorder_available_date" value="{% if object.preorder_available_date %}{{ object.preorder_available_date|date:'Y-m-d' }}{% endif %}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                {% endif %}
                                 <p class="text-sm text-gray-500 mt-1">Date à laquelle le livre sera disponible et expédié</p>
+                                {% if form.preorder_available_date.errors %}
+                                    <p class="text-red-600 text-sm mt-1">{{ form.preorder_available_date.errors.0 }}</p>
+                                {% endif %}
                             </div>
                             
                             <div>
-                                <label for="{{ form.preorder_max_quantity.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.preorder_max_quantity.label }}
+                                <label for="id_preorder_max_quantity" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Quantité maximale de précommandes
                                 </label>
-                                {{ form.preorder_max_quantity }}
+                                {% if 'preorder_max_quantity' in form.fields %}
+                                    {{ form.preorder_max_quantity }}
+                                {% else %}
+                                    <input type="number" name="preorder_max_quantity" id="id_preorder_max_quantity" value="{% if object.preorder_max_quantity %}{{ object.preorder_max_quantity }}{% endif %}" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Laisser vide pour illimité">
+                                {% endif %}
                                 <p class="text-sm text-gray-500 mt-1">Laisser vide pour un nombre illimité de précommandes</p>
+                                {% if form.preorder_max_quantity.errors %}
+                                    <p class="text-red-600 text-sm mt-1">{{ form.preorder_max_quantity.errors.0 }}</p>
+                                {% endif %}
                             </div>
                         </div>
                         
@@ -411,13 +429,29 @@ document.addEventListener('DOMContentLoaded', function() {
         function togglePreorderFields() {
             if (preorderCheckbox.checked) {
                 preorderFields.style.display = 'block';
+                // Rendre la date de disponibilité requise si précommande activée
+                const dateField = document.querySelector('#id_preorder_available_date');
+                if (dateField) {
+                    dateField.setAttribute('required', 'required');
+                }
             } else {
                 preorderFields.style.display = 'none';
+                // Retirer le required si précommande désactivée
+                const dateField = document.querySelector('#id_preorder_available_date');
+                if (dateField) {
+                    dateField.removeAttribute('required');
+                }
             }
         }
         
         preorderCheckbox.addEventListener('change', togglePreorderFields);
         togglePreorderFields(); // Initialiser l'état
+    } else {
+        // Debug: afficher un message si les éléments ne sont pas trouvés
+        console.warn('Champs de précommande non trouvés:', {
+            checkbox: !!preorderCheckbox,
+            fields: !!preorderFields
+        });
     }
     const titleInput = document.querySelector('#id_title');
     const slugInput = document.querySelector('#id_slug');
