@@ -262,6 +262,7 @@
                             {{ form.stock_quantity.label }} <span class="text-red-500">*</span>
                         </label>
                         {{ form.stock_quantity }}
+                        <p class="text-sm text-gray-500 mt-1">Quantité en stock (0 pour les précommandes)</p>
                     </div>
                     
                     <div class="flex items-center space-x-4">
@@ -269,6 +270,61 @@
                             {{ form.is_available }}
                             <span class="ml-2 text-sm text-gray-700">{{ form.is_available.label }}</span>
                         </label>
+                        <p class="text-xs text-gray-500">(Le livre est visible et peut être acheté/précommandé)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Précommande -->
+            <div class="bg-white rounded-lg shadow-sm border p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Précommande
+                </h2>
+                <div class="space-y-6">
+                    <div class="flex items-center">
+                        <label class="flex items-center">
+                            {{ form.is_preorder }}
+                            <span class="ml-2 text-sm font-medium text-gray-700">{{ form.is_preorder.label }}</span>
+                        </label>
+                    </div>
+                    
+                    <div id="preorder-fields" style="display: {% if object.is_preorder %}block{% else %}none{% endif %};">
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded mb-4">
+                            <p class="text-blue-800 text-sm">
+                                <strong>Information :</strong> Les clients pourront précommander ce livre. 
+                                Le paiement sera effectué immédiatement, mais la livraison sera différée jusqu'à la date de disponibilité.
+                            </p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="{{ form.preorder_available_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ form.preorder_available_date.label }} <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.preorder_available_date }}
+                                <p class="text-sm text-gray-500 mt-1">Date à laquelle le livre sera disponible et expédié</p>
+                            </div>
+                            
+                            <div>
+                                <label for="{{ form.preorder_max_quantity.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ form.preorder_max_quantity.label }}
+                                </label>
+                                {{ form.preorder_max_quantity }}
+                                <p class="text-sm text-gray-500 mt-1">Laisser vide pour un nombre illimité de précommandes</p>
+                            </div>
+                        </div>
+                        
+                        {% if object.is_preorder and object.preorder_current_quantity > 0 %}
+                        <div class="mt-4 bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
+                            <p class="text-yellow-800 text-sm">
+                                <strong>Attention :</strong> {{ object.preorder_current_quantity }} précommande(s) déjà effectuée(s) pour ce livre.
+                                Si vous modifiez la date ou désactivez la précommande, les clients seront notifiés.
+                            </p>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -347,6 +403,22 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Afficher/masquer les champs de précommande
+    const preorderCheckbox = document.querySelector('#id_is_preorder');
+    const preorderFields = document.querySelector('#preorder-fields');
+    
+    if (preorderCheckbox && preorderFields) {
+        function togglePreorderFields() {
+            if (preorderCheckbox.checked) {
+                preorderFields.style.display = 'block';
+            } else {
+                preorderFields.style.display = 'none';
+            }
+        }
+        
+        preorderCheckbox.addEventListener('change', togglePreorderFields);
+        togglePreorderFields(); // Initialiser l'état
+    }
     const titleInput = document.querySelector('#id_title');
     const slugInput = document.querySelector('#id_slug');
     

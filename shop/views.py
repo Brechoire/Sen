@@ -451,8 +451,25 @@ def add_to_cart(request, book_id):
             if quantity <= 0:
                 return JsonResponse({'error': 'La quantité doit être positive'}, status=400)
             
-            if quantity > book.stock_quantity:
-                return JsonResponse({'error': 'Stock insuffisant'}, status=400)
+            # Validation pour les précommandes
+            if book.is_preorder:
+                if not book.is_available_for_preorder():
+                    return JsonResponse({
+                        'error': 'Cette précommande n\'est plus disponible'
+                    }, status=400)
+                if not book.can_preorder(quantity):
+                    if book.preorder_max_quantity:
+                        return JsonResponse({
+                            'error': f'Il ne reste que {book.preorder_max_quantity - book.preorder_current_quantity} précommande(s) disponible(s)'
+                        }, status=400)
+                    else:
+                        return JsonResponse({
+                            'error': 'Cette précommande n\'est plus disponible'
+                        }, status=400)
+            else:
+                # Validation pour les livres normaux
+                if quantity > book.stock_quantity:
+                    return JsonResponse({'error': 'Stock insuffisant'}, status=400)
             
             cart = get_or_create_cart(request)
             
@@ -466,8 +483,21 @@ def add_to_cart(request, book_id):
             if not created:
                 # Si l'article existe déjà, ajouter la quantité
                 new_quantity = cart_item.quantity + quantity
-                if new_quantity > book.stock_quantity:
-                    return JsonResponse({'error': 'Stock insuffisant'}, status=400)
+                # Validation pour les précommandes
+                if book.is_preorder:
+                    if not book.can_preorder(new_quantity):
+                        if book.preorder_max_quantity:
+                            return JsonResponse({
+                                'error': f'Il ne reste que {book.preorder_max_quantity - book.preorder_current_quantity} précommande(s) disponible(s)'
+                            }, status=400)
+                        else:
+                            return JsonResponse({
+                                'error': 'Cette précommande n\'est plus disponible'
+                            }, status=400)
+                else:
+                    # Validation pour les livres normaux
+                    if new_quantity > book.stock_quantity:
+                        return JsonResponse({'error': 'Stock insuffisant'}, status=400)
                 cart_item.quantity = new_quantity
                 cart_item.save()
             
@@ -536,8 +566,25 @@ def update_cart_item(request, book_id):
         if quantity <= 0:
             return JsonResponse({'error': 'La quantité doit être positive'}, status=400)
         
-        if quantity > book.stock_quantity:
-            return JsonResponse({'error': 'Stock insuffisant'}, status=400)
+        # Validation pour les précommandes
+        if book.is_preorder:
+            if not book.is_available_for_preorder():
+                return JsonResponse({
+                    'error': 'Cette précommande n\'est plus disponible'
+                }, status=400)
+            if not book.can_preorder(quantity):
+                if book.preorder_max_quantity:
+                    return JsonResponse({
+                        'error': f'Il ne reste que {book.preorder_max_quantity - book.preorder_current_quantity} précommande(s) disponible(s)'
+                    }, status=400)
+                else:
+                    return JsonResponse({
+                        'error': 'Cette précommande n\'est plus disponible'
+                    }, status=400)
+        else:
+            # Validation pour les livres normaux
+            if quantity > book.stock_quantity:
+                return JsonResponse({'error': 'Stock insuffisant'}, status=400)
         
         cart = get_or_create_cart(request)
         
@@ -595,9 +642,13 @@ def cart_detail(request):
     cart = get_or_create_cart(request)
     cart_items = cart.items.select_related('book').all()
     
+    # Vérifier s'il y a au moins un article en précommande
+    has_preorder = any(item.book.is_preorder for item in cart_items)
+    
     context = {
         'cart': cart,
         'cart_items': cart_items,
+        'has_preorder': has_preorder,
     }
     
     return render(request, 'shop/cart_detail.html', context)
@@ -777,9 +828,36 @@ def checkout(request):
         if form.is_valid() and payment_form.is_valid():
             try:
                 with transaction.atomic():
+                    # Vérifier si le panier contient des précommandes
+                    has_preorder = any(item.book.is_preorder for item in cart_items)
+                    
+                    # Vérifier les quantités de précommande avant de créer la commande
+                    if has_preorder:
+                        for cart_item in cart_items:
+                            if cart_item.book.is_preorder:
+                                if not cart_item.book.can_preorder(cart_item.quantity):
+                                    messages.error(
+                                        request,
+                                        f'La quantité demandée pour "{cart_item.book.title}" dépasse '
+                                        f'le nombre de précommandes disponibles.'
+                                    )
+                                    return redirect('shop:checkout')
+                    
                     # Créer la commande
                     order = form.save(commit=False)
                     order.user = request.user
+                    
+                    # Marquer comme précommande si nécessaire
+                    if has_preorder:
+                        order.is_preorder = True
+                        # Enregistrer la date originale pour chaque livre en précommande
+                        for cart_item in cart_items:
+                            if cart_item.book.is_preorder and cart_item.book.preorder_available_date:
+                                if not order.preorder_original_date:
+                                    order.preorder_original_date = cart_item.book.preorder_available_date
+                                # Prendre la date la plus proche
+                                elif cart_item.book.preorder_available_date < order.preorder_original_date:
+                                    order.preorder_original_date = cart_item.book.preorder_available_date
                     
                     # Récupérer les paramètres de la boutique
                     shop_settings = ShopSettings.get_settings()
@@ -812,7 +890,7 @@ def checkout(request):
                     user.shipping_phone = order.shipping_phone
                     user.save()
                     
-                    # Créer les articles de commande
+                    # Créer les articles de commande et mettre à jour les compteurs de précommande
                     for cart_item in cart_items:
                         OrderItem.objects.create(
                             order=order,
@@ -821,6 +899,11 @@ def checkout(request):
                             unit_price=cart_item.unit_price,
                             total_price=cart_item.total_price
                         )
+                        
+                        # Incrémenter le compteur de précommande si nécessaire
+                        if cart_item.book.is_preorder:
+                            cart_item.book.preorder_current_quantity += cart_item.quantity
+                            cart_item.book.save(update_fields=['preorder_current_quantity'])
                     
                     # Créer le paiement
                     payment_method = payment_form.cleaned_data['payment_method']
@@ -830,6 +913,14 @@ def checkout(request):
                         amount=order.total_amount,
                         currency='EUR'
                     )
+                    
+                    # Envoyer l'email de confirmation de précommande si nécessaire
+                    if has_preorder:
+                        from shop.services.email_service import OrderEmailService
+                        try:
+                            OrderEmailService.send_preorder_confirmation_email(order)
+                        except Exception as e:
+                            logger.warning(f"Erreur envoi email confirmation précommande {order.order_number}: {e}")
                     
                     # Rediriger vers le paiement approprié
                     if payment_method == 'paypal':
@@ -875,6 +966,10 @@ def checkout(request):
     tax_amount = subtotal * (shop_settings.tax_rate / Decimal('100'))
     total_amount = subtotal + shipping_cost + tax_amount
     
+    # Vérifier si le panier contient des précommandes
+    has_preorder = any(item.book.is_preorder for item in cart_items)
+    preorder_items = [item for item in cart_items if item.book.is_preorder]
+    
     context = {
         'cart': cart,
         'cart_items': cart_items,
@@ -884,6 +979,8 @@ def checkout(request):
         'shipping_cost': shipping_cost,
         'tax_amount': tax_amount,
         'total_amount': total_amount,
+        'has_preorder': has_preorder,
+        'preorder_items': preorder_items,
     }
     
     return render(request, 'shop/checkout.html', context)

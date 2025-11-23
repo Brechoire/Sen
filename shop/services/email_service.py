@@ -1,5 +1,6 @@
 # Standard library imports
 import logging
+import time
 
 # Django imports
 from django.conf import settings
@@ -164,4 +165,147 @@ class OrderEmailService:
                 'refund_amount': order.total_amount,
             }
         )
+    
+    @staticmethod
+    def send_preorder_confirmation_email(order):
+        """Envoie un email de confirmation de précommande"""
+        subject = f"[{settings.SHOP_NAME}] Précommande confirmée - {order.order_number}"
+        # Trouver la date de disponibilité prévue depuis les articles de la commande
+        preorder_date = None
+        for item in order.items.all():
+            if item.book.is_preorder and item.book.preorder_available_date:
+                preorder_date = item.book.preorder_available_date
+                break
+        
+        return OrderEmailService._send_email(
+            order,
+            'preorder_confirmation',
+            subject,
+            {
+                'preorder_date': preorder_date,
+            }
+        )
+    
+    @staticmethod
+    def send_preorder_available_email(order):
+        """Envoie un email lorsque la précommande est disponible"""
+        subject = f"[{settings.SHOP_NAME}] Votre précommande est disponible - {order.order_number}"
+        return OrderEmailService._send_email(
+            order,
+            'preorder_available',
+            subject
+        )
+    
+    @staticmethod
+    def send_preorder_date_changed_email(order, old_date, new_date, reason=None):
+        """Envoie un email lorsque la date de précommande change"""
+        subject = f"[{settings.SHOP_NAME}] Modification de date de précommande - {order.order_number}"
+        return OrderEmailService._send_email(
+            order,
+            'preorder_date_changed',
+            subject,
+            {
+                'old_date': old_date,
+                'new_date': new_date,
+                'reason': reason or 'Non spécifiée',
+            }
+        )
+    
+    @staticmethod
+    def send_preorder_delay_notification_email(order, new_date=None, refund_option=False):
+        """Envoie un email pour informer d'un retard avec options"""
+        subject = f"[{settings.SHOP_NAME}] Retard sur votre précommande - {order.order_number}"
+        return OrderEmailService._send_email(
+            order,
+            'preorder_delay_notification',
+            subject,
+            {
+                'new_date': new_date,
+                'refund_option': refund_option,
+            }
+        )
+    
+    @staticmethod
+    def send_bulk_preorder_available_emails(
+            book, batch_size=None, delay_between_batches=None):
+        """
+        Envoie des emails groupés pour notifier que la précommande est disponible.
+        Gère les lots et délais pour respecter les limites Gmail.
+
+        Args:
+            book: Instance de Book
+            batch_size: Nombre d'emails par lot (défaut: depuis settings)
+            delay_between_batches: Délai en secondes entre les lots
+                (défaut: depuis settings)
+
+        Returns:
+            dict avec total_orders, emails_sent, emails_failed, errors
+        """
+        from shop.models import Order
+        
+        if batch_size is None:
+            batch_size = getattr(settings, 'PREORDER_EMAIL_BATCH_SIZE', 10)
+        if delay_between_batches is None:
+            delay = getattr(
+                settings, 'PREORDER_EMAIL_DELAY_BETWEEN_BATCHES', 10)
+            delay_between_batches = delay
+
+        # Récupérer toutes les précommandes pour ce livre
+        preorder_orders = Order.objects.filter(
+            is_preorder=True,
+            items__book=book
+        ).distinct().order_by('created_at')
+
+        total_orders = preorder_orders.count()
+        emails_sent = 0
+        emails_failed = 0
+        errors = []
+
+        logger.info(
+            f"Début de l'envoi groupé pour le livre {book.title}: "
+            f"{total_orders} précommandes à notifier"
+        )
+        
+        # Traiter par lots
+        for i in range(0, total_orders, batch_size):
+            batch = preorder_orders[i:i + batch_size]
+            batch_num = (i // batch_size) + 1
+            total_batches = (total_orders + batch_size - 1) // batch_size
+
+            logger.info(
+                f"Traitement du lot {batch_num}/{total_batches} "
+                f"({len(batch)} commandes)"
+            )
+            
+            # Envoyer les emails du lot
+            for order in batch:
+                try:
+                    OrderEmailService.send_preorder_available_email(order)
+                    emails_sent += 1
+                except Exception as e:
+                    emails_failed += 1
+                    error_msg = f"Erreur pour la commande {order.order_number}: {str(e)}"
+                    errors.append(error_msg)
+                    logger.error(error_msg, exc_info=True)
+            
+            # Attendre entre les lots (sauf pour le dernier)
+            if i + batch_size < total_orders:
+                logger.info(
+                    f"Pause de {delay_between_batches} secondes "
+                    f"avant le prochain lot..."
+                )
+                time.sleep(delay_between_batches)
+
+        logger.info(
+            f"Envoi groupé terminé pour {book.title}: "
+            f"{emails_sent} envoyés, {emails_failed} échecs "
+            f"sur {total_orders} total"
+        )
+        
+        return {
+            'total_orders': total_orders,
+            'emails_sent': emails_sent,
+            'emails_failed': emails_failed,
+            'errors': errors,
+        }
 

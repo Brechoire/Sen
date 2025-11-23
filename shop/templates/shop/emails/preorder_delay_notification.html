@@ -1,0 +1,51 @@
+{% extends 'shop/emails/base_email.html' %}
+
+{% block email_content %}
+<h2 style="color: #dc3545; margin-top: 0;">Retard sur votre précommande</h2>
+
+<p>Bonjour {{ order.shipping_first_name }},</p>
+
+<p>Nous vous informons qu'un retard est survenu concernant votre précommande <strong>{{ order.order_number }}</strong>.</p>
+
+<div class="order-details">
+    <h3 style="margin-top: 0; color: #2A5C4A;">Votre précommande</h3>
+    {% for item in order.items.all %}
+    <div class="order-item">
+        <strong>{{ item.book.title }}</strong><br>
+        <small>Par {{ item.book.get_authors_display }} - Quantité : {{ item.quantity }}</small>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="order-details" style="background-color: #f8d7da; border-left: 4px solid #dc3545;">
+    <h3 style="margin-top: 0; color: #721c24;">Vos options</h3>
+    <p>
+        Nous nous excusons sincèrement pour ce retard. Vous avez deux options :
+    </p>
+    <ul>
+        {% if new_date %}
+        <li><strong>Accepter la nouvelle date :</strong> {{ new_date|date:"d/m/Y" }}</li>
+        {% endif %}
+        {% if refund_option %}
+        <li><strong>Demander un remboursement immédiat :</strong> Vous serez intégralement remboursé(e) dans les plus brefs délais.</li>
+        {% endif %}
+    </ul>
+    <p style="margin-top: 15px; margin-bottom: 0;">
+        Pour choisir une de ces options, veuillez nous contacter à l'adresse suivante : 
+        <a href="mailto:{{ shop_email }}">{{ shop_email }}</a>
+    </p>
+</div>
+
+<div class="order-details" style="background-color: #d1ecf1; border-left: 4px solid #0c5460;">
+    <h3 style="margin-top: 0; color: #0c5460;">Droits du consommateur</h3>
+    <p style="margin-bottom: 0;">
+        Conformément à la réglementation, vous avez le droit d'annuler votre précommande à tout moment avant son expédition 
+        et d'obtenir un remboursement immédiat en cas de retard important.
+    </p>
+</div>
+
+<p>Nous nous excusons pour ce désagrément et restons à votre disposition pour toute question.</p>
+
+<p>L'équipe {{ shop_name }}</p>
+{% endblock %}
+

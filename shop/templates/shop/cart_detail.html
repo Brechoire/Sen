@@ -22,6 +22,16 @@
                         <div class="p-6">
                             <h2 class="text-xl font-semibold mb-6">Articles dans votre panier ({{ cart.total_items }})</h2>
                             
+                            {% if has_preorder %}
+                            <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-4 rounded">
+                                <p class="text-yellow-800 text-sm">
+                                    <strong>Information précommande :</strong> Le paiement est effectué immédiatement, 
+                                    mais la livraison sera effectuée dès que le produit sera disponible. 
+                                    Vous pouvez annuler votre précommande à tout moment avant son expédition.
+                                </p>
+                            </div>
+                            {% endif %}
+                            
                             <div class="space-y-6">
                                 {% for item in cart_items %}
                                 <div class="flex items-start space-x-4 p-4 border border-gray-200 rounded-lg">
@@ -42,8 +52,16 @@
                                     
                                     <!-- Informations du livre -->
                                     <div class="flex-1 min-w-0">
-                                        <h3 class="text-lg font-semibold text-dark mb-1">{{ item.book.title }}</h3>
+                                        <div class="flex items-start justify-between mb-1">
+                                            <h3 class="text-lg font-semibold text-dark">{{ item.book.title }}</h3>
+                                            {% if item.book.is_preorder %}
+                                            <span class="bg-blue-500 text-white px-2 py-1 rounded text-xs font-semibold ml-2 whitespace-nowrap">PRÉCOMMANDE</span>
+                                            {% endif %}
+                                        </div>
                                         <p class="text-gray-600 text-sm mb-2">{{ item.book.get_authors_display }}</p>
+                                        {% if item.book.is_preorder and item.book.preorder_available_date %}
+                                        <p class="text-sm text-blue-600 mb-2">📅 Disponible le {{ item.book.preorder_available_date|date:"d/m/Y" }}</p>
+                                        {% endif %}
                                         
                                         <!-- Prix -->
                                         <div class="flex items-center space-x-2 mb-3">

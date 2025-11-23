@@ -450,6 +450,10 @@ SHOP_NAME = os.environ.get('SHOP_NAME', 'Éditions Sen')
 SHOP_EMAIL = os.environ.get('SHOP_EMAIL', 'editions-sen@gmail.com')
 SHOP_PHONE = os.environ.get('SHOP_PHONE', '')
 
+# Configuration des précommandes - envoi groupé d'emails
+PREORDER_EMAIL_BATCH_SIZE = int(os.environ.get('PREORDER_EMAIL_BATCH_SIZE', 10))
+PREORDER_EMAIL_DELAY_BETWEEN_BATCHES = int(os.environ.get('PREORDER_EMAIL_DELAY_BETWEEN_BATCHES', 10))
+
 # Configuration des paramètres de livraison par défaut
 FREE_SHIPPING_THRESHOLD = float(
     os.environ.get('FREE_SHIPPING_THRESHOLD', 60.00)

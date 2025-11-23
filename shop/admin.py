@@ -2,7 +2,10 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+from django.contrib import messages
+from django.utils import timezone
 from .models import Book, Category, BookImage, Review, Cart, CartItem, Order, OrderItem, Payment, Refund, ShopSettings
+from .services.email_service import OrderEmailService
 
 
 @admin.register(Category)
@@ -31,17 +34,18 @@ class ReviewInline(admin.TabularInline):
 class BookAdmin(admin.ModelAdmin):
     list_display = [
         'cover_thumbnail', 'title', 'authors_display', 'category', 'price', 
-        'display_price', 'stock_quantity', 'is_available', 'is_featured', 
-        'is_bestseller', 'created_at'
+        'display_price', 'stock_quantity', 'is_available', 'is_preorder', 
+        'is_featured', 'is_bestseller', 'created_at'
     ]
     list_filter = [
-        'is_available', 'is_featured', 'is_bestseller', 'format', 
+        'is_available', 'is_preorder', 'is_featured', 'is_bestseller', 'format', 
         'category', 'authors', 'created_at'
     ]
     search_fields = ['title', 'subtitle', 'isbn', 'authors__first_name', 'authors__last_name']
     prepopulated_fields = {'slug': ('title',)}
-    readonly_fields = ['created_at', 'updated_at']
+    readonly_fields = ['created_at', 'updated_at', 'preorder_current_quantity']
     inlines = [BookImageInline, ReviewInline]
+    actions = ['mark_as_available_and_notify']
     
     fieldsets = (
         ('Informations générales', {
@@ -58,6 +62,11 @@ class BookAdmin(admin.ModelAdmin):
         }),
         ('Prix et disponibilité', {
             'fields': ('price', 'discount_price', 'stock_quantity', 'is_available')
+        }),
+        ('Précommande', {
+            'fields': ('is_preorder', 'preorder_available_date', 'preorder_max_quantity', 
+                      'preorder_current_quantity', 'preorder_original_date'),
+            'classes': ('collapse',)
         }),
         ('Mise en avant', {
             'fields': ('is_featured', 'is_bestseller')
@@ -97,6 +106,89 @@ class BookAdmin(admin.ModelAdmin):
     
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related('authors').select_related('category')
+    
+    def mark_as_available_and_notify(self, request, queryset):
+        """Action pour marquer les livres en précommande comme disponibles et notifier les clients"""
+        preorder_books = queryset.filter(is_preorder=True)
+        
+        if not preorder_books.exists():
+            self.message_user(request, "Aucun livre en précommande sélectionné.", messages.WARNING)
+            return
+        
+        total_notified = 0
+        total_errors = 0
+        
+        for book in preorder_books:
+            # Compter les précommandes
+            preorder_count = Order.objects.filter(
+                is_preorder=True,
+                items__book=book
+            ).distinct().count()
+            
+            if preorder_count == 0:
+                # Pas de précommandes, juste marquer comme disponible
+                book.is_preorder = False
+                book.save()
+                self.message_user(
+                    request,
+                    f"'{book.title}' marqué comme disponible (aucune précommande).",
+                    messages.SUCCESS
+                )
+                continue
+            
+            try:
+                # Convertir les précommandes en commandes normales
+                preorder_orders = Order.objects.filter(
+                    is_preorder=True,
+                    items__book=book
+                ).distinct().order_by('created_at')
+                
+                today = timezone.now().date()
+                converted = 0
+                
+                for order in preorder_orders:
+                    order.is_preorder = False
+                    order.preorder_ready_date = today
+                    if order.status == 'pending':
+                        order.status = 'confirmed'
+                    order.save()
+                    converted += 1
+                
+                # Mettre à jour le livre
+                book.is_preorder = False
+                if book.stock_quantity == 0:
+                    book.stock_quantity = book.preorder_current_quantity
+                book.save()
+                
+                # Envoyer les emails groupés
+                result = OrderEmailService.send_bulk_preorder_available_emails(book)
+                total_notified += result['emails_sent']
+                total_errors += result['emails_failed']
+                
+                self.message_user(
+                    request,
+                    f"'{book.title}': {converted} commande(s) convertie(s), "
+                    f"{result['emails_sent']} email(s) envoyé(s), "
+                    f"{result['emails_failed']} échec(s).",
+                    messages.SUCCESS if result['emails_failed'] == 0 else messages.WARNING
+                )
+                
+            except Exception as e:
+                self.message_user(
+                    request,
+                    f"Erreur pour '{book.title}': {str(e)}",
+                    messages.ERROR
+                )
+                total_errors += 1
+        
+        if total_notified > 0:
+            self.message_user(
+                request,
+                f"Total: {total_notified} email(s) envoyé(s), {total_errors} erreur(s).",
+                messages.SUCCESS if total_errors == 0 else messages.WARNING
+            )
+    
+    mark_as_available_and_notify.short_description = "Marquer comme disponible et notifier les précommandes"
 
 
 @admin.register(BookImage)
@@ -193,9 +285,9 @@ class OrderItemInline(admin.TabularInline):
 class OrderAdmin(admin.ModelAdmin):
     list_display = [
         'order_number', 'user', 'status', 'payment_status', 
-        'total_amount', 'created_at', 'can_be_cancelled'
+        'is_preorder', 'total_amount', 'created_at', 'can_be_cancelled'
     ]
-    list_filter = ['status', 'payment_status', 'created_at', 'shipping_country']
+    list_filter = ['status', 'payment_status', 'is_preorder', 'created_at', 'shipping_country']
     search_fields = ['order_number', 'user__username', 'user__email', 'shipping_first_name', 'shipping_last_name']
     readonly_fields = ['order_number', 'created_at', 'updated_at']
     inlines = [OrderItemInline]
@@ -218,6 +310,11 @@ class OrderAdmin(admin.ModelAdmin):
         }),
         ('Montants', {
             'fields': ('subtotal', 'shipping_cost', 'tax_amount', 'total_amount')
+        }),
+        ('Précommande', {
+            'fields': ('is_preorder', 'preorder_ready_date', 'preorder_original_date', 
+                      'preorder_date_changed', 'preorder_date_change_notified'),
+            'classes': ('collapse',)
         }),
         ('Métadonnées', {
             'fields': ('created_at', 'updated_at'),

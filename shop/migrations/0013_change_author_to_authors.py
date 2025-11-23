@@ -45,6 +45,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # Étape 0: Supprimer l'index sur author avant de supprimer le champ
+        migrations.RemoveIndex(
+            model_name="book",
+            name="shop_book_author__c28b8c_idx",
+        ),
         # Étape 1: Ajouter le nouveau champ ManyToManyField (temporairement nullable)
         migrations.AddField(
             model_name="book",

@@ -14,6 +14,11 @@
                     <p class="mt-2 text-gray-600">Passée le {{ order.created_at|date:"d F Y à H:i" }}</p>
                 </div>
                 <div class="text-right">
+                    {% if order.is_preorder %}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 mb-2 block">
+                        📦 Précommande
+                    </span>
+                    {% endif %}
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
                         {% if order.status == 'pending' %}bg-yellow-100 text-yellow-800
                         {% elif order.status == 'processing' %}bg-blue-100 text-blue-800
@@ -25,6 +30,33 @@
                     </span>
                 </div>
             </div>
+            
+            {% if order.is_preorder %}
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded mt-4">
+                <h3 class="text-blue-800 font-semibold mb-2">Informations sur votre précommande</h3>
+                {% if order.preorder_original_date %}
+                <p class="text-blue-700 text-sm mb-1">
+                    <strong>Date de disponibilité prévue :</strong> {{ order.preorder_original_date|date:"d/m/Y" }}
+                </p>
+                {% endif %}
+                {% if order.preorder_date_changed %}
+                <div class="bg-yellow-50 border border-yellow-300 p-3 rounded mt-2">
+                    <p class="text-yellow-800 text-sm font-semibold mb-1">⚠️ Date modifiée</p>
+                    {% if order.preorder_original_date %}
+                    <p class="text-yellow-700 text-sm">
+                        Date initiale : {{ order.preorder_original_date|date:"d/m/Y" }}
+                        {% if order.items.first.book.preorder_available_date and order.items.first.book.preorder_available_date != order.preorder_original_date %}
+                        → Nouvelle date : {{ order.items.first.book.preorder_available_date|date:"d/m/Y" }}
+                        {% endif %}
+                    </p>
+                    {% endif %}
+                </div>
+                {% endif %}
+                <p class="text-blue-700 text-sm mt-2">
+                    <strong>Droit d'annulation :</strong> Vous pouvez annuler votre précommande à tout moment avant son expédition.
+                </p>
+            </div>
+            {% endif %}
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">

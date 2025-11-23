@@ -1,0 +1,45 @@
+{% extends 'shop/emails/base_email.html' %}
+
+{% block email_content %}
+<h2 style="color: #2A5C4A; margin-top: 0;">Modification de date de précommande</h2>
+
+<p>Bonjour {{ order.shipping_first_name }},</p>
+
+<p>Nous vous informons que la date de disponibilité de votre précommande <strong>{{ order.order_number }}</strong> a été modifiée.</p>
+
+<div class="order-details">
+    <h3 style="margin-top: 0; color: #2A5C4A;">Détails de la modification</h3>
+    <p>
+        <strong>Ancienne date prévue :</strong> {{ old_date|date:"d/m/Y" }}<br>
+        <strong>Nouvelle date prévue :</strong> <span style="color: #2A5C4A; font-weight: bold;">{{ new_date|date:"d/m/Y" }}</span>
+    </p>
+    {% if reason %}
+    <p>
+        <strong>Raison :</strong> {{ reason }}
+    </p>
+    {% endif %}
+</div>
+
+<div class="order-details">
+    <h3 style="margin-top: 0; color: #2A5C4A;">Votre précommande</h3>
+    {% for item in order.items.all %}
+    <div class="order-item">
+        <strong>{{ item.book.title }}</strong><br>
+        <small>Par {{ item.book.get_authors_display }} - Quantité : {{ item.quantity }}</small>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="order-details" style="background-color: #fff3cd; border-left: 4px solid #ffc107;">
+    <h3 style="margin-top: 0; color: #856404;">Vos options</h3>
+    <p style="margin-bottom: 0;">
+        Si cette nouvelle date ne vous convient pas, vous pouvez annuler votre précommande à tout moment avant son expédition. 
+        Vous serez intégralement remboursé(e) dans ce cas.
+    </p>
+</div>
+
+<p>Nous nous excusons pour ce changement et vous remercions pour votre compréhension.</p>
+
+<p>L'équipe {{ shop_name }}</p>
+{% endblock %}
+

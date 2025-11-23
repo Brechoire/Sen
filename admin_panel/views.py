@@ -1442,3 +1442,85 @@ def update_invoice_status(request, invoice_id):
         messages.error(request, 'Statut invalide.')
     
     return redirect('admin_panel:invoice_detail', invoice_id=invoice.id)
+
+
+@staff_member_required
+def mark_book_available(request, book_id):
+    """Marquer un livre en précommande comme disponible et notifier les clients"""
+    book = get_object_or_404(Book, id=book_id)
+    
+    if not book.is_preorder:
+        messages.warning(request, f'Le livre "{book.title}" n\'est pas en précommande.')
+        return redirect('admin_panel:books')
+    
+    # Compter les précommandes
+    preorder_orders = Order.objects.filter(
+        is_preorder=True,
+        items__book=book
+    ).distinct().order_by('created_at')
+    
+    preorder_count = preorder_orders.count()
+    
+    if request.method == 'POST':
+        convert_orders = request.POST.get('convert_orders', 'off') == 'on'
+        
+        try:
+            today = timezone.now().date()
+            converted = 0
+            emails_sent = 0
+            emails_failed = 0
+            
+            if convert_orders:
+                # Convertir les précommandes en commandes normales
+                for order in preorder_orders:
+                    order.is_preorder = False
+                    order.preorder_ready_date = today
+                    if order.status == 'pending':
+                        order.status = 'confirmed'
+                    order.save()
+                    converted += 1
+            
+            # Mettre à jour le livre
+            book.is_preorder = False
+            if book.stock_quantity == 0:
+                book.stock_quantity = book.preorder_current_quantity
+            book.save()
+            
+            # Envoyer les emails groupés
+            if convert_orders and preorder_count > 0:
+                result = OrderEmailService.send_bulk_preorder_available_emails(book)
+                emails_sent = result['emails_sent']
+                emails_failed = result['emails_failed']
+                
+                if emails_failed > 0:
+                    messages.warning(
+                        request,
+                        f'Livre marqué comme disponible. {emails_sent} email(s) envoyé(s), '
+                        f'{emails_failed} échec(s).'
+                    )
+                else:
+                    messages.success(
+                        request,
+                        f'Livre marqué comme disponible. {converted} commande(s) convertie(s), '
+                        f'{emails_sent} email(s) envoyé(s) avec succès.'
+                    )
+            else:
+                messages.success(
+                    request,
+                    f'Livre "{book.title}" marqué comme disponible.'
+                )
+            
+            return redirect('admin_panel:books')
+            
+        except Exception as e:
+            messages.error(request, f'Erreur lors de la mise à jour: {str(e)}')
+            security_logger.error(f'Erreur mark_book_available book_id={book_id}: {e}')
+            return redirect('admin_panel:books')
+    
+    context = {
+        'book': book,
+        'preorder_count': preorder_count,
+        'preorder_orders': preorder_orders[:10],  # Afficher les 10 premières
+    }
+    
+    return render(request, 'admin_panel/mark_book_available.html', context)

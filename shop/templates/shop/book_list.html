@@ -165,7 +165,15 @@
                                 {% endif %}
                             </div>
                             <div class="p-6">
-                                <h3 class="text-lg font-semibold mb-2 line-clamp-2">{{ book.title }}</h3>
+                                <div class="flex items-start justify-between mb-2">
+                                    <h3 class="text-lg font-semibold line-clamp-2 flex-1">{{ book.title }}</h3>
+                                    {% if book.is_preorder %}
+                                    <span class="bg-blue-500 text-white px-2 py-1 rounded text-xs font-semibold ml-2 whitespace-nowrap">PRÉCOMMANDE</span>
+                                    {% endif %}
+                                </div>
+                                {% if book.is_preorder and book.preorder_available_date %}
+                                <p class="text-sm text-blue-600 mb-2">📅 Disponible le {{ book.preorder_available_date|date:"d/m/Y" }}</p>
+                                {% endif %}
                                 <p class="text-gray-600 mb-2">{{ book.get_authors_display }}</p>
                                 {% if book.category %}
                                     <p class="text-sm text-gray-500 mb-3">{{ book.category.name }}</p>
@@ -184,7 +192,7 @@
                                 <div class="flex gap-2">
                                     <button onclick="addToCart({{ book.id }})" 
                                             class="flex-1 bg-primary text-white py-2 px-3 rounded hover:bg-secondary transition-colors text-sm font-semibold">
-                                        Ajouter
+                                        {% if book.is_preorder %}Précommander{% else %}Ajouter{% endif %}
                                     </button>
                                     <a href="{{ book.get_absolute_url }}" class="flex-1 bg-gray-200 text-gray-700 text-center py-2 px-3 rounded hover:bg-gray-300 transition-colors text-sm font-semibold">
                                         Voir

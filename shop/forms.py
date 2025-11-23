@@ -13,7 +13,8 @@ class BookForm(forms.ModelForm):
             'title', 'slug', 'subtitle', 'authors', 'description', 'short_description', 
             'excerpt', 'isbn', 'publication_date', 'pages', 'language', 'format',
             'cover_image', 'back_cover_image', 'price', 'discount_price', 
-            'stock_quantity', 'is_available', 'is_featured', 'is_bestseller',
+            'stock_quantity', 'is_available', 'is_preorder', 'preorder_available_date',
+            'preorder_max_quantity', 'is_featured', 'is_bestseller',
             'category', 'meta_title', 'meta_description', 'keywords'
         ]
         widgets = {
@@ -89,6 +90,15 @@ class BookForm(forms.ModelForm):
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
                 'min': '0'
             }),
+            'preorder_available_date': forms.DateInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'type': 'date'
+            }),
+            'preorder_max_quantity': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'min': '0',
+                'placeholder': 'Laisser vide pour illimité'
+            }),
             'category': forms.Select(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
             }),
@@ -123,6 +133,12 @@ class BookForm(forms.ModelForm):
         self.fields['meta_title'].required = False
         self.fields['meta_description'].required = False
         self.fields['keywords'].required = False
+        self.fields['preorder_available_date'].required = False
+        self.fields['preorder_max_quantity'].required = False
+        
+        # Si c'est une précommande, la date de disponibilité devient requise
+        if self.instance and self.instance.is_preorder:
+            self.fields['preorder_available_date'].required = True
     
     def clean_discount_price(self):
         """Valide que le prix de promotion est inférieur au prix normal"""
@@ -147,6 +163,19 @@ class BookForm(forms.ModelForm):
         if meta_description and len(meta_description) > 300:
             raise ValidationError("La description SEO ne peut pas dépasser 300 caractères.")
         return meta_description
+    
+    def clean(self):
+        """Valide les champs de précommande"""
+        cleaned_data = super().clean()
+        is_preorder = cleaned_data.get('is_preorder', False)
+        preorder_available_date = cleaned_data.get('preorder_available_date')
+        
+        if is_preorder and not preorder_available_date:
+            raise ValidationError({
+                'preorder_available_date': 'La date de disponibilité est requise pour une précommande.'
+            })
+        
+        return cleaned_data
 
 
 class CategoryForm(forms.ModelForm):

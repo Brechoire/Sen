@@ -43,6 +43,7 @@ urlpatterns = [
     path('livres/<int:book_id>/modifier/', views.edit_book, name='edit_book'),
     path('livres/<int:book_id>/toggle/', views.toggle_book, name='toggle_book'),
     path('livres/<int:book_id>/supprimer/', views.delete_book, name='delete_book'),
+    path('livres/<int:book_id>/marquer-disponible/', views.mark_book_available, name='mark_book_available'),
     
     # Actions sur les auteurs
     path('auteurs/<int:author_id>/toggle/', views.toggle_author_status, name='toggle_author'),

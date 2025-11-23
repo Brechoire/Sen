@@ -97,6 +97,13 @@ class Book(models.Model):
     is_featured = models.BooleanField(default=False, verbose_name="Mis en avant")
     is_bestseller = models.BooleanField(default=False, verbose_name="Best-seller")
     
+    # Précommande
+    is_preorder = models.BooleanField(default=False, verbose_name="En précommande")
+    preorder_available_date = models.DateField(null=True, blank=True, verbose_name="Date de disponibilité prévue")
+    preorder_max_quantity = models.PositiveIntegerField(null=True, blank=True, verbose_name="Quantité maximale de précommandes (None = illimité)")
+    preorder_current_quantity = models.PositiveIntegerField(default=0, verbose_name="Nombre de précommandes effectuées")
+    preorder_original_date = models.DateField(null=True, blank=True, verbose_name="Date originale de précommande")
+    
     # Catégorie
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='books', verbose_name="Catégorie")
     
@@ -159,7 +166,30 @@ class Book(models.Model):
     @property
     def in_stock(self):
         """Vérifie si le livre est en stock"""
+        if self.is_preorder:
+            return True  # Les précommandes sont considérées comme disponibles
         return self.stock_quantity > 0 and self.is_available
+    
+    def is_available_for_preorder(self):
+        """Vérifie si la précommande est encore ouverte (date future et stock disponible)"""
+        if not self.is_preorder:
+            return False
+        from django.utils import timezone
+        if self.preorder_available_date and self.preorder_available_date <= timezone.now().date():
+            return False
+        if self.preorder_max_quantity is not None:
+            return self.preorder_current_quantity < self.preorder_max_quantity
+        return True
+    
+    def can_preorder(self, quantity=1):
+        """Vérifie si une quantité peut être précommandée"""
+        if not self.is_preorder:
+            return False
+        if not self.is_available_for_preorder():
+            return False
+        if self.preorder_max_quantity is not None:
+            return (self.preorder_current_quantity + quantity) <= self.preorder_max_quantity
+        return True
     
     def get_meta_title(self):
         """Retourne le titre SEO ou le titre par défaut"""
@@ -368,6 +398,13 @@ class Order(models.Model):
         verbose_name="Date de consultation par l'admin"
     )
     
+    # Précommande
+    is_preorder = models.BooleanField(default=False, verbose_name="Commande de précommande")
+    preorder_ready_date = models.DateField(null=True, blank=True, verbose_name="Date où la précommande est devenue disponible")
+    preorder_original_date = models.DateField(null=True, blank=True, verbose_name="Date initiale promise pour la précommande")
+    preorder_date_changed = models.BooleanField(default=False, verbose_name="Date de précommande modifiée")
+    preorder_date_change_notified = models.BooleanField(default=False, verbose_name="Client notifié du changement de date")
+    
     class Meta:
         verbose_name = "Commande"
         verbose_name_plural = "Commandes"
@@ -399,6 +436,9 @@ class Order(models.Model):
     @property
     def can_be_cancelled(self):
         """Vérifie si la commande peut être annulée"""
+        # Les précommandes peuvent être annulées avant expédition
+        if self.is_preorder and self.status not in ['shipped', 'delivered', 'cancelled', 'refunded']:
+            return True
         return self.status in ['pending', 'processing']
     
     def update_status(self, new_status, admin_notes=None, changed_by=None):
