@@ -1,0 +1,44 @@
+{% extends 'shop/emails/base_email.html' %}
+
+{% block email_content %}
+<h2 style="color: #d32f2f; margin-top: 0;">Commande annulée</h2>
+
+<p>Bonjour {{ order.shipping_first_name }},</p>
+
+<p>Nous vous informons que votre commande <strong>{{ order.order_number }}</strong> a été annulée.</p>
+
+{% if reason %}
+<div class="order-details" style="background-color: #ffebee; border-left: 4px solid #d32f2f;">
+    <h3 style="margin-top: 0; color: #d32f2f;">Raison de l'annulation</h3>
+    <p>{{ reason }}</p>
+</div>
+{% endif %}
+
+<div class="order-details">
+    <h3 style="margin-top: 0; color: #2A5C4A;">Récapitulatif de la commande annulée</h3>
+    {% for item in order.items.all %}
+    <div class="order-item">
+        <strong>{{ item.book.title }}</strong><br>
+        <small>Par {{ item.book.get_authors_display }} - Quantité : {{ item.quantity }} - {{ item.price|floatformat:2 }} €</small>
+    </div>
+    {% endfor %}
+    
+    <div class="order-summary">
+        <div class="order-summary-row order-summary-total">
+            <span>Montant total :</span>
+            <span>{{ order.total_amount|floatformat:2 }} €</span>
+        </div>
+    </div>
+</div>
+
+{% if order.payment_status == 'paid' %}
+<p><strong>Remboursement :</strong> Si un paiement a été effectué, le remboursement sera traité dans les 5 à 10 jours ouvrés selon votre méthode de paiement.</p>
+{% endif %}
+
+<p>Si vous avez des questions concernant cette annulation, n'hésitez pas à nous contacter.</p>
+
+<p>Nous sommes désolés pour tout désagrément que cela pourrait causer.</p>
+
+<p>L'équipe {{ shop_name }}</p>
+{% endblock %}
+

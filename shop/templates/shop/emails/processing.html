@@ -1,0 +1,28 @@
+{% extends 'shop/emails/base_email.html' %}
+
+{% block email_content %}
+<h2 style="color: #2A5C4A; margin-top: 0;">Votre commande est en cours de traitement</h2>
+
+<p>Bonjour {{ order.shipping_first_name }},</p>
+
+<p>Nous vous informons que votre commande <strong>{{ order.order_number }}</strong> est actuellement en cours de traitement.</p>
+
+<div class="order-details">
+    <h3 style="margin-top: 0; color: #2A5C4A;">Récapitulatif de votre commande</h3>
+    {% for item in order.items.all %}
+    <div class="order-item">
+        <strong>{{ item.book.title }}</strong><br>
+        <small>Par {{ item.book.get_authors_display }} - Quantité : {{ item.quantity }}</small>
+    </div>
+    {% endfor %}
+</div>
+
+<p>Notre équipe prépare votre commande avec soin. Vous recevrez un email de confirmation dès que votre colis sera expédié.</p>
+
+<p>Délai de traitement estimé : 2 à 5 jours ouvrés</p>
+
+<p>Merci pour votre patience !</p>
+
+<p>L'équipe {{ shop_name }}</p>
+{% endblock %}
+

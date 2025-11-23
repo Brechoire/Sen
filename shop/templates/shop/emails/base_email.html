@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block email_title %}{{ shop_name }}{% endblock %}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .email-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .email-header {
+            background-color: #2A5C4A;
+            color: #ffffff;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .email-header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .email-body {
+            padding: 30px 20px;
+        }
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #e0e0e0;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #2A5C4A;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .order-details {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .order-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .order-item:last-child {
+            border-bottom: none;
+        }
+        .order-summary {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #2A5C4A;
+        }
+        .order-summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+        }
+        .order-summary-total {
+            font-weight: bold;
+            font-size: 18px;
+            color: #2A5C4A;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>{{ shop_name }}</h1>
+        </div>
+        
+        <div class="email-body">
+            {% block email_content %}{% endblock %}
+        </div>
+        
+        <div class="email-footer">
+            <p><strong>{{ shop_name }}</strong></p>
+            {% if shop_email %}<p>Email : {{ shop_email }}</p>{% endif %}
+            {% if shop_phone %}<p>Téléphone : {{ shop_phone }}</p>{% endif %}
+            <p style="margin-top: 15px; color: #999;">
+                Cet email a été envoyé automatiquement, merci de ne pas y répondre directement.<br>
+                Pour toute question, contactez-nous via notre site web.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+

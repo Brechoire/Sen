@@ -1,0 +1,43 @@
+{% extends 'shop/emails/base_email.html' %}
+
+{% block email_content %}
+<h2 style="color: #2A5C4A; margin-top: 0;">Votre commande a été expédiée</h2>
+
+<p>Bonjour {{ order.shipping_first_name }},</p>
+
+<p>Excellente nouvelle ! Votre commande <strong>{{ order.order_number }}</strong> a été expédiée.</p>
+
+{% if tracking_number %}
+<div class="order-details" style="background-color: #e8f5e9; border-left: 4px solid #2A5C4A;">
+    <h3 style="margin-top: 0; color: #2A5C4A;">Informations de suivi</h3>
+    <p><strong>Numéro de suivi :</strong> {{ tracking_number }}</p>
+    {% if carrier %}
+    <p><strong>Transporteur :</strong> {{ carrier }}</p>
+    {% endif %}
+    {% if estimated_delivery %}
+    <p><strong>Livraison estimée :</strong> {{ estimated_delivery|date:"d/m/Y" }}</p>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="order-details">
+    <h3 style="margin-top: 0; color: #2A5C4A;">Adresse de livraison</h3>
+    <p>
+        {{ order.shipping_first_name }} {{ order.shipping_last_name }}<br>
+        {{ order.shipping_address }}<br>
+        {{ order.shipping_postal_code }} {{ order.shipping_city }}<br>
+        {{ order.shipping_country }}
+    </p>
+</div>
+
+{% if tracking_number %}
+<p>Vous pouvez suivre l'acheminement de votre colis en utilisant le numéro de suivi ci-dessus sur le site du transporteur.</p>
+{% endif %}
+
+<p>Vous recevrez un email de confirmation dès que votre colis sera livré.</p>
+
+<p>Merci pour votre commande !</p>
+
+<p>L'équipe {{ shop_name }}</p>
+{% endblock %}
+

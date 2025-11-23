@@ -16,6 +16,7 @@ from django.contrib.auth.decorators import login_required
 # Project imports
 from .models import Order, Payment
 from .services import CartService
+from .services.email_service import OrderEmailService
 
 logger = logging.getLogger(__name__)
 
@@ -223,6 +224,12 @@ def capture_paypal_order(request):
             # Vider le panier de l'utilisateur après paiement réussi
             CartService.clear_cart(order.user)
             
+            # Envoyer l'email de confirmation de paiement
+            try:
+                OrderEmailService.send_payment_confirmed_email(order)
+            except Exception as e:
+                logger.error(f"Erreur lors de l'envoi de l'email de confirmation de paiement: {e}")
+            
             # Logger le paiement PayPal réussi
             security_logger = logging.getLogger('security')
             security_logger.info(
@@ -299,6 +306,12 @@ def capture_paypal_order_by_token(paypal_order_id):
                 
                 # Vider le panier de l'utilisateur après paiement réussi
                 CartService.clear_cart(order.user)
+                
+                # Envoyer l'email de confirmation de paiement
+                try:
+                    OrderEmailService.send_payment_confirmed_email(order)
+                except Exception as e:
+                    logger.error(f"Erreur lors de l'envoi de l'email de confirmation de paiement: {e}")
                 
                 # Logger le paiement PayPal réussi
                 security_logger = logging.getLogger('security')

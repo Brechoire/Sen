@@ -1,0 +1,40 @@
+{% extends 'shop/emails/base_email.html' %}
+
+{% block email_content %}
+<h2 style="color: #2A5C4A; margin-top: 0;">Votre commande a été livrée</h2>
+
+<p>Bonjour {{ order.shipping_first_name }},</p>
+
+<p>Votre commande <strong>{{ order.order_number }}</strong> a été livrée avec succès.</p>
+
+{% if delivery_date %}
+<div class="order-details" style="background-color: #e8f5e9; border-left: 4px solid #2A5C4A;">
+    <p><strong>Date de livraison :</strong> 
+    {% if delivery_date|date:"Y-m-d" %}
+        {{ delivery_date|date:"d/m/Y" }}
+    {% else %}
+        {{ delivery_date }}
+    {% endif %}
+    </p>
+</div>
+{% endif %}
+
+<div class="order-details">
+    <h3 style="margin-top: 0; color: #2A5C4A;">Récapitulatif de votre commande</h3>
+    {% for item in order.items.all %}
+    <div class="order-item">
+        <strong>{{ item.book.title }}</strong><br>
+        <small>Par {{ item.book.get_authors_display }} - Quantité : {{ item.quantity }}</small>
+    </div>
+    {% endfor %}
+</div>
+
+<p>Nous espérons que vous serez satisfait(e) de votre achat !</p>
+
+<p>Si vous avez des questions ou des préoccupations concernant votre commande, n'hésitez pas à nous contacter.</p>
+
+<p>Merci d'avoir choisi {{ shop_name }} !</p>
+
+<p>L'équipe {{ shop_name }}</p>
+{% endblock %}
+

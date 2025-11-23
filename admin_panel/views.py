@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from django.http import JsonResponse
 from django.conf import settings
 import os
+import logging
 
 from app.utils.validation import validate_search_query, validate_id
 
@@ -15,10 +16,14 @@ from news.models import Article
 from author.models import Author
 from shop.models import Book, Category, Cart, Review, ShopSettings, Refund, LoyaltyProgram, PromoCode, UserLoyaltyStatus, PromoCodeUse, Order, Invoice, OrderStatusHistory
 from shop.forms import ShopSettingsForm, BookForm
+from shop.services.email_service import OrderEmailService
 from home.models import SocialMediaSettings
 from home.forms import SocialMediaSettingsForm
 from accounts.models import User
 from .utils import get_unread_confirmed_orders_count
+
+# Logger pour les événements de sécurité
+security_logger = logging.getLogger('security')
 
 
 @staff_member_required
@@ -1237,6 +1242,23 @@ def update_order_status(request, order_id):
                 f"admin_email={request.user.email}"
             )
             
+            # Envoyer un email selon le nouveau statut
+            try:
+                if new_status == 'confirmed':
+                    OrderEmailService.send_order_confirmed_email(order)
+                elif new_status == 'processing':
+                    OrderEmailService.send_processing_email(order)
+                elif new_status == 'shipped':
+                    OrderEmailService.send_shipped_email(order)
+                elif new_status == 'delivered':
+                    OrderEmailService.send_delivered_email(order)
+                elif new_status == 'cancelled':
+                    OrderEmailService.send_cancelled_email(order, reason=admin_notes)
+                elif new_status == 'refunded':
+                    OrderEmailService.send_refunded_email(order)
+            except Exception as e:
+                logging.getLogger(__name__).error(f"Erreur lors de l'envoi de l'email pour le changement de statut: {e}")
+            
             messages.success(
                 request,
                 f'Statut de la commande {order.order_number} mis à jour: '
@@ -1270,6 +1292,13 @@ def update_tracking_info(request, order_id):
                 return redirect('admin_panel:order_detail', order_id=order.id)
         
         order.save()
+        
+        # Si le statut est "shipped", envoyer l'email d'expédition avec le numéro de suivi
+        if order.status == 'shipped':
+            try:
+                OrderEmailService.send_shipped_email(order, tracking_number=tracking_number or order.tracking_number)
+            except Exception as e:
+                logging.getLogger(__name__).error(f"Erreur lors de l'envoi de l'email d'expédition: {e}")
         
         # Ajouter une note dans l'historique
         if tracking_number or carrier or estimated_delivery:
@@ -1321,6 +1350,13 @@ def update_payment_status(request, order_id):
             if new_payment_status == 'paid' and order.status == 'pending':
                 order.update_status('processing', admin_notes="Paiement confirmé - Passage en cours de traitement", changed_by=request.user)
             
+            # Envoyer un email si le paiement est confirmé manuellement
+            if new_payment_status == 'paid' and old_status != 'paid':
+                try:
+                    OrderEmailService.send_payment_confirmed_email(order)
+                except Exception as e:
+                    logging.getLogger(__name__).error(f"Erreur lors de l'envoi de l'email de confirmation de paiement: {e}")
+            
             # Enregistrer dans l'historique
             OrderStatusHistory.objects.create(
                 order=order,
@@ -1370,6 +1406,12 @@ def cancel_order(request, order_id):
                     changed_by=request.user,
                     notes=f"Paiement marqué comme échoué suite à l'annulation"
                 )
+            
+            # Envoyer l'email d'annulation
+            try:
+                OrderEmailService.send_cancelled_email(order, reason=reason)
+            except Exception as e:
+                logging.getLogger(__name__).error(f"Erreur lors de l'envoi de l'email d'annulation: {e}")
             
             messages.success(request, f'Commande {order.order_number} annulée avec succès: {old_status} → {new_status}', extra_tags='order_cancelled')
             

@@ -1,0 +1,72 @@
+{% extends 'shop/emails/base_email.html' %}
+
+{% block email_content %}
+<h2 style="color: #2A5C4A; margin-top: 0;">Paiement confirmé</h2>
+
+<p>Bonjour {{ order.shipping_first_name }},</p>
+
+<p>Nous avons bien reçu votre paiement pour la commande <strong>{{ order.order_number }}</strong>.</p>
+
+<div class="order-details">
+    <h3 style="margin-top: 0; color: #2A5C4A;">Détails du paiement</h3>
+    <div class="order-summary-row">
+        <span>Méthode de paiement :</span>
+        <strong>{{ payment_method }}</strong>
+    </div>
+    <div class="order-summary-row">
+        <span>Montant payé :</span>
+        <strong>{{ amount|floatformat:2 }} €</strong>
+    </div>
+</div>
+
+<div class="order-details">
+    <h3 style="margin-top: 0; color: #2A5C4A;">Récapitulatif de votre commande</h3>
+    {% for item in order.items.all %}
+    <div class="order-item">
+        <strong>{{ item.book.title }}</strong><br>
+        <small>Par {{ item.book.get_authors_display }} - Quantité : {{ item.quantity }} - {{ item.price|floatformat:2 }} €</small>
+    </div>
+    {% endfor %}
+    
+    <div class="order-summary">
+        <div class="order-summary-row">
+            <span>Sous-total :</span>
+            <span>{{ order.subtotal|floatformat:2 }} €</span>
+        </div>
+        {% if order.shipping_cost > 0 %}
+        <div class="order-summary-row">
+            <span>Frais de port :</span>
+            <span>{{ order.shipping_cost|floatformat:2 }} €</span>
+        </div>
+        {% else %}
+        <div class="order-summary-row">
+            <span>Frais de port :</span>
+            <span>Gratuit</span>
+        </div>
+        {% endif %}
+        <div class="order-summary-row order-summary-total">
+            <span>Total TTC :</span>
+            <span>{{ order.total_amount|floatformat:2 }} €</span>
+        </div>
+    </div>
+</div>
+
+<div class="order-details">
+    <h3 style="margin-top: 0; color: #2A5C4A;">Adresse de livraison</h3>
+    <p>
+        {{ order.shipping_first_name }} {{ order.shipping_last_name }}<br>
+        {{ order.shipping_address }}<br>
+        {{ order.shipping_postal_code }} {{ order.shipping_city }}<br>
+        {{ order.shipping_country }}
+    </p>
+</div>
+
+<p>Votre commande va maintenant être préparée et expédiée dans les plus brefs délais.</p>
+
+<p>Vous recevrez un email de confirmation dès que votre commande sera expédiée.</p>
+
+<p>Merci pour votre confiance !</p>
+
+<p>L'équipe {{ shop_name }}</p>
+{% endblock %}
+

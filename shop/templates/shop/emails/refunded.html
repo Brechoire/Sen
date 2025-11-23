@@ -1,0 +1,37 @@
+{% extends 'shop/emails/base_email.html' %}
+
+{% block email_content %}
+<h2 style="color: #2A5C4A; margin-top: 0;">Remboursement effectué</h2>
+
+<p>Bonjour {{ order.shipping_first_name }},</p>
+
+<p>Nous vous informons que le remboursement pour votre commande <strong>{{ order.order_number }}</strong> a été effectué.</p>
+
+<div class="order-details" style="background-color: #e8f5e9; border-left: 4px solid #2A5C4A;">
+    <h3 style="margin-top: 0; color: #2A5C4A;">Détails du remboursement</h3>
+    <div class="order-summary-row">
+        <span>Montant remboursé :</span>
+        <strong style="color: #2A5C4A;">{{ refund_amount|floatformat:2 }} €</strong>
+    </div>
+    <p style="margin-top: 15px; font-size: 14px;">
+        Le remboursement sera crédité sur votre compte dans un délai de 5 à 10 jours ouvrés selon votre méthode de paiement.
+    </p>
+</div>
+
+<div class="order-details">
+    <h3 style="margin-top: 0; color: #2A5C4A;">Récapitulatif de la commande</h3>
+    {% for item in order.items.all %}
+    <div class="order-item">
+        <strong>{{ item.book.title }}</strong><br>
+        <small>Par {{ item.book.get_authors_display }} - Quantité : {{ item.quantity }}</small>
+    </div>
+    {% endfor %}
+</div>
+
+<p>Si vous avez des questions concernant ce remboursement, n'hésitez pas à nous contacter.</p>
+
+<p>Merci pour votre compréhension.</p>
+
+<p>L'équipe {{ shop_name }}</p>
+{% endblock %}
+
