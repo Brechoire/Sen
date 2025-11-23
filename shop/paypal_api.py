@@ -252,6 +252,83 @@ def capture_paypal_order(request):
         return JsonResponse({'error': 'Erreur interne du serveur'}, status=500)
 
 
+def capture_paypal_order_by_token(paypal_order_id):
+    """
+    Capture un paiement PayPal à partir de l'ID de commande PayPal.
+    Utilisé lors du retour depuis PayPal (redirection directe).
+    
+    Returns:
+        tuple: (success: bool, order: Order or None, error_message: str or None)
+    """
+    try:
+        # Récupérer le token d'accès
+        access_token = get_paypal_access_token()
+        if not access_token:
+            return False, None, "Impossible de récupérer le token PayPal"
+        
+        # URL selon le mode
+        if settings.PAYPAL_MODE == "sandbox":
+            capture_url = f"https://api.sandbox.paypal.com/v2/checkout/orders/{paypal_order_id}/capture"
+        else:
+            capture_url = f"https://api.paypal.com/v2/checkout/orders/{paypal_order_id}/capture"
+        
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {access_token}"
+        }
+        
+        response = requests.post(capture_url, headers=headers)
+        response.raise_for_status()
+        
+        capture_data = response.json()
+        
+        # Mettre à jour la commande si le paiement est réussi
+        if capture_data.get('status') == 'COMPLETED':
+            # Trouver la commande par l'ID PayPal
+            try:
+                payment = Payment.objects.get(paypal_payment_id=paypal_order_id)
+                order = payment.order
+                
+                # Mettre à jour le statut
+                order.payment_status = 'paid'
+                order.status = 'confirmed'
+                order.save()
+                
+                payment.status = 'completed'
+                payment.save()
+                
+                # Vider le panier de l'utilisateur après paiement réussi
+                CartService.clear_cart(order.user)
+                
+                # Logger le paiement PayPal réussi
+                security_logger = logging.getLogger('security')
+                security_logger.info(
+                    f"Paiement PayPal capturé: order_id={order.id}, "
+                    f"order_number={order.order_number}, "
+                    f"paypal_order_id={paypal_order_id}, "
+                    f"user_id={order.user.id}, "
+                    f"user_email={order.user.email}, "
+                    f"amount={order.total_amount}"
+                )
+                
+                logger.info(
+                    f"Paiement PayPal capturé avec succès pour la commande {order.id}"
+                )
+                
+                return True, order, None
+            except Payment.DoesNotExist:
+                return False, None, "Paiement non trouvé pour cet ID PayPal"
+        
+        return False, None, f"Statut PayPal: {capture_data.get('status', 'inconnu')}"
+        
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Erreur API PayPal lors de la capture: {e}")
+        return False, None, f"Erreur lors de la capture du paiement: {str(e)}"
+    except Exception as e:
+        logger.error(f"Erreur inattendue lors de la capture: {e}")
+        return False, None, f"Erreur interne: {str(e)}"
+
+
 def process_paypal_refund(refund):
     """Traite un remboursement PayPal"""
     try:

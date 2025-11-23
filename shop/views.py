@@ -38,7 +38,7 @@ from .forms import (
 from .services import (
     PromoCodeService, LoyaltyService, DiscountService, CartService
 )
-from .paypal_api import create_paypal_order, capture_paypal_order
+from .paypal_api import create_paypal_order, capture_paypal_order, capture_paypal_order_by_token
 from author.models import Author
 
 logger = logging.getLogger(__name__)
@@ -910,10 +910,71 @@ def paypal_payment(request, order_id):
 @login_required
 def paypal_success(request):
     """Vue appelée après un paiement PayPal réussi"""
-    # S'assurer que le panier est vidé après un paiement réussi
-    CartService.clear_cart(request.user)
+    # Récupérer le token PayPal depuis l'URL (paramètres possibles: 'token', 'PayerID', etc.)
+    paypal_token = request.GET.get('token') or request.GET.get('PayerID')
     
-    messages.success(request, 'Paiement effectué avec succès ! Votre commande est en cours de traitement.')
+    if paypal_token:
+        # Capturer le paiement PayPal
+        success, order, error_message = capture_paypal_order_by_token(paypal_token)
+        
+        if success and order:
+            # Vérifier que la commande appartient à l'utilisateur
+            if order.user != request.user:
+                messages.error(request, 'Erreur : cette commande ne vous appartient pas.')
+                return redirect('shop:order_list')
+            
+            messages.success(request, 'Paiement effectué avec succès ! Votre commande est en cours de traitement.')
+        else:
+            # Si la capture a échoué, vérifier si le paiement a déjà été capturé
+            try:
+                payment = Payment.objects.get(paypal_payment_id=paypal_token)
+                if payment.status == 'completed':
+                    messages.success(request, 'Paiement déjà traité avec succès !')
+                else:
+                    messages.warning(request, f'Erreur lors du traitement du paiement: {error_message or "Erreur inconnue"}')
+            except Payment.DoesNotExist:
+                # Essayer de trouver une commande en attente pour cet utilisateur
+                pending_order = Order.objects.filter(
+                    user=request.user,
+                    payment_status='pending',
+                    payment__method='paypal'
+                ).order_by('-created_at').first()
+                
+                if pending_order and pending_order.payment.paypal_payment_id:
+                    # Essayer de capturer avec l'ID PayPal de la commande en attente
+                    success, order, error_message = capture_paypal_order_by_token(
+                        pending_order.payment.paypal_payment_id
+                    )
+                    if success and order:
+                        messages.success(request, 'Paiement effectué avec succès ! Votre commande est en cours de traitement.')
+                    else:
+                        messages.warning(request, 'Paiement non trouvé. Veuillez contacter le support si le paiement a été effectué.')
+                else:
+                    messages.warning(request, 'Paiement non trouvé. Veuillez contacter le support si le paiement a été effectué.')
+    else:
+        # Pas de token dans l'URL, essayer de trouver une commande en attente
+        pending_order = Order.objects.filter(
+            user=request.user,
+            payment_status='pending',
+            payment__method='paypal',
+            payment__paypal_payment_id__isnull=False
+        ).order_by('-created_at').first()
+        
+        if pending_order:
+            # Essayer de capturer avec l'ID PayPal de la commande en attente
+            success, order, error_message = capture_paypal_order_by_token(
+                pending_order.payment.paypal_payment_id
+            )
+            if success and order:
+                messages.success(request, 'Paiement effectué avec succès ! Votre commande est en cours de traitement.')
+            else:
+                CartService.clear_cart(request.user)
+                messages.info(request, 'Retour depuis PayPal. Si le paiement a été effectué, votre commande sera mise à jour.')
+        else:
+            # Vider le panier par sécurité
+            CartService.clear_cart(request.user)
+            messages.info(request, 'Retour depuis PayPal. Si le paiement a été effectué, votre commande sera mise à jour.')
+    
     return redirect('shop:order_list')
 
 
