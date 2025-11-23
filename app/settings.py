@@ -442,12 +442,12 @@ DEFAULT_FROM_EMAIL = os.environ.get(
     'DEFAULT_FROM_EMAIL', 'noreply@editionssen.fr'
 )
 CONTACT_EMAIL = os.environ.get(
-    'CONTACT_EMAIL', 'contact@editionssen.fr'
+    'CONTACT_EMAIL', 'editions-sen@gmail.com'
 )
 
 # Configuration de la boutique
 SHOP_NAME = os.environ.get('SHOP_NAME', 'Éditions Sen')
-SHOP_EMAIL = os.environ.get('SHOP_EMAIL', 'contact@editions-sen.com')
+SHOP_EMAIL = os.environ.get('SHOP_EMAIL', 'editions-sen@gmail.com')
 SHOP_PHONE = os.environ.get('SHOP_PHONE', '')
 
 # Configuration des paramètres de livraison par défaut

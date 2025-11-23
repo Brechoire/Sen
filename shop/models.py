@@ -1160,7 +1160,7 @@ class ShopSettings(models.Model):
         verbose_name="Nom de la boutique"
     )
     shop_email = models.EmailField(
-        default="contact@editions-sen.com",
+        default="editions-sen@gmail.com",
         verbose_name="Email de la boutique"
     )
     shop_phone = models.CharField(
