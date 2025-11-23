@@ -222,10 +222,40 @@ document.addEventListener('DOMContentLoaded', function() {
             shape: 'rect',
             label: 'paypal'
         },
-        // Empêcher l'ouverture de popups inutiles (fenêtre noire)
+        // Empêcher l'ouverture de popups/iframes et forcer une redirection complète
         onClick: function(data, actions) {
-            // S'assurer qu'aucune popup ne s'ouvre et utiliser le flux iframe/overlay
-            return actions.resolve();
+            // Intercepter le clic pour créer la commande et rediriger directement
+            // Cela évite les erreurs CORS avec les popups/iframes
+            return fetch('/boutique/api/paypal/create-order/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    order_id: orderId,
+                    amount: totalAmount
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                // Rediriger directement vers PayPal (redirection complète, pas de popup)
+                const approvalLink = data.links ? data.links.find(link => link.rel === 'approve') : null;
+                if (approvalLink && approvalLink.href) {
+                    window.location.href = approvalLink.href;
+                    // Empêcher le flux normal du SDK
+                    return actions.reject();
+                }
+                throw new Error('URL d\'approbation PayPal non trouvée');
+            })
+            .catch(error => {
+                console.error('Erreur lors de la création de commande:', error);
+                showError('Erreur lors de la création de la commande PayPal: ' + error.message);
+                return actions.reject();
+            });
         },
         createOrder: function(data, actions) {
             if (isDebugMode) {
