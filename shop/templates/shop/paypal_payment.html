@@ -222,6 +222,11 @@ document.addEventListener('DOMContentLoaded', function() {
             shape: 'rect',
             label: 'paypal'
         },
+        // Empêcher l'ouverture de popups inutiles (fenêtre noire)
+        onClick: function(data, actions) {
+            // S'assurer qu'aucune popup ne s'ouvre et utiliser le flux iframe/overlay
+            return actions.resolve();
+        },
         createOrder: function(data, actions) {
             if (isDebugMode) {
                 console.log('Création de commande PayPal...');
