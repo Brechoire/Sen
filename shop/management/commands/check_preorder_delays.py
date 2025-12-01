@@ -153,3 +153,5 @@ Livres concernés:
                 self.style.SUCCESS(f'✓ {notified} client(s) notifié(s)')
             )
 
+
+

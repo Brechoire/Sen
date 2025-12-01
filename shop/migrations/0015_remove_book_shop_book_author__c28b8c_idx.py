@@ -17,3 +17,5 @@ class Migration(migrations.Migration):
         # et permettre à la migration 0016_remove_author_index_safely de fonctionner correctement
     ]
 
+
+
