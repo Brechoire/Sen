@@ -74,6 +74,7 @@ class Book(models.Model):
         ('broche', 'Broché'),
         ('relié', 'Relié'),
         ('ebook', 'E-book'),
+        ('boxe', 'Boxe'),
         ('audio', 'Livre audio'),
     ]
     format = models.CharField(max_length=20, choices=format_choices, default='broche', verbose_name="Format")
