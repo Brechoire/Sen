@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("shop", "0016_alter_book_format"),
+        ("shop", "0020_merge_0016_alter_book_format_0019_merge_20251123_1354"),
     ]
 
     operations = [
