@@ -1,6 +1,7 @@
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.text import slugify
 from django.db.models import Sum
 from ckeditor.fields import RichTextField
 from author.models import Author
@@ -65,7 +66,7 @@ class Book(models.Model):
     excerpt = models.TextField(blank=True, verbose_name="Extrait")
     
     # Informations éditoriales
-    isbn = models.CharField(max_length=20, unique=True, verbose_name="ISBN")
+    isbn = models.CharField(max_length=20, verbose_name="ISBN")
     publication_date = models.DateField(verbose_name="Date de publication")
     pages = models.PositiveIntegerField(verbose_name="Nombre de pages")
     language = models.CharField(max_length=50, default="Français", verbose_name="Langue")
@@ -200,6 +201,18 @@ class Book(models.Model):
     def get_meta_description(self):
         """Retourne la description SEO ou la description courte"""
         return self.meta_description or self.short_description or self.description[:200] + "..."
+    
+    def save(self, *args, **kwargs):
+        """Génère automatiquement le slug si non fourni"""
+        if not self.slug:
+            self.slug = slugify(self.title)
+            # Gérer les doublons si nécessaire
+            original_slug = self.slug
+            counter = 1
+            while Book.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
+                self.slug = f"{original_slug}-{counter}"
+                counter += 1
+        super().save(*args, **kwargs)
 
 
 class BookImage(models.Model):
