@@ -1,0 +1,174 @@
+name: Security Check
+
+on:
+  push:
+    branches: [ main, develop, master ]
+  pull_request:
+    branches: [ main, develop, master ]
+  schedule:
+    # Audit quotidien à 2h du matin
+    - cron: '0 2 * * *'
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Nécessaire pour detect-secrets
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt', '**/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install detect-secrets bandit pip-audit
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+
+    - name: Check for secrets
+      run: |
+        echo "=== Vérification des secrets ==="
+        if [ -f .secrets.baseline ]; then
+          detect-secrets scan --baseline .secrets.baseline
+        else
+          echo "⚠️  Fichier .secrets.baseline non trouvé"
+          detect-secrets scan > .secrets.baseline
+          echo "📝 Baseline créée, pensez à la commiter"
+        fi
+
+    - name: Run bandit security scan
+      run: |
+        echo "=== Analyse de sécurité avec Bandit ==="
+        bandit -r . -ll -x tests,venv,.venv,env,__pycache__,build,dist,node_modules -f json -o bandit-report.json || true
+        bandit -r . -ll -x tests,venv,.venv,env,__pycache__,build,dist,node_modules
+
+    - name: Check dependencies vulnerabilities
+      run: |
+        echo "=== Vérification des dépendances ==="
+        if [ -f requirements.txt ]; then
+          pip-audit -r requirements.txt --desc
+        elif [ -f pyproject.toml ]; then
+          pip-audit --desc
+        else
+          pip-audit --desc
+        fi
+
+    - name: Check for sensitive files
+      run: |
+        echo "=== Vérification des fichiers sensibles ==="
+        SENSITIVE_FILES=$(git ls-files | grep -E '\.(env|key|pem|p12|pfx)$|^(id_rsa|id_dsa|id_ecdsa|id_ed25519|.htpasswd|.netrc)' || true)
+        if [ -n "$SENSITIVE_FILES" ]; then
+          echo "❌ Fichiers sensibles trouvés :"
+          echo "$SENSITIVE_FILES"
+          exit 1
+        else
+          echo "✅ Aucun fichier sensible traqué"
+        fi
+
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-reports-python${{ matrix.python-version }}
+        path: |
+          bandit-report.json
+          .secrets.baseline
+        retention-days: 30
+
+    - name: Check for critical vulnerabilities
+      if: always()
+      run: |
+        echo "=== Vérification finale des vulnérabilités critiques ==="
+        
+        # Vérifier bandit
+        if [ -f bandit-report.json ]; then
+          HIGH_COUNT=$(python3 -c "import sys, json; data=json.load(open('bandit-report.json')); print(len([r for r in data.get('results', []) if r.get('issue_severity') in ['HIGH', 'CRITICAL']]))" 2>/dev/null || echo "0")
+          
+          if [ "$HIGH_COUNT" -gt 0 ]; then
+            echo "❌ $HIGH_COUNT vulnérabilité(s) HIGH/CRITICAL détectée(s) par Bandit"
+            exit 1
+          fi
+        fi
+        
+        echo "✅ Aucune vulnérabilité critique détectée"
+
+  security-full-scan:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || contains(github.event.head_commit.message, '[security-full]')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install detect-secrets bandit pip-audit
+
+    - name: Full secrets scan
+      run: |
+        echo "=== Scan complet de l'historique git ==="
+        detect-secrets scan --all-files --force-use-all-plugins --baseline .secrets.baseline
+
+    - name: Deep bandit scan
+      run: |
+        echo "=== Scan approfondi avec Bandit ==="
+        bandit -r . -x tests,venv,.venv,env,__pycache__ -f json -o bandit-full-report.json || true
+        bandit -r . -x tests,venv,.venv,env,__pycache__
+
+    - name: Dependency audit with descriptions
+      run: |
+        echo "=== Audit complet des dépendances ==="
+        pip-audit --desc -f json -o pip-audit-full-report.json || true
+        pip-audit --desc
+
+    - name: Check for large files in history
+      run: |
+        echo "=== Recherche de gros fichiers dans l'historique ==="
+        LARGE_FILES=$(git rev-list --objects --all | \
+          git cat-file --batch-check='%(objecttype) %(objectname) %(objectsize) %(rest)' | \
+          awk '$1 == "blob" && $3 > 10485760' | \
+          sort -k3 -rn | \
+          head -20 || true)
+        
+        if [ -n "$LARGE_FILES" ]; then
+          echo "⚠️  Gros fichiers détectés (>10MB) :"
+          echo "$LARGE_FILES"
+        else
+          echo "✅ Aucun gros fichier détecté"
+        fi
+
+    - name: Upload full scan reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-full-scan-reports
+        path: |
+          bandit-full-report.json
+          pip-audit-full-report.json
+          .secrets.baseline
+        retention-days: 90

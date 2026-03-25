@@ -1,0 +1,72 @@
+# Fichiers Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Environnements virtuels
+venv/
+env/
+ENV/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Fichiers de configuration locaux
+.env
+.env.local
+.env.*.local
+
+# Base de données
+*.sqlite3
+*.db
+
+# Fichiers de media et static collectés
+media/
+staticfiles/
+
+# Fichiers de logs
+*.log
+logs/
+
+# Fichiers de cache
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.dmypy.json
+
+# Fichiers de coverage
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# Fichiers de migration (optionnel - décommentez si vous ne voulez pas suivre les migrations)
+# */migrations/*.py
+# !*/migrations/__init__.py
+
+# Fichiers spécifiques au système
+Thumbs.db
