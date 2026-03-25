@@ -1,0 +1,176 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load static %}
+
+{% block admin_content %}
+<div class="space-y-6">
+    <!-- En-tête -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h2 class="text-3xl font-bold text-dark">Sauvegardes</h2>
+            <p class="text-gray-600 mt-2">Gestion des sauvegardes de la base de données et du dossier média</p>
+        </div>
+        <div class="text-sm text-gray-500">
+            {{ backup_count }} sauvegarde{{ backup_count|pluralize }} disponible{{ backup_count|pluralize }}
+        </div>
+    </div>
+
+    <!-- Alerte informative -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div class="flex items-start">
+            <svg class="w-5 h-5 text-blue-600 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div class="text-sm text-blue-800">
+                <p class="font-medium">Informations sur les sauvegardes :</p>
+                <ul class="list-disc list-inside mt-1 space-y-1">
+                    <li>Chaque sauvegarde contient une copie de la base de données (db.sqlite3) et le dossier média compressé</li>
+                    <li>Les sauvegardes sont stockées localement dans le dossier <code>backups/</code></li>
+                    <li>Les fichiers sont compressés au format ZIP pour faciliter le téléchargement</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section création -->
+    <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <h3 class="text-lg font-semibold text-gray-900">Créer une nouvelle sauvegarde</h3>
+        </div>
+        <div class="p-6">
+            <form method="post" action="{% url 'admin_panel:backups' %}" class="flex items-center justify-between">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create">
+                <div class="text-sm text-gray-600">
+                    <p>Cette action va créer une sauvegarde complète contenant :</p>
+                    <ul class="list-disc list-inside mt-2 ml-4">
+                        <li>Base de données SQLite (db.sqlite3)</li>
+                        <li>Dossier média (images, documents...)</li>
+                    </ul>
+                </div>
+                <button type="submit" 
+                        class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
+                        onclick="return confirm('Êtes-vous sûr de vouloir créer une nouvelle sauvegarde ? Cette opération peut prendre quelques minutes selon la taille du dossier média.');">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                    </svg>
+                    Créer une sauvegarde
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Liste des sauvegardes -->
+    <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <h3 class="text-lg font-semibold text-gray-900">Sauvegardes existantes</h3>
+        </div>
+        
+        {% if backups %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date de création</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Taille</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contenu</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for backup in backups %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">{{ backup.name }}</div>
+                                    <div class="text-xs text-gray-500">{{ backup.created_at|date:"d/m/Y H:i" }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm text-gray-900">{{ backup.size }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex space-x-2">
+                                {% if backup.has_db %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Base de données
+                                </span>
+                                {% endif %}
+                                {% if backup.has_media %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Média
+                                </span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="flex items-center justify-end space-x-2">
+                                <a href="{% url 'admin_panel:download_backup' backup.name %}" 
+                                   class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                    </svg>
+                                    Télécharger
+                                </a>
+                                <form method="post" action="{% url 'admin_panel:backups' %}" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="backup_name" value="{{ backup.name }}">
+                                    <button type="submit" 
+                                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                                            onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette sauvegarde ? Cette action est irréversible.');">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                        Supprimer
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-12 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">Aucune sauvegarde</h3>
+            <p class="mt-1 text-sm text-gray-500">Commencez par créer votre première sauvegarde.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Instructions de restauration -->
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div class="flex items-start">
+            <svg class="w-5 h-5 text-yellow-600 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+            <div class="text-sm text-yellow-800">
+                <p class="font-medium">Pour restaurer une sauvegarde :</p>
+                <ol class="list-decimal list-inside mt-2 space-y-1">
+                    <li>Téléchargez le fichier ZIP de la sauvegarde souhaitée</li>
+                    <li>Extrayez le contenu du ZIP</li>
+                    <li>Remplacez le fichier <code>db.sqlite3</code> actuel par celui de la sauvegarde</li>
+                    <li>Extrayez le dossier <code>media/</code> pour restaurer les images et fichiers</li>
+                    <li>Redémarrez le serveur si nécessaire</li>
+                </ol>
+                <p class="mt-2 font-medium">⚠️ Attention : La restauration écrasera les données actuelles !</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
