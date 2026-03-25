@@ -9,8 +9,13 @@
             <h2 class="text-3xl font-bold text-dark">Sauvegardes</h2>
             <p class="text-gray-600 mt-2">Gestion des sauvegardes de la base de données et du dossier média</p>
         </div>
-        <div class="text-sm text-gray-500">
-            {{ backup_count }} sauvegarde{{ backup_count|pluralize }} disponible{{ backup_count|pluralize }}
+        <div class="text-right">
+            <div class="text-lg font-semibold text-gray-900">
+                {{ backup_count }} / {{ max_backups }} sauvegarde{{ backup_count|pluralize }}
+            </div>
+            <div class="text-sm text-gray-500">
+                Espace utilisé: {{ total_backup_size }}
+            </div>
         </div>
     </div>
 

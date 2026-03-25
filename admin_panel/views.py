@@ -5,13 +5,16 @@ from django.core.paginator import Paginator
 from django.db.models import Q, Count
 from django.utils import timezone
 from datetime import datetime, timedelta
-from django.http import JsonResponse, FileResponse
+from django.http import JsonResponse, FileResponse, StreamingHttpResponse
 from django.conf import settings
 import os
 import logging
 import shutil
 import zipfile
+import re
+import tempfile
 from pathlib import Path
+from datetime import datetime
 
 from app.utils.validation import validate_search_query, validate_id
 
@@ -1629,12 +1632,61 @@ def mark_book_available(request, book_id):
 # ===== GESTION DES SAUVEGARDES =====
 
 
+def _validate_backup_name(backup_name):
+    """Valide que le nom de sauvegarde ne contient pas de path traversal"""
+    if not backup_name:
+        return False
+    # Pattern: backup_YYYY-MM-DD_HH-MM-SS
+    pattern = r"^backup_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}$"
+    return re.match(pattern, backup_name) is not None
+
+
+def _get_dir_size(path):
+    """Calcule la taille totale d'un répertoire en octets"""
+    total_size = 0
+    try:
+        for dirpath, dirnames, filenames in os.walk(path):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                if not os.path.islink(fp):
+                    total_size += os.path.getsize(fp)
+    except (OSError, IOError):
+        pass
+    return total_size
+
+
+def _cleanup_old_backups(backup_dir, max_backups=10):
+    """Supprime les anciennes sauvegardes en gardant seulement les N dernières"""
+    try:
+        backups = sorted(
+            [d for d in backup_dir.iterdir() if d.is_dir()],
+            key=lambda x: x.stat().st_mtime,
+            reverse=True,
+        )
+
+        if len(backups) > max_backups:
+            for old_backup in backups[max_backups:]:
+                try:
+                    shutil.rmtree(old_backup)
+                    security_logger.info(
+                        f"Ancienne sauvegarde supprimée automatiquement: {old_backup.name}"
+                    )
+                except Exception as e:
+                    security_logger.error(
+                        f"Erreur suppression ancienne sauvegarde {old_backup.name}: {e}"
+                    )
+    except Exception as e:
+        security_logger.error(f"Erreur lors du nettoyage des sauvegardes: {e}")
+
+
 @staff_member_required
 def backup_management(request):
     """Gestion des sauvegardes de la base de données et du dossier média"""
 
     # Dossier de sauvegarde
     backup_dir = Path(settings.BASE_DIR) / "backups"
+    max_backups = getattr(settings, "BACKUP_MAX_COUNT", 10)
+    min_free_space_gb = getattr(settings, "BACKUP_MIN_FREE_SPACE_GB", 1)
 
     # Créer le dossier s'il n'existe pas
     if not backup_dir.exists():
@@ -1645,6 +1697,22 @@ def backup_management(request):
 
         if action == "create":
             try:
+                # Vérifier l'espace disque disponible
+                stat = shutil.disk_usage(backup_dir)
+                free_space_gb = stat.free / (1024**3)
+
+                if free_space_gb < min_free_space_gb:
+                    messages.error(
+                        request,
+                        f"Espace disque insuffisant. Il reste {free_space_gb:.2f} GB, "
+                        f"minimum requis: {min_free_space_gb} GB.",
+                    )
+                    security_logger.warning(
+                        f"Tentative de création de sauvegarde sans espace disque suffisant "
+                        f"par {request.user.email}. Espace disponible: {free_space_gb:.2f} GB"
+                    )
+                    return redirect("admin_panel:backups")
+
                 # Générer un nom horodaté
                 timestamp = timezone.now().strftime("%Y-%m-%d_%H-%M-%S")
                 backup_name = f"backup_{timestamp}"
@@ -1675,51 +1743,87 @@ Dossier média: {"Oui" if media_path.exists() else "Non"}
 """
                 (backup_path / "info.txt").write_text(info_content, encoding="utf-8")
 
+                # Logger la création
+                security_logger.info(
+                    f"Sauvegarde créée par {request.user.email}: {backup_name}"
+                )
+
+                # Nettoyer les anciennes sauvegardes
+                _cleanup_old_backups(backup_dir, max_backups)
+
                 messages.success(
                     request, f"Sauvegarde '{backup_name}' créée avec succès."
                 )
 
             except Exception as e:
+                security_logger.error(
+                    f"Erreur création sauvegarde par {request.user.email}: {e}"
+                )
                 messages.error(
                     request, f"Erreur lors de la création de la sauvegarde: {str(e)}"
                 )
 
         elif action == "delete":
             backup_name = request.POST.get("backup_name")
-            if backup_name:
-                backup_path = backup_dir / backup_name
-                if backup_path.exists():
-                    try:
-                        shutil.rmtree(backup_path)
-                        messages.success(
-                            request, f"Sauvegarde '{backup_name}' supprimée."
-                        )
-                    except Exception as e:
-                        messages.error(
-                            request, f"Erreur lors de la suppression: {str(e)}"
-                        )
+
+            # Validation du nom pour éviter le path traversal
+            if not _validate_backup_name(backup_name):
+                security_logger.warning(
+                    f"Tentative de suppression avec nom invalide par {request.user.email}: {backup_name}"
+                )
+                messages.error(request, "Nom de sauvegarde invalide.")
+                return redirect("admin_panel:backups")
+
+            backup_path = backup_dir / backup_name
+
+            # Vérifier que le chemin est bien dans le dossier backups
+            try:
+                backup_path.relative_to(backup_dir)
+            except ValueError:
+                security_logger.warning(
+                    f"Tentative de path traversal par {request.user.email}: {backup_name}"
+                )
+                messages.error(request, "Nom de sauvegarde invalide.")
+                return redirect("admin_panel:backups")
+
+            if backup_path.exists():
+                try:
+                    shutil.rmtree(backup_path)
+                    security_logger.info(
+                        f"Sauvegarde supprimée par {request.user.email}: {backup_name}"
+                    )
+                    messages.success(request, f"Sauvegarde '{backup_name}' supprimée.")
+                except Exception as e:
+                    security_logger.error(
+                        f"Erreur suppression sauvegarde {backup_name} par {request.user.email}: {e}"
+                    )
+                    messages.error(request, f"Erreur lors de la suppression: {str(e)}")
+            else:
+                messages.error(request, "Sauvegarde introuvable.")
 
     # Liste des sauvegardes existantes
     backups = []
+    total_backup_size = 0
+
     if backup_dir.exists():
         for backup_path in sorted(backup_dir.iterdir(), reverse=True):
-            if backup_path.is_dir():
+            if backup_path.is_dir() and _validate_backup_name(backup_path.name):
                 # Calculer la taille totale
-                total_size = 0
+                total_size = _get_dir_size(backup_path)
+                total_backup_size += total_size
+
                 has_db = (backup_path / "db.sqlite3").exists()
                 has_media = (backup_path / "media.zip").exists()
-
-                for file_path in backup_path.rglob("*"):
-                    if file_path.is_file():
-                        total_size += file_path.stat().st_size
 
                 # Formater la taille
                 if total_size < 1024:
                     size_str = f"{total_size} B"
                 elif total_size < 1024 * 1024:
                     size_str = f"{total_size / 1024:.2f} KB"
-                else:
+                elif total_size < 1024 * 1024 * 1024:
                     size_str = f"{total_size / (1024 * 1024):.2f} MB"
+                else:
+                    size_str = f"{total_size / (1024 * 1024 * 1024):.2f} GB"
 
                 backups.append(
                     {
@@ -1731,9 +1835,17 @@ Dossier média: {"Oui" if media_path.exists() else "Non"}
                     }
                 )
 
+    # Calculer l'espace disque total utilisé par les sauvegardes
+    if total_backup_size < 1024 * 1024 * 1024:
+        total_size_str = f"{total_backup_size / (1024 * 1024):.2f} MB"
+    else:
+        total_size_str = f"{total_backup_size / (1024 * 1024 * 1024):.2f} GB"
+
     context = {
         "backups": backups,
         "backup_count": len(backups),
+        "total_backup_size": total_size_str,
+        "max_backups": max_backups,
     }
 
     return render(request, "admin_panel/backups.html", context)
@@ -1743,37 +1855,71 @@ Dossier média: {"Oui" if media_path.exists() else "Non"}
 def download_backup(request, backup_name):
     """Télécharger une sauvegarde sous forme de fichier ZIP"""
 
+    # Validation du nom pour éviter le path traversal
+    if not _validate_backup_name(backup_name):
+        security_logger.warning(
+            f"Tentative de téléchargement avec nom invalide par {request.user.email}: {backup_name}"
+        )
+        messages.error(request, "Nom de sauvegarde invalide.")
+        return redirect("admin_panel:backups")
+
     backup_dir = Path(settings.BASE_DIR) / "backups"
     backup_path = backup_dir / backup_name
+
+    # Vérifier que le chemin est bien dans le dossier backups
+    try:
+        backup_path.relative_to(backup_dir)
+    except ValueError:
+        security_logger.warning(
+            f"Tentative de path traversal par {request.user.email}: {backup_name}"
+        )
+        messages.error(request, "Nom de sauvegarde invalide.")
+        return redirect("admin_panel:backups")
 
     if not backup_path.exists():
         messages.error(request, "Sauvegarde introuvable.")
         return redirect("admin_panel:backups")
 
-    try:
-        # Créer un fichier ZIP temporaire pour le téléchargement
-        zip_filename = f"{backup_name}.zip"
-        zip_path = backup_dir / zip_filename
+    # Créer un fichier ZIP temporaire dans le dossier temporaire système
+    zip_fd, zip_path = tempfile.mkstemp(suffix=".zip", prefix=f"backup_{backup_name}_")
 
+    try:
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
             for file_path in backup_path.rglob("*"):
                 if file_path.is_file():
                     arcname = file_path.relative_to(backup_path)
                     zipf.write(file_path, arcname)
 
+        # Logger le téléchargement
+        security_logger.info(
+            f"Sauvegarde téléchargée par {request.user.email}: {backup_name}"
+        )
+
         # Préparer la réponse avec le fichier ZIP
         response = FileResponse(
             open(zip_path, "rb"),
             as_attachment=True,
-            filename=zip_filename,
+            filename=f"{backup_name}.zip",
             content_type="application/zip",
         )
 
-        # Supprimer le fichier ZIP temporaire après l'envoi (en utilisant un callback)
-        # Note: En production, vous pourriez utiliser une tâche de nettoyage périodique
+        # Ajouter un callback pour supprimer le fichier temporaire après l'envoi
+        # Note: Dans une vraie production, utilisez un task Celery ou un cron
+        # pour nettoyer les fichiers temporaires périodiquement
 
         return response
 
     except Exception as e:
+        security_logger.error(
+            f"Erreur téléchargement sauvegarde {backup_name} par {request.user.email}: {e}"
+        )
         messages.error(request, f"Erreur lors du téléchargement: {str(e)}")
         return redirect("admin_panel:backups")
+
+    finally:
+        # Nettoyer le fichier temporaire
+        try:
+            os.close(zip_fd)
+            os.unlink(zip_path)
+        except Exception:
+            pass
