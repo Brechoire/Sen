@@ -193,10 +193,20 @@
                             </div>
                             
                             <div class="mt-6 space-y-3">
+                                {% if user.is_authenticated %}
                                 <button onclick="proceedToCheckout()" 
                                         class="w-full bg-primary text-white py-3 px-4 rounded-lg font-semibold hover:bg-secondary transition-colors">
                                     Passer la commande
                                 </button>
+                                {% else %}
+                                <a href="{% url 'accounts:login' %}?next={% url 'shop:checkout' %}" 
+                                   class="block w-full bg-primary text-white py-3 px-4 rounded-lg font-semibold hover:bg-secondary transition-colors text-center">
+                                    Se connecter pour commander
+                                </a>
+                                <p class="text-sm text-gray-500 text-center">
+                                    Vous devez être connecté pour passer une commande
+                                </p>
+                                {% endif %}
                                 
                                 <button onclick="clearCart()" 
                                         class="w-full bg-gray-300 text-gray-700 py-3 px-4 rounded-lg font-semibold hover:bg-gray-400 transition-colors">
